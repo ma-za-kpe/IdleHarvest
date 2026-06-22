@@ -28,9 +28,8 @@ class SystemHealthIndicator(
     private val agentStates: () -> Map<AgentId, AgentState>,
     private val isOnline: () -> Boolean,
     private val errorLog: RollingErrorLog,
-    private val clock: () -> Long = { currentTimeMillis() }
+    private val clock: () -> Long = { currentTimeMillis() },
 ) {
-
     companion object {
         /** Time window for "recent" critical errors (last 1 hour). */
         private const val RECENT_WINDOW_MS: Long = 60L * 60L * 1000L
@@ -63,10 +62,14 @@ class SystemHealthIndicator(
         val states = agentStates()
         val online = isOnline()
         val recentCutoff = clock() - RECENT_WINDOW_MS
-        val recentCriticals = errorLog.getEntriesSince(recentCutoff)
-            .count { it.severity == LogSeverity.CRITICAL }
-        val recentErrors = errorLog.getEntriesSince(recentCutoff)
-            .count { it.severity == LogSeverity.ERROR || it.severity == LogSeverity.CRITICAL }
+        val recentCriticals =
+            errorLog
+                .getEntriesSince(recentCutoff)
+                .count { it.severity == LogSeverity.CRITICAL }
+        val recentErrors =
+            errorLog
+                .getEntriesSince(recentCutoff)
+                .count { it.severity == LogSeverity.ERROR || it.severity == LogSeverity.CRITICAL }
 
         // --- RED conditions ---
         // Any agent in ERROR state

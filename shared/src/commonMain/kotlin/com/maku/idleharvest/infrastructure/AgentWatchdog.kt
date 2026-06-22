@@ -41,12 +41,16 @@ class AgentWatchdog(
      * @param agentId Unique identifier for the agent.
      * @param restartFn Suspend function to call when the agent needs to be restarted.
      */
-    fun registerAgent(agentId: AgentId, restartFn: suspend () -> Unit) {
-        registeredAgents[agentId] = AgentEntry(
-            agentId = agentId,
-            restartFn = restartFn,
-            lastHeartbeat = clock(),
-        )
+    fun registerAgent(
+        agentId: AgentId,
+        restartFn: suspend () -> Unit,
+    ) {
+        registeredAgents[agentId] =
+            AgentEntry(
+                agentId = agentId,
+                restartFn = restartFn,
+                lastHeartbeat = clock(),
+            )
     }
 
     /**
@@ -83,12 +87,13 @@ class AgentWatchdog(
     suspend fun restartAgent(agentId: AgentId) {
         val entry = registeredAgents[agentId] ?: return
 
-        val restartEvent = RestartEvent(
-            agentId = agentId,
-            timestamp = clock(),
-            reason = "Agent unresponsive for >${timeoutMs}ms",
-            lastHeartbeat = entry.lastHeartbeat,
-        )
+        val restartEvent =
+            RestartEvent(
+                agentId = agentId,
+                timestamp = clock(),
+                reason = "Agent unresponsive for >${timeoutMs}ms",
+                lastHeartbeat = entry.lastHeartbeat,
+            )
         _restartLog.add(restartEvent)
 
         // Invoke the restart function

@@ -30,7 +30,6 @@ class DefaultPolicyManager(
     private val eventBus: AgentEventBus,
     private val clock: () -> Long = { currentTimeMillis() },
 ) : PolicyManager {
-
     private val json = Json { ignoreUnknownKeys = true }
 
     private val _activePolicies = MutableStateFlow<List<Policy>>(emptyList())
@@ -86,9 +85,13 @@ class DefaultPolicyManager(
         _activePolicies.value = currentPolicies
     }
 
-    override suspend fun checkAction(agentId: AgentId, action: AgentAction): PolicyDecision {
-        val policy = findPolicyForAgent(agentId)
-            ?: return PolicyDecision.Approved
+    override suspend fun checkAction(
+        agentId: AgentId,
+        action: AgentAction,
+    ): PolicyDecision {
+        val policy =
+            findPolicyForAgent(agentId)
+                ?: return PolicyDecision.Approved
 
         if (!policy.isActive) {
             return PolicyDecision.Approved
@@ -120,58 +123,58 @@ class DefaultPolicyManager(
         return PolicyDecision.Approved
     }
 
-    override fun getDefaults(): List<Policy> {
-        return listOf(
-            Policy(
-                id = "default_airtime",
-                agentId = AgentId("airtime_agent"),
-                autonomyLevel = AutonomyLevel.MANUAL,
-                maxTransactionPerDay = 10.0,
-                maxTransactionSingle = 5.0,
-                resourceShareLimits = null,
-                requireBiometricAbove = 5.0,
-                isActive = true,
+    override fun getDefaults(): List<Policy> = listOf(
+        Policy(
+            id = "default_airtime",
+            agentId = AgentId("airtime_agent"),
+            autonomyLevel = AutonomyLevel.MANUAL,
+            maxTransactionPerDay = 10.0,
+            maxTransactionSingle = 5.0,
+            resourceShareLimits = null,
+            requireBiometricAbove = 5.0,
+            isActive = true,
+        ),
+        Policy(
+            id = "default_depin",
+            agentId = AgentId("depin_agent"),
+            autonomyLevel = AutonomyLevel.SEMI_AUTOMATIC,
+            maxTransactionPerDay = 50.0,
+            maxTransactionSingle = 20.0,
+            resourceShareLimits =
+            ResourceThreshold(
+                bandwidthMinMbps = 2.0f,
+                storageMinMb = 1000L,
+                computeMaxCpuPercent = 20,
             ),
-            Policy(
-                id = "default_depin",
-                agentId = AgentId("depin_agent"),
-                autonomyLevel = AutonomyLevel.SEMI_AUTOMATIC,
-                maxTransactionPerDay = 50.0,
-                maxTransactionSingle = 20.0,
-                resourceShareLimits = ResourceThreshold(
-                    bandwidthMinMbps = 2.0f,
-                    storageMinMb = 1000L,
-                    computeMaxCpuPercent = 20,
-                ),
-                requireBiometricAbove = 20.0,
-                isActive = true,
+            requireBiometricAbove = 20.0,
+            isActive = true,
+        ),
+        Policy(
+            id = "default_mesh",
+            agentId = AgentId("mesh_coordinator"),
+            autonomyLevel = AutonomyLevel.SEMI_AUTOMATIC,
+            maxTransactionPerDay = 5.0,
+            maxTransactionSingle = 2.0,
+            resourceShareLimits =
+            ResourceThreshold(
+                bandwidthMinMbps = 1.0f,
+                storageMinMb = 500L,
+                computeMaxCpuPercent = 15,
             ),
-            Policy(
-                id = "default_mesh",
-                agentId = AgentId("mesh_coordinator"),
-                autonomyLevel = AutonomyLevel.SEMI_AUTOMATIC,
-                maxTransactionPerDay = 5.0,
-                maxTransactionSingle = 2.0,
-                resourceShareLimits = ResourceThreshold(
-                    bandwidthMinMbps = 1.0f,
-                    storageMinMb = 500L,
-                    computeMaxCpuPercent = 15,
-                ),
-                requireBiometricAbove = 5.0,
-                isActive = true,
-            ),
-            Policy(
-                id = "default_earning",
-                agentId = AgentId("earning_engine"),
-                autonomyLevel = AutonomyLevel.MANUAL,
-                maxTransactionPerDay = 100.0,
-                maxTransactionSingle = 50.0,
-                resourceShareLimits = null,
-                requireBiometricAbove = 25.0,
-                isActive = true,
-            ),
-        )
-    }
+            requireBiometricAbove = 5.0,
+            isActive = true,
+        ),
+        Policy(
+            id = "default_earning",
+            agentId = AgentId("earning_engine"),
+            autonomyLevel = AutonomyLevel.MANUAL,
+            maxTransactionPerDay = 100.0,
+            maxTransactionSingle = 50.0,
+            resourceShareLimits = null,
+            requireBiometricAbove = 25.0,
+            isActive = true,
+        ),
+    )
 
     /**
      * Persists the current policy state to the vault.
@@ -194,41 +197,46 @@ class DefaultPolicyManager(
 
     // --- Private helpers ---
 
-    private fun findPolicyForAgent(agentId: AgentId): Policy? {
-        return _activePolicies.value.firstOrNull { it.agentId == agentId }
+    private fun findPolicyForAgent(agentId: AgentId): Policy? = _activePolicies.value.firstOrNull {
+        it.agentId ==
+            agentId
     }
 
     /**
      * Checks autonomy level rules.
      * Returns a PolicyDecision if the action should be blocked/requires approval, or null if it passes.
      */
-    private fun checkAutonomyLevel(policy: Policy, action: AgentAction): PolicyDecision? {
-        return when (policy.autonomyLevel) {
-            AutonomyLevel.MANUAL -> {
-                // All actions require user approval
+    private fun checkAutonomyLevel(
+        policy: Policy,
+        action: AgentAction,
+    ): PolicyDecision? = when (policy.autonomyLevel) {
+        AutonomyLevel.MANUAL -> {
+            // All actions require user approval
+            PolicyDecision.RequiresApproval(action)
+        }
+
+        AutonomyLevel.SEMI_AUTOMATIC -> {
+            // Financial actions need approval, resource actions auto-approve
+            if (isFinancialAction(action)) {
                 PolicyDecision.RequiresApproval(action)
+            } else {
+                null // approved, continue checks
             }
+        }
 
-            AutonomyLevel.SEMI_AUTOMATIC -> {
-                // Financial actions need approval, resource actions auto-approve
-                if (isFinancialAction(action)) {
-                    PolicyDecision.RequiresApproval(action)
-                } else {
-                    null // approved, continue checks
-                }
-            }
-
-            AutonomyLevel.FULLY_AUTOMATIC -> {
-                // All actions auto-approve (within limits checked separately)
-                null
-            }
+        AutonomyLevel.FULLY_AUTOMATIC -> {
+            // All actions auto-approve (within limits checked separately)
+            null
         }
     }
 
     /**
      * Checks if the action exceeds the single transaction limit.
      */
-    private fun checkSingleTransactionLimit(policy: Policy, action: AgentAction): PolicyDecision? {
+    private fun checkSingleTransactionLimit(
+        policy: Policy,
+        action: AgentAction,
+    ): PolicyDecision? {
         val limit = policy.maxTransactionSingle ?: return null
         val amount = action.amountUsdc ?: return null
 
@@ -276,11 +284,12 @@ class DefaultPolicyManager(
         return null
     }
 
-    private fun isFinancialAction(action: AgentAction): Boolean {
-        return action.amountUsdc != null && action.amountUsdc > 0.0
-    }
+    private fun isFinancialAction(action: AgentAction): Boolean = action.amountUsdc != null && action.amountUsdc > 0.0
 
-    private fun publishViolation(agentId: AgentId, action: AgentAction) {
+    private fun publishViolation(
+        agentId: AgentId,
+        action: AgentAction,
+    ) {
         eventBus.publish(AgentEvent.PolicyViolation(agentId, action))
     }
 

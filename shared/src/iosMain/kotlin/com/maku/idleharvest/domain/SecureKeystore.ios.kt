@@ -14,12 +14,18 @@ actual class SecureKeystore {
         return Result.failure(NotImplementedError("iOS Keychain implementation pending"))
     }
 
-    actual fun sign(alias: String, data: ByteArray): Result<ByteArray> {
+    actual fun sign(
+        alias: String,
+        data: ByteArray,
+    ): Result<ByteArray> {
         // TODO: Implement signing via SecKeyCreateSignature
         return Result.failure(NotImplementedError("iOS Keychain implementation pending"))
     }
 
-    actual fun requireBiometric(alias: String, challenge: ByteArray): Result<ByteArray> {
+    actual fun requireBiometric(
+        alias: String,
+        challenge: ByteArray,
+    ): Result<ByteArray> {
         // TODO: Implement with LAContext + biometryType
         return Result.failure(NotImplementedError("iOS Keychain implementation pending"))
     }

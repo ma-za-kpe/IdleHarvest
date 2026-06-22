@@ -108,11 +108,12 @@ class OfflineQueue(
         val decoded = stored.decodeToString()
         if (decoded.isBlank()) return
 
-        val items = try {
-            json.decodeFromString<List<QueuedItem>>(decoded)
-        } catch (_: Exception) {
-            emptyList()
-        }
+        val items =
+            try {
+                json.decodeFromString<List<QueuedItem>>(decoded)
+            } catch (_: Exception) {
+                emptyList()
+            }
         queue.clear()
         queue.addAll(items)
     }
@@ -183,8 +184,10 @@ data class QueuedItem(
 enum class QueueItemType {
     /** A pending financial transaction (payout request). */
     TRANSACTION,
+
     /** A pending DePIN contribution proof. */
     PROOF,
+
     /** A pending submission (metrics, crash reports, etc.). */
     SUBMISSION,
 }

@@ -37,7 +37,6 @@ class DefaultInferenceEngine(
     private val modelRegistry: ModelRegistry,
     private val clock: () -> Long = { currentTimeMillis() },
 ) : InferenceEngine {
-
     private val _loadedModel = MutableStateFlow<ModelInfo?>(null)
     override val loadedModel: StateFlow<ModelInfo?> = _loadedModel.asStateFlow()
 
@@ -54,17 +53,19 @@ class DefaultInferenceEngine(
     override suspend fun loadModel(modelId: String): Result<ModelInfo> {
         return try {
             val modelFile = modelRegistry.downloadModel(modelId).getOrThrow()
-            val metadata = modelRegistry.availableModels.value.find { it.id == modelId }
-                ?: return Result.failure(IllegalStateException("Model metadata not found for: $modelId"))
+            val metadata =
+                modelRegistry.availableModels.value.find { it.id == modelId }
+                    ?: return Result.failure(IllegalStateException("Model metadata not found for: $modelId"))
 
-            val modelInfo = ModelInfo(
-                modelId = metadata.id,
-                version = metadata.version,
-                purpose = metadata.purpose,
-                backend = selectBackend(ThermalState.COOL), // default to best backend
-                sizeBytes = modelFile.sizeBytes,
-                loadedAt = clock(),
-            )
+            val modelInfo =
+                ModelInfo(
+                    modelId = metadata.id,
+                    version = metadata.version,
+                    purpose = metadata.purpose,
+                    backend = selectBackend(ThermalState.COOL), // default to best backend
+                    sizeBytes = modelFile.sizeBytes,
+                    loadedAt = clock(),
+                )
             _loadedModel.value = modelInfo
             Result.success(modelInfo)
         } catch (e: Exception) {
@@ -131,35 +132,35 @@ class DefaultInferenceEngine(
         }
 
         val sorted = latencies.sorted()
-        val report = BenchmarkReport(
-            modelId = config.modelId,
-            backend = backend,
-            iterationCount = config.iterationCount,
-            latencyMinMs = sorted.firstOrNull() ?: 0L,
-            latencyMaxMs = sorted.lastOrNull() ?: 0L,
-            latencyMeanMs = if (latencies.isNotEmpty()) latencies.average() else 0.0,
-            latencyP95Ms = computeP95(sorted),
-            memoryUsageMb = 0f, // Platform-specific measurement
-            powerDrawMw = null, // Platform-specific measurement
-            deviceMetadata = DeviceMetadata(
-                socModel = "unknown",
-                coreConfig = "unknown",
-                ramGb = 0f,
-                osVersion = "unknown",
-            ),
-        )
+        val report =
+            BenchmarkReport(
+                modelId = config.modelId,
+                backend = backend,
+                iterationCount = config.iterationCount,
+                latencyMinMs = sorted.firstOrNull() ?: 0L,
+                latencyMaxMs = sorted.lastOrNull() ?: 0L,
+                latencyMeanMs = if (latencies.isNotEmpty()) latencies.average() else 0.0,
+                latencyP95Ms = computeP95(sorted),
+                memoryUsageMb = 0f, // Platform-specific measurement
+                powerDrawMw = null, // Platform-specific measurement
+                deviceMetadata =
+                DeviceMetadata(
+                    socModel = "unknown",
+                    coreConfig = "unknown",
+                    ramGb = 0f,
+                    osVersion = "unknown",
+                ),
+            )
 
         _benchmarkResults.value = report
         return report
     }
 
-    override fun selectBackend(thermalState: ThermalState): InferenceBackend {
-        return when (thermalState) {
-            ThermalState.COOL -> InferenceBackend.KLEIDIAI
-            ThermalState.WARM -> InferenceBackend.XNNPACK
-            ThermalState.HOT -> InferenceBackend.CPU_BASELINE
-            ThermalState.CRITICAL -> InferenceBackend.CPU_BASELINE
-        }
+    override fun selectBackend(thermalState: ThermalState): InferenceBackend = when (thermalState) {
+        ThermalState.COOL -> InferenceBackend.KLEIDIAI
+        ThermalState.WARM -> InferenceBackend.XNNPACK
+        ThermalState.HOT -> InferenceBackend.CPU_BASELINE
+        ThermalState.CRITICAL -> InferenceBackend.CPU_BASELINE
     }
 
     /**
@@ -202,13 +203,11 @@ class DefaultInferenceEngine(
     /**
      * Creates a minimal benchmark input for timing measurements.
      */
-    private fun createBenchmarkInput(modelId: String): InferenceInput {
-        return InferenceInput(
-            modelId = modelId,
-            tensorData = List(64) { it.toFloat() / 64f },
-            shape = listOf(1, 64),
-        )
-    }
+    private fun createBenchmarkInput(modelId: String): InferenceInput = InferenceInput(
+        modelId = modelId,
+        tensorData = List(64) { it.toFloat() / 64f },
+        shape = listOf(1, 64),
+    )
 
     /**
      * Computes the 95th percentile from a sorted list of latencies.

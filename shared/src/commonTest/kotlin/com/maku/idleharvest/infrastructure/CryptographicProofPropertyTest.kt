@@ -4,11 +4,11 @@ import com.maku.idleharvest.domain.models.ContributionSession
 import com.maku.idleharvest.domain.models.ResourceType
 import com.maku.idleharvest.infrastructure.crypto.SimpleCryptoProvider
 import io.kotest.property.Arb
+import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.enum
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.orNull
 import io.kotest.property.arbitrary.string
-import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -23,19 +23,19 @@ import kotlin.test.Test
  * **Validates: Requirements 3.6**
  */
 class CryptographicProofPropertyTest {
-
     /** Generator for ContributionSession with realistic constrained values. */
-    private val contributionSessionArb: Arb<ContributionSession> = arbitrary {
-        ContributionSession(
-            id = Arb.string(8..32).bind(),
-            networkId = Arb.string(8..32).bind(),
-            resourceType = Arb.enum<ResourceType>().bind(),
-            startedAt = Arb.long(1_000_000_000_000L..1_800_000_000_000L).bind(),
-            bytesServed = Arb.long(0L..1_000_000L).orNull(0.4).bind(),
-            computeUnitsCompleted = Arb.long(0L..10_000L).orNull(0.4).bind(),
-            storageProvidedMb = Arb.long(0L..50_000L).orNull(0.4).bind(),
-        )
-    }
+    private val contributionSessionArb: Arb<ContributionSession> =
+        arbitrary {
+            ContributionSession(
+                id = Arb.string(8..32).bind(),
+                networkId = Arb.string(8..32).bind(),
+                resourceType = Arb.enum<ResourceType>().bind(),
+                startedAt = Arb.long(1_000_000_000_000L..1_800_000_000_000L).bind(),
+                bytesServed = Arb.long(0L..1_000_000L).orNull(0.4).bind(),
+                computeUnitsCompleted = Arb.long(0L..10_000L).orNull(0.4).bind(),
+                storageProvidedMb = Arb.long(0L..50_000L).orNull(0.4).bind(),
+            )
+        }
 
     private fun createTestAgent(clock: () -> Long = { 1_719_792_000_000L }): DefaultDePinAgent {
         val vault = DefaultPrivacyVault(SimpleCryptoProvider())

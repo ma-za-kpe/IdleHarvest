@@ -20,7 +20,10 @@ interface ComplianceEngine {
     suspend fun updateRules(rules: ComplianceRuleSet): Result<Unit>
 
     /** Get the current compliance rules for a specific country and carrier. */
-    fun getCurrentRules(country: String, carrier: String): ComplianceRuleSet
+    fun getCurrentRules(
+        country: String,
+        carrier: String,
+    ): ComplianceRuleSet
 
     /** Observe the audit log of all compliance checks as a reactive stream. */
     fun getAuditLog(): Flow<List<ComplianceAuditEntry>>

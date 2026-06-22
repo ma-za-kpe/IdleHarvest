@@ -20,11 +20,11 @@ import kotlinx.serialization.json.Json
  * Validates: Requirements 11.1, 11.2, 11.4, 11.5, 11.6
  */
 object BenchmarkJsonExporter {
-
-    private val json = Json {
-        prettyPrint = true
-        encodeDefaults = true
-    }
+    private val json =
+        Json {
+            prettyPrint = true
+            encodeDefaults = true
+        }
 
     /**
      * Serializes a [BenchmarkReport] to Arm Performix-compatible JSON format.
@@ -37,37 +37,42 @@ object BenchmarkJsonExporter {
         report: BenchmarkReport,
         modelSizeComparison: ModelSizeComparison? = null,
     ): String {
-        val exportData = BenchmarkExportData(
-            schemaVersion = SCHEMA_VERSION,
-            tooling = TOOLING_IDENTIFIER,
-            benchmark = BenchmarkData(
-                modelId = report.modelId,
-                backend = report.backend.name,
-                iterationCount = report.iterationCount,
-                latency = LatencyData(
-                    minMs = report.latencyMinMs,
-                    maxMs = report.latencyMaxMs,
-                    meanMs = report.latencyMeanMs,
-                    p95Ms = report.latencyP95Ms,
+        val exportData =
+            BenchmarkExportData(
+                schemaVersion = SCHEMA_VERSION,
+                tooling = TOOLING_IDENTIFIER,
+                benchmark =
+                BenchmarkData(
+                    modelId = report.modelId,
+                    backend = report.backend.name,
+                    iterationCount = report.iterationCount,
+                    latency =
+                    LatencyData(
+                        minMs = report.latencyMinMs,
+                        maxMs = report.latencyMaxMs,
+                        meanMs = report.latencyMeanMs,
+                        p95Ms = report.latencyP95Ms,
+                    ),
+                    memoryUsageMb = report.memoryUsageMb,
+                    powerDrawMw = report.powerDrawMw,
                 ),
-                memoryUsageMb = report.memoryUsageMb,
-                powerDrawMw = report.powerDrawMw,
-            ),
-            device = DeviceData(
-                socModel = report.deviceMetadata.socModel,
-                coreConfig = report.deviceMetadata.coreConfig,
-                ramGb = report.deviceMetadata.ramGb,
-                osVersion = report.deviceMetadata.osVersion,
-            ),
-            modelSize = modelSizeComparison?.let { comparison ->
-                ModelSizeData(
-                    originalFp32Bytes = comparison.originalSizeFp32Bytes,
-                    quantizedBytes = comparison.quantizedSizeBytes,
-                    reductionPercent = comparison.reductionPercent,
-                    quantizationLevel = comparison.quantizationLevel.name,
-                )
-            },
-        )
+                device =
+                DeviceData(
+                    socModel = report.deviceMetadata.socModel,
+                    coreConfig = report.deviceMetadata.coreConfig,
+                    ramGb = report.deviceMetadata.ramGb,
+                    osVersion = report.deviceMetadata.osVersion,
+                ),
+                modelSize =
+                modelSizeComparison?.let { comparison ->
+                    ModelSizeData(
+                        originalFp32Bytes = comparison.originalSizeFp32Bytes,
+                        quantizedBytes = comparison.quantizedSizeBytes,
+                        reductionPercent = comparison.reductionPercent,
+                        quantizationLevel = comparison.quantizationLevel.name,
+                    )
+                },
+            )
 
         return json.encodeToString(exportData)
     }
@@ -78,9 +83,7 @@ object BenchmarkJsonExporter {
      * @param jsonString The JSON string to parse.
      * @return Parsed benchmark export data.
      */
-    fun importFromJson(jsonString: String): BenchmarkExportData {
-        return json.decodeFromString(jsonString)
-    }
+    fun importFromJson(jsonString: String): BenchmarkExportData = json.decodeFromString(jsonString)
 
     private const val SCHEMA_VERSION = "1.0"
     private const val TOOLING_IDENTIFIER = "arm-performix"

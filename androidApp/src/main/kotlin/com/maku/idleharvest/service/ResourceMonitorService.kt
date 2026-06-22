@@ -7,8 +7,6 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
-import android.os.BatteryManager
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
@@ -16,9 +14,9 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.maku.idleharvest.MainActivity
 import com.maku.idleharvest.R
-import com.maku.idleharvest.infrastructure.PlatformResourceScanner
 import com.maku.idleharvest.domain.models.MonitorConfig
 import com.maku.idleharvest.domain.models.ThermalState
+import com.maku.idleharvest.infrastructure.PlatformResourceScanner
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -41,7 +39,6 @@ import kotlinx.coroutines.launch
  * If the OS kills this service, [ResourceMonitorWorker] will restart it.
  */
 class ResourceMonitorService : Service() {
-
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private var monitoringJob: Job? = null
 
@@ -57,7 +54,11 @@ class ResourceMonitorService : Service() {
         registerThermalListener()
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+    override fun onStartCommand(
+        intent: Intent?,
+        flags: Int,
+        startId: Int,
+    ): Int {
         val notification = buildNotification("Monitoring idle resources...")
         startForeground(NOTIFICATION_ID, notification)
 
@@ -81,18 +82,19 @@ class ResourceMonitorService : Service() {
      */
     private fun startMonitoringLoop() {
         monitoringJob?.cancel()
-        monitoringJob = serviceScope.launch {
-            while (isActive) {
-                try {
-                    performScan()
-                } catch (e: Exception) {
-                    Log.w(TAG, "Resource scan failed: ${e.message}")
-                }
+        monitoringJob =
+            serviceScope.launch {
+                while (isActive) {
+                    try {
+                        performScan()
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Resource scan failed: ${e.message}")
+                    }
 
-                val interval = computeEffectiveInterval()
-                delay(interval)
+                    val interval = computeEffectiveInterval()
+                    delay(interval)
+                }
             }
-        }
     }
 
     /**
@@ -139,12 +141,13 @@ class ResourceMonitorService : Service() {
     private fun computeEffectiveInterval(): Long {
         val baseInterval = config.scanIntervalMs
 
-        val thermalMultiplier = when (currentThermalState) {
-            ThermalState.COOL -> 1.0
-            ThermalState.WARM -> 1.5
-            ThermalState.HOT -> 3.0
-            ThermalState.CRITICAL -> return Long.MAX_VALUE
-        }
+        val thermalMultiplier =
+            when (currentThermalState) {
+                ThermalState.COOL -> 1.0
+                ThermalState.WARM -> 1.5
+                ThermalState.HOT -> 3.0
+                ThermalState.CRITICAL -> return Long.MAX_VALUE
+            }
 
         val batteryMultiplier = if (isLowBatteryMode) 2.0 else 1.0
 
@@ -158,16 +161,19 @@ class ResourceMonitorService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
             powerManager.addThermalStatusListener { status ->
-                currentThermalState = when (status) {
-                    PowerManager.THERMAL_STATUS_NONE,
-                    PowerManager.THERMAL_STATUS_LIGHT -> ThermalState.COOL
-                    PowerManager.THERMAL_STATUS_MODERATE -> ThermalState.WARM
-                    PowerManager.THERMAL_STATUS_SEVERE -> ThermalState.HOT
-                    PowerManager.THERMAL_STATUS_CRITICAL,
-                    PowerManager.THERMAL_STATUS_EMERGENCY,
-                    PowerManager.THERMAL_STATUS_SHUTDOWN -> ThermalState.CRITICAL
-                    else -> ThermalState.COOL
-                }
+                currentThermalState =
+                    when (status) {
+                        PowerManager.THERMAL_STATUS_NONE,
+                        PowerManager.THERMAL_STATUS_LIGHT,
+                        -> ThermalState.COOL
+                        PowerManager.THERMAL_STATUS_MODERATE -> ThermalState.WARM
+                        PowerManager.THERMAL_STATUS_SEVERE -> ThermalState.HOT
+                        PowerManager.THERMAL_STATUS_CRITICAL,
+                        PowerManager.THERMAL_STATUS_EMERGENCY,
+                        PowerManager.THERMAL_STATUS_SHUTDOWN,
+                        -> ThermalState.CRITICAL
+                        else -> ThermalState.COOL
+                    }
 
                 // If critical, pause monitoring immediately
                 if (currentThermalState == ThermalState.CRITICAL) {
@@ -185,28 +191,31 @@ class ResourceMonitorService : Service() {
 
     private fun createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                CHANNEL_ID,
-                "Resource Monitor",
-                NotificationManager.IMPORTANCE_LOW,
-            ).apply {
-                description = "Persistent notification for idle resource monitoring"
-                setShowBadge(false)
-            }
+            val channel =
+                NotificationChannel(
+                    CHANNEL_ID,
+                    "Resource Monitor",
+                    NotificationManager.IMPORTANCE_LOW,
+                ).apply {
+                    description = "Persistent notification for idle resource monitoring"
+                    setShowBadge(false)
+                }
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)
         }
     }
 
     private fun buildNotification(contentText: String): Notification {
-        val pendingIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
-        )
+        val pendingIntent =
+            PendingIntent.getActivity(
+                this,
+                0,
+                Intent(this, MainActivity::class.java),
+                PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            )
 
-        return NotificationCompat.Builder(this, CHANNEL_ID)
+        return NotificationCompat
+            .Builder(this, CHANNEL_ID)
             .setContentTitle("IdleHarvest")
             .setContentText(contentText)
             .setSmallIcon(R.mipmap.ic_launcher)

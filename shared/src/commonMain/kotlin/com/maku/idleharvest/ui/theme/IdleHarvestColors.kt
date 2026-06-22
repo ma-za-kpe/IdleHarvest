@@ -9,7 +9,6 @@ import androidx.compose.ui.graphics.Color
  * Designed for emerging markets with Africa-friendly energy.
  */
 object IdleHarvestColors {
-
     // ─── Primary Brand Colors ────────────────────────────────────────────
     val PrimaryGreen = Color(0xFF0A7C6B)
     val PrimaryGreenLight = Color(0xFF3DA896)

@@ -23,7 +23,10 @@ interface DePinAgent {
     val contributions: StateFlow<List<DePinContribution>>
 
     /** Register the device with a DePIN network for a specific resource type. */
-    suspend fun register(network: DePinNetwork, resourceType: ResourceType)
+    suspend fun register(
+        network: DePinNetwork,
+        resourceType: ResourceType,
+    )
 
     /** Unregister and disconnect from a DePIN network. */
     suspend fun unregister(network: DePinNetwork)

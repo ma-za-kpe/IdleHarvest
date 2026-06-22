@@ -8,8 +8,6 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -23,7 +21,6 @@ import kotlin.test.assertTrue
  * Validates: Requirements 16.5
  */
 class WatchdogRestartPropertyTest {
-
     companion object {
         private const val TIMEOUT_MS = 60_000L
     }
@@ -32,10 +29,11 @@ class WatchdogRestartPropertyTest {
     fun agentUnresponsiveForMoreThan60SecondsIsDetected() = runTest {
         forAll(Arb.long(TIMEOUT_MS + 1..TIMEOUT_MS * 5)) { elapsedMs ->
             var currentTime = 0L
-            val watchdog = AgentWatchdog(
-                timeoutMs = TIMEOUT_MS,
-                clock = { currentTime },
-            )
+            val watchdog =
+                AgentWatchdog(
+                    timeoutMs = TIMEOUT_MS,
+                    clock = { currentTime },
+                )
 
             val agentId = AgentId("agent-test")
             watchdog.registerAgent(agentId) { /* restart fn */ }
@@ -52,10 +50,11 @@ class WatchdogRestartPropertyTest {
     fun agentWithRecentHeartbeatIsNotDetectedAsTimedOut() = runTest {
         forAll(Arb.long(1L..TIMEOUT_MS - 1)) { elapsedMs ->
             var currentTime = 0L
-            val watchdog = AgentWatchdog(
-                timeoutMs = TIMEOUT_MS,
-                clock = { currentTime },
-            )
+            val watchdog =
+                AgentWatchdog(
+                    timeoutMs = TIMEOUT_MS,
+                    clock = { currentTime },
+                )
 
             val agentId = AgentId("agent-active")
             watchdog.registerAgent(agentId) { /* restart fn */ }
@@ -72,10 +71,11 @@ class WatchdogRestartPropertyTest {
     fun heartbeatResetsTimeout() = runTest {
         forAll(Arb.long(1L..TIMEOUT_MS - 1)) { heartbeatInterval ->
             var currentTime = 0L
-            val watchdog = AgentWatchdog(
-                timeoutMs = TIMEOUT_MS,
-                clock = { currentTime },
-            )
+            val watchdog =
+                AgentWatchdog(
+                    timeoutMs = TIMEOUT_MS,
+                    clock = { currentTime },
+                )
 
             val agentId = AgentId("agent-heartbeat")
             watchdog.registerAgent(agentId) { /* restart fn */ }
@@ -96,10 +96,11 @@ class WatchdogRestartPropertyTest {
     fun restartAgentLogsTheEvent() = runTest {
         forAll(Arb.string(3..15)) { agentName ->
             var currentTime = 0L
-            val watchdog = AgentWatchdog(
-                timeoutMs = TIMEOUT_MS,
-                clock = { currentTime },
-            )
+            val watchdog =
+                AgentWatchdog(
+                    timeoutMs = TIMEOUT_MS,
+                    clock = { currentTime },
+                )
 
             var restarted = false
             val agentId = AgentId(agentName)
@@ -125,10 +126,11 @@ class WatchdogRestartPropertyTest {
     fun restartResetsHeartbeatTimestamp() = runTest {
         forAll(Arb.long(TIMEOUT_MS + 1..TIMEOUT_MS * 3)) { timeoutTime ->
             var currentTime = 0L
-            val watchdog = AgentWatchdog(
-                timeoutMs = TIMEOUT_MS,
-                clock = { currentTime },
-            )
+            val watchdog =
+                AgentWatchdog(
+                    timeoutMs = TIMEOUT_MS,
+                    clock = { currentTime },
+                )
 
             val agentId = AgentId("agent-reset")
             watchdog.registerAgent(agentId) { /* restart fn */ }
@@ -150,10 +152,11 @@ class WatchdogRestartPropertyTest {
     fun checkAndRestartRestartsAllTimedOutAgents() = runTest {
         forAll(Arb.int(1..5)) { agentCount ->
             var currentTime = 0L
-            val watchdog = AgentWatchdog(
-                timeoutMs = TIMEOUT_MS,
-                clock = { currentTime },
-            )
+            val watchdog =
+                AgentWatchdog(
+                    timeoutMs = TIMEOUT_MS,
+                    clock = { currentTime },
+                )
 
             val restartedAgents = mutableSetOf<AgentId>()
             val agentIds = (0 until agentCount).map { AgentId("agent-$it") }
@@ -178,10 +181,11 @@ class WatchdogRestartPropertyTest {
     fun multipleAgentsMixedTimeoutState() = runTest {
         forAll(Arb.int(1..5)) { activeCount ->
             var currentTime = 0L
-            val watchdog = AgentWatchdog(
-                timeoutMs = TIMEOUT_MS,
-                clock = { currentTime },
-            )
+            val watchdog =
+                AgentWatchdog(
+                    timeoutMs = TIMEOUT_MS,
+                    clock = { currentTime },
+                )
 
             // Register "active" agents that will heartbeat
             val activeIds = (0 until activeCount).map { AgentId("active-$it") }
@@ -218,10 +222,11 @@ class WatchdogRestartPropertyTest {
     fun exactlyAtTimeoutBoundaryDoesNotTrigger() = runTest {
         forAll(Arb.int(1..10)) { _ ->
             var currentTime = 0L
-            val watchdog = AgentWatchdog(
-                timeoutMs = TIMEOUT_MS,
-                clock = { currentTime },
-            )
+            val watchdog =
+                AgentWatchdog(
+                    timeoutMs = TIMEOUT_MS,
+                    clock = { currentTime },
+                )
 
             val agentId = AgentId("boundary-agent")
             watchdog.registerAgent(agentId) { }

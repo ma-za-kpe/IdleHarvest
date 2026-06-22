@@ -1,0 +1,139 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:DefaultComplianceEngine.kt$DefaultComplianceEngine$override suspend fun checkTransaction(transaction: TransactionRequest): ComplianceDecision</ID>
+    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBCentralManager.cancelPeripheralConnection</ID>
+    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBCentralManager.connect with CBPeripheralDelegate.</ID>
+    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBCentralManager.scanForPeripherals with</ID>
+    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBCentralManager.stopScan</ID>
+    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBPeripheralManager.startAdvertising with</ID>
+    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBPeripheralManager.stopAdvertising</ID>
+    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via FileManager.attributesOfFileSystem</ID>
+    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via NWPathMonitor / Network framework</ID>
+    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via ProcessInfo.thermalState</ID>
+    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via UIDevice.current.batteryLevel</ID>
+    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via UIDevice.current.batteryState</ID>
+    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via carrier API or user input</ID>
+    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via host_statistics / mach_host_self</ID>
+    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$* iOS implementation of SecureKeystore using Security framework and Secure Enclave. * Private keys are generated and stored within the Secure Enclave where available. * * TODO: Implement with SecKeyCreateRandomKey and kSecAttrTokenIDSecureEnclave</ID>
+    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Check if Secure Enclave is available</ID>
+    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Implement cooldown timer for signing operations</ID>
+    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Implement signing via SecKeyCreateSignature</ID>
+    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Implement using Security framework + Secure Enclave</ID>
+    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Implement with LAContext + biometryType</ID>
+    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Retrieve public key from Keychain</ID>
+    <ID>LongMethod:AgentOrchestrator.kt$AgentOrchestrator$private fun wireEventSubscriptions()</ID>
+    <ID>LongMethod:DefaultAirtimeAgent.kt$DefaultAirtimeAgent$private suspend fun executeSingleAttempt( client: VtuPlatformClient, action: MonetizationAction, ): TransactionResult</ID>
+    <ID>LongMethod:DefaultComplianceEngine.kt$DefaultComplianceEngine$override suspend fun checkTransaction(transaction: TransactionRequest): ComplianceDecision</ID>
+    <ID>LongMethod:FirstScanScreen.kt$@Composable fun FirstScanScreen( onScanComplete: () -&gt; Unit, onFinish: () -&gt; Unit, onBack: () -&gt; Unit, )</ID>
+    <ID>LongMethod:GuardrailsScreen.kt$@Composable fun GuardrailsScreen( guardrails: GuardrailsState, onGuardrailsUpdated: (GuardrailsState) -&gt; Unit, onNext: () -&gt; Unit, onSkip: () -&gt; Unit, onBack: () -&gt; Unit, )</ID>
+    <ID>LongMethod:OnboardingFlow.kt$@Composable fun OnboardingFlow(onComplete: (OnboardingState) -&gt; Unit)</ID>
+    <ID>LongMethod:PermissionsScreen.kt$@Composable fun PermissionsScreen( permissions: PermissionsState, onPermissionsUpdated: (PermissionsState) -&gt; Unit, onNext: () -&gt; Unit, onSkip: () -&gt; Unit, )</ID>
+    <ID>LongMethod:WalletSetupScreen.kt$@Composable fun WalletSetupScreen( wallet: WalletSetupState, onWalletUpdated: (WalletSetupState) -&gt; Unit, onNext: () -&gt; Unit, onSkip: () -&gt; Unit, onBack: () -&gt; Unit, )</ID>
+    <ID>LongMethod:WebDashboard.kt$@Composable private fun FeaturesSection()</ID>
+    <ID>LongParameterList:AgentOrchestrator.kt$AgentOrchestrator$( private val resourceMonitor: ResourceMonitor, private val airtimeAgent: AirtimeAgent, private val depinAgent: DePinAgent, private val meshCoordinator: MeshCoordinator, private val earningEngine: EarningEngine, private val eventBus: DefaultAgentEventBus, private val scope: CoroutineScope, )</ID>
+    <ID>LongParameterList:DefaultAirtimeAgent.kt$DefaultAirtimeAgent$( private val policyManager: PolicyManager, private val complianceEngine: ComplianceEngine, private val vault: PrivacyVault, private val eventBus: AgentEventBus, private val inferenceEngine: InferenceEngine, private val vtuClient: VtuPlatformClient? = null, private val clock: () -&gt; Long = { currentTimeMillis() }, )</ID>
+    <ID>LongParameterList:DefaultEarningEngine.kt$DefaultEarningEngine$( private val policyManager: PolicyManager, private val vault: PrivacyVault, private val eventBus: AgentEventBus, private val secureKeystore: SecureKeystore? = null, private val payoutRail: CirclePayoutRail? = null, private val walletAddress: WalletAddress = WalletAddress("default_wallet"), private val biometricThreshold: Double = DEFAULT_BIOMETRIC_THRESHOLD, private val clock: () -&gt; Long = { currentTimeMillis() }, )</ID>
+    <ID>MagicNumber:AgentOrchestrator.kt$AgentOrchestrator$1000L</ID>
+    <ID>MagicNumber:AgentOrchestrator.kt$AgentOrchestrator$3_600_000L</ID>
+    <ID>MagicNumber:AgentOrchestrator.kt$AgentOrchestrator$60</ID>
+    <ID>MagicNumber:AgentOrchestrator.kt$AgentOrchestrator$72</ID>
+    <ID>MagicNumber:BleAdapter.android.kt$BleAdapter$24</ID>
+    <ID>MagicNumber:Clock.ios.kt$1000</ID>
+    <ID>MagicNumber:DefaultAirtimeAgent.kt$DefaultAirtimeAgent$0.75f</ID>
+    <ID>MagicNumber:DefaultAirtimeAgent.kt$DefaultAirtimeAgent$0.85f</ID>
+    <ID>MagicNumber:DefaultAirtimeAgent.kt$DefaultAirtimeAgent$0.95f</ID>
+    <ID>MagicNumber:DefaultAirtimeAgent.kt$DefaultAirtimeAgent$24f</ID>
+    <ID>MagicNumber:DefaultAirtimeAgent.kt$DefaultAirtimeAgent$48f</ID>
+    <ID>MagicNumber:DefaultDePinAgent.kt$DefaultDePinAgent$16</ID>
+    <ID>MagicNumber:DefaultDePinAgent.kt$DefaultDePinAgent$3</ID>
+    <ID>MagicNumber:DefaultDePinAgent.kt$DefaultDePinAgent$32</ID>
+    <ID>MagicNumber:DefaultEarningEngine.kt$DefaultEarningEngine$7</ID>
+    <ID>MagicNumber:DefaultInferenceEngine.kt$DefaultInferenceEngine$0.5f</ID>
+    <ID>MagicNumber:DefaultInferenceEngine.kt$DefaultInferenceEngine$0.95</ID>
+    <ID>MagicNumber:DefaultInferenceEngine.kt$DefaultInferenceEngine$64</ID>
+    <ID>MagicNumber:DefaultInferenceEngine.kt$DefaultInferenceEngine$64f</ID>
+    <ID>MagicNumber:DefaultMeshCoordinator.kt$DefaultMeshCoordinator$8</ID>
+    <ID>MagicNumber:DefaultModelRegistry.kt$DefaultModelRegistry$0xFF</ID>
+    <ID>MagicNumber:DefaultModelRegistry.kt$DefaultModelRegistry$16</ID>
+    <ID>MagicNumber:DefaultModelRegistry.kt$DefaultModelRegistry$32</ID>
+    <ID>MagicNumber:DefaultModelRegistry.kt$NoOpModelDownloader$10</ID>
+    <ID>MagicNumber:DefaultPolicyManager.kt$DefaultPolicyManager$1000L</ID>
+    <ID>MagicNumber:DefaultPolicyManager.kt$DefaultPolicyManager$24</ID>
+    <ID>MagicNumber:DefaultPolicyManager.kt$DefaultPolicyManager$60</ID>
+    <ID>MagicNumber:DefaultPrivacyVault.kt$DefaultPrivacyVault$0xFF</ID>
+    <ID>MagicNumber:DefaultPrivacyVault.kt$DefaultPrivacyVault$16</ID>
+    <ID>MagicNumber:DefaultPrivacyVault.kt$DefaultPrivacyVault$24</ID>
+    <ID>MagicNumber:DefaultPrivacyVault.kt$DefaultPrivacyVault$3</ID>
+    <ID>MagicNumber:DefaultPrivacyVault.kt$DefaultPrivacyVault$4</ID>
+    <ID>MagicNumber:DefaultPrivacyVault.kt$DefaultPrivacyVault$8</ID>
+    <ID>MagicNumber:DefaultResourceMonitor.kt$DefaultResourceMonitor$1.5</ID>
+    <ID>MagicNumber:DefaultResourceMonitor.kt$DefaultResourceMonitor$3.0</ID>
+    <ID>MagicNumber:FirstScanScreen.kt$2500</ID>
+    <ID>MagicNumber:InferenceModels.kt$ModelSizeComparison.Companion$100f</ID>
+    <ID>MagicNumber:InferenceModels.kt$ModelSizeComparison.Companion$4</ID>
+    <ID>MagicNumber:InferenceModels.kt$ModelSizeComparison.Companion$8</ID>
+    <ID>MagicNumber:PlatformResourceScanner.android.kt$PlatformResourceScanner$100</ID>
+    <ID>MagicNumber:PlatformResourceScanner.android.kt$PlatformResourceScanner$1000f</ID>
+    <ID>MagicNumber:PlatformResourceScanner.android.kt$PlatformResourceScanner$1024L</ID>
+    <ID>MagicNumber:RollingErrorLog.kt$RollingErrorLog$5</ID>
+    <ID>MagicNumber:RollingErrorLog.kt$RollingErrorLog$50</ID>
+    <ID>MagicNumber:SecureKeystore.android.kt$SecureKeystore$10</ID>
+    <ID>MagicNumber:SecureKeystore.android.kt$SecureKeystore$12</ID>
+    <ID>MagicNumber:SecureKeystore.android.kt$SecureKeystore$24</ID>
+    <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$0xFF</ID>
+    <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$13</ID>
+    <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$17</ID>
+    <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$31</ID>
+    <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$37</ID>
+    <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$5</ID>
+    <ID>MatchingDeclarationName:AgentEventModels.kt$AgentEvent</ID>
+    <ID>MatchingDeclarationName:BleAdapter.ios.kt$BleAdapter</ID>
+    <ID>MatchingDeclarationName:HealthIndicator.kt$HealthStatus</ID>
+    <ID>MatchingDeclarationName:Platform.android.kt$AndroidPlatform : Platform</ID>
+    <ID>MatchingDeclarationName:Platform.ios.kt$IOSPlatform : Platform</ID>
+    <ID>MatchingDeclarationName:PlatformResourceScanner.android.kt$PlatformResourceScanner</ID>
+    <ID>MatchingDeclarationName:PlatformResourceScanner.ios.kt$PlatformResourceScanner</ID>
+    <ID>MatchingDeclarationName:SecureKeystore.android.kt$SecureKeystore</ID>
+    <ID>MatchingDeclarationName:SecureKeystore.ios.kt$SecureKeystore</ID>
+    <ID>MatchingDeclarationName:SecurityModels.kt$PublicKey</ID>
+    <ID>MaxLineLength:DefaultAgentEventBus.kt$DefaultAgentEventBus$override</ID>
+    <ID>MaxLineLength:DefaultComplianceEngine.kt$DefaultComplianceEngine$private</ID>
+    <ID>MaxLineLength:DefaultComplianceEngine.kt$DefaultComplianceEngine$reason = "Daily total ${dailyTotal + transaction.amount} exceeds limit of ${rules.dailyTransactionLimit}"</ID>
+    <ID>MaxLineLength:DefaultComplianceEngine.kt$DefaultComplianceEngine$reason = "Monthly total ${monthlyTotal + transaction.amount} exceeds limit of ${rules.monthlyTransactionLimit}"</ID>
+    <ID>MaxLineLength:SecureKeystore.android.kt$SecureKeystore$"Signing operations are locked. Cooldown expires in ${lockedUntil - System.currentTimeMillis()}ms"</ID>
+    <ID>MaxLineLength:WebDashboard.kt$Text(text = description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)</ID>
+    <ID>MaxLineLength:WebDashboard.kt$Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</ID>
+    <ID>MaxLineLength:WebDashboard.kt$Text(text = title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)</ID>
+    <ID>MaxLineLength:WebDashboard.kt$description = "All AI reasoning stays on-device. Nothing leaves without your explicit consent. Hardware-backed wallet keys."</ID>
+    <ID>MaxLineLength:WebDashboard.kt$description = "Connects nearby devices via Bluetooth to pool resources and unlock larger earning opportunities."</ID>
+    <ID>MaxLineLength:WebDashboard.kt$description = "ExecuTorch models run locally with KleidiAI acceleration. No cloud dependency, no privacy loss."</ID>
+    <ID>MaxLineLength:WebDashboard.kt$description = "You define the limits. Set transaction caps, autonomy levels, and biometric thresholds. Agents never exceed your rules."</ID>
+    <ID>ReturnCount:BleAdapter.android.kt$AndroidBleConnection$override suspend fun send(data: ByteArray): Result&lt;Unit&gt;</ID>
+    <ID>ReturnCount:DefaultComplianceEngine.kt$DefaultComplianceEngine$override suspend fun checkTransaction(transaction: TransactionRequest): ComplianceDecision</ID>
+    <ID>ReturnCount:DefaultEarningEngine.kt$DefaultEarningEngine$override suspend fun initiatePayout(event: EarningEvent): Result&lt;PayoutReceipt&gt;</ID>
+    <ID>ReturnCount:DefaultPolicyManager.kt$DefaultPolicyManager$override suspend fun checkAction( agentId: AgentId, action: AgentAction, ): PolicyDecision</ID>
+    <ID>ReturnCount:DefaultPolicyManager.kt$DefaultPolicyManager$private fun checkDailyTransactionLimit( policy: Policy, agentId: AgentId, action: AgentAction, ): PolicyDecision?</ID>
+    <ID>ReturnCount:DefaultPolicyManager.kt$DefaultPolicyManager$private fun checkSingleTransactionLimit( policy: Policy, action: AgentAction, ): PolicyDecision?</ID>
+    <ID>ReturnCount:DefaultPrivacyVault.kt$DefaultPrivacyVault$override fun isIntegrityValid(): Boolean</ID>
+    <ID>ReturnCount:SystemHealthIndicator.kt$SystemHealthIndicator$fun computeHealth(): HealthStatus</ID>
+    <ID>SwallowedException:SecureKeystore.android.kt$SecureKeystore$e: Exception</ID>
+    <ID>TooManyFunctions:DefaultMeshCoordinator.kt$DefaultMeshCoordinator : MeshCoordinator</ID>
+    <ID>TooManyFunctions:WebDashboard.kt$com.maku.idleharvest.ui.web.WebDashboard.kt</ID>
+    <ID>TopLevelPropertyNaming:MeshCoordinator.kt$/** Maximum number of simultaneous GATT peer connections allowed. */ const val MAX_GATT_CONNECTIONS = 5</ID>
+    <ID>TopLevelPropertyNaming:WebDashboard.kt$private const val GITHUB_URL = "https://github.com/ma-za-kpe/IdleHarvest"</ID>
+    <ID>UnusedParameter:DefaultEarningEngine.kt$DefaultEarningEngine$reason: String</ID>
+    <ID>UnusedPrivateProperty:AgentOrchestrator.kt$AgentOrchestrator$private val airtimeAgent: AirtimeAgent</ID>
+    <ID>UnusedPrivateProperty:AgentOrchestrator.kt$AgentOrchestrator$private val earningEngine: EarningEngine</ID>
+    <ID>UnusedPrivateProperty:AgentOrchestrator.kt$AgentOrchestrator$private val meshCoordinator: MeshCoordinator</ID>
+    <ID>UnusedPrivateProperty:DefaultAirtimeAgent.kt$DefaultAirtimeAgent$private val inferenceEngine: InferenceEngine</ID>
+    <ID>UnusedPrivateProperty:DefaultDePinAgent.kt$DefaultDePinAgent$private val eventBus: AgentEventBus</ID>
+    <ID>UnusedPrivateProperty:DefaultDePinAgent.kt$DefaultDePinAgent$private val policyManager: PolicyManager</ID>
+    <ID>UnusedPrivateProperty:OfflineQueue.kt$OfflineQueue$private val clock: () -&gt; Long = { currentTimeMillis() }</ID>
+    <ID>UnusedPrivateProperty:SystemHealthIndicator.kt$SystemHealthIndicator.Companion$/** Threshold: if this many or more agents are in ERROR state, status is RED. */ private const val RED_ERROR_AGENT_THRESHOLD = 1</ID>
+    <ID>UseCheckOrError:BleAdapter.android.kt$AndroidBleConnection$throw IllegalStateException("Connection is closed")</ID>
+    <ID>UseCheckOrError:DefaultModelRegistry.kt$DefaultModelRegistry$throw IllegalStateException("No previous version available for rollback: $modelId")</ID>
+    <ID>WildcardImport:App.kt$import androidx.compose.runtime.*</ID>
+  </CurrentIssues>
+</SmellBaseline>

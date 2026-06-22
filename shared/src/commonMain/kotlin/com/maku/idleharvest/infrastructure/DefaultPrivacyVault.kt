@@ -24,7 +24,6 @@ class DefaultPrivacyVault(
     private val cryptoProvider: CryptoProvider,
     private val clock: () -> Long = { currentTimeMillis() },
 ) : PrivacyVault {
-
     private val mutex = Mutex()
 
     /** Encrypted key-value storage. Values are ciphertext produced by [cryptoProvider]. */
@@ -39,7 +38,10 @@ class DefaultPrivacyVault(
     /** Key used for HMAC/integrity checks. Separate from encryption key. */
     private var integrityKey: ByteArray = cryptoProvider.generateKey()
 
-    override suspend fun store(key: String, data: ByteArray): Result<Unit> = runCatching {
+    override suspend fun store(
+        key: String,
+        data: ByteArray,
+    ): Result<Unit> = runCatching {
         require(key.isNotBlank()) { "Storage key must not be blank" }
 
         mutex.withLock {
@@ -102,10 +104,11 @@ class DefaultPrivacyVault(
             }
 
             // Decrypt and anonymize each entry
-            val anonymizedChunks = matchingEntries.map { (_, ciphertext) ->
-                val plaintext = cryptoProvider.decrypt(encryptionKey, ciphertext)
-                anonymize(plaintext)
-            }
+            val anonymizedChunks =
+                matchingEntries.map { (_, ciphertext) ->
+                    val plaintext = cryptoProvider.decrypt(encryptionKey, ciphertext)
+                    anonymize(plaintext)
+                }
 
             // Concatenate anonymized data with length-prefix framing
             buildAnonymizedExport(anonymizedChunks)
@@ -133,7 +136,10 @@ class DefaultPrivacyVault(
 
     // --- Private helpers ---
 
-    private fun validateConsentToken(token: ConsentToken, dataType: DataType) {
+    private fun validateConsentToken(
+        token: ConsentToken,
+        dataType: DataType,
+    ) {
         require(token.token.isNotBlank()) { "Consent token must not be blank" }
 
         val now = currentTime()
@@ -200,7 +206,11 @@ class DefaultPrivacyVault(
     /**
      * Write a 32-bit integer in big-endian format at the given offset.
      */
-    private fun putInt(array: ByteArray, offset: Int, value: Int) {
+    private fun putInt(
+        array: ByteArray,
+        offset: Int,
+        value: Int,
+    ) {
         array[offset] = (value shr 24 and 0xFF).toByte()
         array[offset + 1] = (value shr 16 and 0xFF).toByte()
         array[offset + 2] = (value shr 8 and 0xFF).toByte()

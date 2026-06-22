@@ -21,24 +21,25 @@ import kotlin.test.Test
  * **Validates: Requirements 7.5**
  */
 class InferenceFallbackPropertyTest {
-
     @Test
     fun inferenceNeverFailsEvenWithoutLoadedModel() = runTest {
         forAll(
             Arb.list(Arb.float(-1f..1f), 1..100),
             Arb.string(3..30),
         ) { tensorData, modelId ->
-            val registry = DefaultModelRegistry(
-                DefaultPrivacyVault(SimpleCryptoProvider()),
-                SimpleCryptoProvider(),
-            )
+            val registry =
+                DefaultModelRegistry(
+                    DefaultPrivacyVault(SimpleCryptoProvider()),
+                    SimpleCryptoProvider(),
+                )
             val engine = DefaultInferenceEngine(registry)
 
-            val input = InferenceInput(
-                modelId = modelId,
-                tensorData = tensorData,
-                shape = listOf(1, tensorData.size),
-            )
+            val input =
+                InferenceInput(
+                    modelId = modelId,
+                    tensorData = tensorData,
+                    shape = listOf(1, tensorData.size),
+                )
 
             val result = engine.runInference(input)
 
@@ -50,7 +51,8 @@ class InferenceFallbackPropertyTest {
                         // All predictions must be in valid range [0, 1]
                         output.predictions.all { it in 0f..1f } &&
                         // Confidence must be low (< 1.0) indicating heuristic fallback
-                        output.confidence != null && output.confidence!! < 1.0f &&
+                        output.confidence != null &&
+                        output.confidence!! < 1.0f &&
                         // Shape must be non-empty
                         output.shape.isNotEmpty()
                 }
@@ -62,17 +64,19 @@ class InferenceFallbackPropertyTest {
         forAll(
             Arb.string(3..30),
         ) { modelId ->
-            val registry = DefaultModelRegistry(
-                DefaultPrivacyVault(SimpleCryptoProvider()),
-                SimpleCryptoProvider(),
-            )
+            val registry =
+                DefaultModelRegistry(
+                    DefaultPrivacyVault(SimpleCryptoProvider()),
+                    SimpleCryptoProvider(),
+                )
             val engine = DefaultInferenceEngine(registry)
 
-            val input = InferenceInput(
-                modelId = modelId,
-                tensorData = emptyList(),
-                shape = listOf(1, 0),
-            )
+            val input =
+                InferenceInput(
+                    modelId = modelId,
+                    tensorData = emptyList(),
+                    shape = listOf(1, 0),
+                )
 
             val result = engine.runInference(input)
 
@@ -81,7 +85,8 @@ class InferenceFallbackPropertyTest {
                 result.getOrNull()!!.let { output ->
                     output.predictions.isNotEmpty() &&
                         output.predictions.all { it in 0f..1f } &&
-                        output.confidence != null && output.confidence!! < 1.0f
+                        output.confidence != null &&
+                        output.confidence!! < 1.0f
                 }
         }
     }
@@ -92,18 +97,20 @@ class InferenceFallbackPropertyTest {
             Arb.list(Arb.float(-1f..1f), 1..50),
             Arb.int(1..10),
         ) { tensorData, batchSize ->
-            val registry = DefaultModelRegistry(
-                DefaultPrivacyVault(SimpleCryptoProvider()),
-                SimpleCryptoProvider(),
-            )
+            val registry =
+                DefaultModelRegistry(
+                    DefaultPrivacyVault(SimpleCryptoProvider()),
+                    SimpleCryptoProvider(),
+                )
             val engine = DefaultInferenceEngine(registry)
 
             // Even with varied shapes, fallback must always produce valid output
-            val input = InferenceInput(
-                modelId = "model_that_does_not_exist",
-                tensorData = tensorData,
-                shape = listOf(batchSize, tensorData.size / batchSize.coerceAtLeast(1)),
-            )
+            val input =
+                InferenceInput(
+                    modelId = "model_that_does_not_exist",
+                    tensorData = tensorData,
+                    shape = listOf(batchSize, tensorData.size / batchSize.coerceAtLeast(1)),
+                )
 
             val result = engine.runInference(input)
 
@@ -112,7 +119,8 @@ class InferenceFallbackPropertyTest {
                     output.predictions.isNotEmpty() &&
                         output.predictions.all { it in 0f..1f } &&
                         // Low confidence confirms heuristic path was used
-                        output.confidence != null && output.confidence!! <= 0.5f
+                        output.confidence != null &&
+                        output.confidence!! <= 0.5f
                 }
         }
     }

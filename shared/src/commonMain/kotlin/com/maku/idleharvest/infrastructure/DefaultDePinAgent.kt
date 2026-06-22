@@ -38,7 +38,6 @@ class DefaultDePinAgent(
     private val policyManager: PolicyManager,
     private val clock: () -> Long = { currentTimeMillis() },
 ) : DePinAgent {
-
     private val json = Json { ignoreUnknownKeys = true }
 
     private val _state = MutableStateFlow(AgentState.IDLE)
@@ -59,32 +58,37 @@ class DefaultDePinAgent(
     /** Whether the agent is currently paused due to threshold violation. */
     private var isPaused = false
 
-    override suspend fun register(network: DePinNetwork, resourceType: ResourceType) {
+    override suspend fun register(
+        network: DePinNetwork,
+        resourceType: ResourceType,
+    ) {
         require(resourceType in network.supportedResources) {
             "Network ${network.name} does not support resource type $resourceType"
         }
 
-        registeredNetworks[network.id] = NetworkRegistration(
-            network = network,
-            resourceType = resourceType,
-            registeredAt = clock(),
-        )
+        registeredNetworks[network.id] =
+            NetworkRegistration(
+                network = network,
+                resourceType = resourceType,
+                registeredAt = clock(),
+            )
 
         _state.value = AgentState.EVALUATING
 
         // Create an initial contribution record for this session
         val sessionId = generateSessionId(network.id)
-        val contribution = DePinContribution(
-            networkId = network.id,
-            networkName = network.name,
-            resourceType = resourceType,
-            sessionId = sessionId,
-            startedAt = clock(),
-            endedAt = null,
-            earnedTokens = 0.0,
-            tokenSymbol = network.tokenSymbol,
-            proof = null,
-        )
+        val contribution =
+            DePinContribution(
+                networkId = network.id,
+                networkName = network.name,
+                resourceType = resourceType,
+                sessionId = sessionId,
+                startedAt = clock(),
+                endedAt = null,
+                earnedTokens = 0.0,
+                tokenSymbol = network.tokenSymbol,
+                proof = null,
+            )
 
         val current = _contributions.value.toMutableList()
         current.add(contribution)
@@ -101,13 +105,14 @@ class DefaultDePinAgent(
 
         // End all active contributions for this network
         val now = clock()
-        val updated = _contributions.value.map { contribution ->
-            if (contribution.networkId == network.id && contribution.endedAt == null) {
-                contribution.copy(endedAt = now)
-            } else {
-                contribution
+        val updated =
+            _contributions.value.map { contribution ->
+                if (contribution.networkId == network.id && contribution.endedAt == null) {
+                    contribution.copy(endedAt = now)
+                } else {
+                    contribution
+                }
             }
-        }
         _contributions.value = updated
 
         // Persist updated contributions
@@ -133,13 +138,14 @@ class DefaultDePinAgent(
 
             // End all active contributions
             val now = clock()
-            val paused = _contributions.value.map { contribution ->
-                if (contribution.endedAt == null) {
-                    contribution.copy(endedAt = now)
-                } else {
-                    contribution
+            val paused =
+                _contributions.value.map { contribution ->
+                    if (contribution.endedAt == null) {
+                        contribution.copy(endedAt = now)
+                    } else {
+                        contribution
+                    }
                 }
-            }
             _contributions.value = paused
             paused.filter { it.endedAt == now }.forEach { persistContribution(it) }
         } else if (!shouldPause && isPaused) {
@@ -152,17 +158,18 @@ class DefaultDePinAgent(
             val resumed = _contributions.value.toMutableList()
             for ((_, registration) in registeredNetworks) {
                 val sessionId = generateSessionId(registration.network.id)
-                val contribution = DePinContribution(
-                    networkId = registration.network.id,
-                    networkName = registration.network.name,
-                    resourceType = registration.resourceType,
-                    sessionId = sessionId,
-                    startedAt = now,
-                    endedAt = null,
-                    earnedTokens = 0.0,
-                    tokenSymbol = registration.network.tokenSymbol,
-                    proof = null,
-                )
+                val contribution =
+                    DePinContribution(
+                        networkId = registration.network.id,
+                        networkName = registration.network.name,
+                        resourceType = registration.resourceType,
+                        sessionId = sessionId,
+                        startedAt = now,
+                        endedAt = null,
+                        earnedTokens = 0.0,
+                        tokenSymbol = registration.network.tokenSymbol,
+                        proof = null,
+                    )
                 resumed.add(contribution)
                 persistContribution(contribution)
             }
@@ -194,27 +201,29 @@ class DefaultDePinAgent(
         val active = _contributions.value.filter { it.endedAt == null }
 
         for (contribution in active) {
-            val session = ContributionSession(
-                id = contribution.sessionId,
-                networkId = contribution.networkId,
-                resourceType = contribution.resourceType,
-                startedAt = contribution.startedAt,
-                bytesServed = null,
-                computeUnitsCompleted = null,
-                storageProvidedMb = null,
-            )
+            val session =
+                ContributionSession(
+                    id = contribution.sessionId,
+                    networkId = contribution.networkId,
+                    resourceType = contribution.resourceType,
+                    startedAt = contribution.startedAt,
+                    bytesServed = null,
+                    computeUnitsCompleted = null,
+                    storageProvidedMb = null,
+                )
             val proof = generateProof(session)
             pendingProofs.add(proof)
         }
 
         // End all active contributions
-        val disconnected = _contributions.value.map { contribution ->
-            if (contribution.endedAt == null) {
-                contribution.copy(endedAt = now)
-            } else {
-                contribution
+        val disconnected =
+            _contributions.value.map { contribution ->
+                if (contribution.endedAt == null) {
+                    contribution.copy(endedAt = now)
+                } else {
+                    contribution
+                }
             }
-        }
         _contributions.value = disconnected
         disconnected.filter { it.endedAt == now }.forEach { persistContribution(it) }
 
@@ -236,17 +245,18 @@ class DefaultDePinAgent(
             val resumed = _contributions.value.toMutableList()
             for ((_, registration) in registeredNetworks) {
                 val sessionId = generateSessionId(registration.network.id)
-                val contribution = DePinContribution(
-                    networkId = registration.network.id,
-                    networkName = registration.network.name,
-                    resourceType = registration.resourceType,
-                    sessionId = sessionId,
-                    startedAt = now,
-                    endedAt = null,
-                    earnedTokens = 0.0,
-                    tokenSymbol = registration.network.tokenSymbol,
-                    proof = null,
-                )
+                val contribution =
+                    DePinContribution(
+                        networkId = registration.network.id,
+                        networkName = registration.network.name,
+                        resourceType = registration.resourceType,
+                        sessionId = sessionId,
+                        startedAt = now,
+                        endedAt = null,
+                        earnedTokens = 0.0,
+                        tokenSymbol = registration.network.tokenSymbol,
+                        proof = null,
+                    )
                 resumed.add(contribution)
                 persistContribution(contribution)
             }
@@ -296,15 +306,16 @@ class DefaultDePinAgent(
      * Contains a deterministic representation of the session for verification.
      */
     private fun buildProofData(session: ContributionSession): String {
-        val parts = buildList {
-            add("session:${session.id}")
-            add("network:${session.networkId}")
-            add("resource:${session.resourceType.name}")
-            add("started:${session.startedAt}")
-            session.bytesServed?.let { add("bytes:$it") }
-            session.computeUnitsCompleted?.let { add("compute:$it") }
-            session.storageProvidedMb?.let { add("storage:$it") }
-        }
+        val parts =
+            buildList {
+                add("session:${session.id}")
+                add("network:${session.networkId}")
+                add("resource:${session.resourceType.name}")
+                add("started:${session.startedAt}")
+                session.bytesServed?.let { add("bytes:$it") }
+                session.computeUnitsCompleted?.let { add("compute:$it") }
+                session.storageProvidedMb?.let { add("storage:$it") }
+            }
         return parts.joinToString("|")
     }
 
@@ -341,9 +352,7 @@ class DefaultDePinAgent(
     /**
      * Generate a unique session ID for a new contribution session.
      */
-    private fun generateSessionId(networkId: String): String {
-        return "${networkId}_${clock()}"
-    }
+    private fun generateSessionId(networkId: String): String = "${networkId}_${clock()}"
 }
 
 /**

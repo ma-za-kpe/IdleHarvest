@@ -14,7 +14,6 @@ import com.maku.idleharvest.domain.models.PeerId
  * Validates: Requirements 4.1
  */
 actual class BleAdapter {
-
     actual fun startScan(callback: (PeerId, Int, ByteArray) -> Unit) {
         // TODO: Implement using CBCentralManager.scanForPeripherals with
         // IdleHarvest service UUID. Parse discovered peripherals and invoke callback.

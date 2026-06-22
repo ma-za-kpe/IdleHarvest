@@ -19,7 +19,6 @@ import kotlin.test.Test
  * **Validates: Requirements 4.5**
  */
 class MeshEncryptionPropertyTest {
-
     private val cryptoProvider = SimpleCryptoProvider()
 
     /**

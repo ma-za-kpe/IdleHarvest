@@ -19,7 +19,6 @@ import kotlin.test.assertTrue
  * **Validates: Requirements 4.6**
  */
 class AdaptiveScanPropertyTest {
-
     /**
      * Tests the adaptive scan interval logic as implemented by DefaultMeshCoordinator.
      *
@@ -40,9 +39,7 @@ class AdaptiveScanPropertyTest {
      * Replicates the scan interval decision logic from DefaultMeshCoordinator.getCurrentScanInterval().
      * This is the core adaptive behavior: shorter when charging, longer when on battery.
      */
-    private fun computeScanInterval(isCharging: Boolean): Long {
-        return if (isCharging) scanIntervalChargingMs else scanIntervalBatteryMs
-    }
+    private fun computeScanInterval(isCharging: Boolean): Long = if (isCharging) scanIntervalChargingMs else scanIntervalBatteryMs
 
     // --- Property Tests ---
 
@@ -52,7 +49,7 @@ class AdaptiveScanPropertyTest {
         assertTrue(
             scanIntervalBatteryMs > scanIntervalChargingMs,
             "Battery interval ($scanIntervalBatteryMs ms) must be greater than " +
-                "charging interval ($scanIntervalChargingMs ms)"
+                "charging interval ($scanIntervalChargingMs ms)",
         )
     }
 
@@ -62,7 +59,7 @@ class AdaptiveScanPropertyTest {
         assertEquals(
             5_000L,
             scanIntervalChargingMs,
-            "Charging scan interval should be 5000ms (aggressive)"
+            "Charging scan interval should be 5000ms (aggressive)",
         )
     }
 
@@ -72,7 +69,7 @@ class AdaptiveScanPropertyTest {
         assertEquals(
             30_000L,
             scanIntervalBatteryMs,
-            "Battery scan interval should be 30000ms (conservative)"
+            "Battery scan interval should be 30000ms (conservative)",
         )
     }
 

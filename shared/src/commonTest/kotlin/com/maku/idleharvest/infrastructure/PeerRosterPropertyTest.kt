@@ -18,9 +18,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
  * Property 9: Peer Roster Invariant
@@ -33,7 +30,6 @@ import kotlin.test.assertTrue
  * **Validates: Requirements 4.2, 4.4**
  */
 class PeerRosterPropertyTest {
-
     /**
      * Lightweight peer roster coordinator that replicates the roster logic
      * from DefaultMeshCoordinator without requiring the platform-specific BleAdapter.
@@ -54,18 +50,23 @@ class PeerRosterPropertyTest {
          * Simulate a successful peer connection: add peer to roster.
          * Mirrors DefaultMeshCoordinator.connectToPeer success path.
          */
-        fun connectPeer(peerId: PeerId, profile: ResourceProfile, signalStrength: Int) {
+        fun connectPeer(
+            peerId: PeerId,
+            profile: ResourceProfile,
+            signalStrength: Int,
+        ) {
             if (connectedPeerIds.contains(peerId)) return
 
             connectedPeerIds.add(peerId)
-            val peer = Peer(
-                id = peerId,
-                displayName = "Peer-${peerId.value.take(8)}",
-                resourceProfile = profile,
-                signalStrength = signalStrength,
-                connectionState = PeerConnectionState.CONNECTED,
-                lastSeen = 1_719_792_000_000L,
-            )
+            val peer =
+                Peer(
+                    id = peerId,
+                    displayName = "Peer-${peerId.value.take(8)}",
+                    resourceProfile = profile,
+                    signalStrength = signalStrength,
+                    connectionState = PeerConnectionState.CONNECTED,
+                    lastSeen = 1_719_792_000_000L,
+                )
 
             val currentPeers = _activePeers.value.toMutableList()
             val existingIndex = currentPeers.indexOfFirst { it.id == peerId }
@@ -95,7 +96,10 @@ class PeerRosterPropertyTest {
          * Update an existing connected peer's resource profile.
          * Mirrors the profile update path in handlePeerDiscovered.
          */
-        fun updatePeerProfile(peerId: PeerId, profile: ResourceProfile) {
+        fun updatePeerProfile(
+            peerId: PeerId,
+            profile: ResourceProfile,
+        ) {
             if (!connectedPeerIds.contains(peerId)) return
 
             val currentPeers = _activePeers.value.toMutableList()
@@ -112,9 +116,20 @@ class PeerRosterPropertyTest {
 
     /** Represents a connect or disconnect operation in a sequence. */
     sealed class PeerEvent {
-        data class Connect(val peerId: PeerId, val profile: ResourceProfile, val signal: Int) : PeerEvent()
-        data class Disconnect(val peerId: PeerId) : PeerEvent()
-        data class UpdateProfile(val peerId: PeerId, val profile: ResourceProfile) : PeerEvent()
+        data class Connect(
+            val peerId: PeerId,
+            val profile: ResourceProfile,
+            val signal: Int,
+        ) : PeerEvent()
+
+        data class Disconnect(
+            val peerId: PeerId,
+        ) : PeerEvent()
+
+        data class UpdateProfile(
+            val peerId: PeerId,
+            val profile: ResourceProfile,
+        ) : PeerEvent()
     }
 
     /** Generator for a unique peer ID. */
@@ -160,7 +175,10 @@ class PeerRosterPropertyTest {
             }
 
             // Invariant: roster peer IDs == connected peer IDs set
-            val rosterPeerIds = coordinator.activePeers.value.map { it.id }.toSet()
+            val rosterPeerIds =
+                coordinator.activePeers.value
+                    .map { it.id }
+                    .toSet()
             val connectedIds = coordinator.getConnectedPeerIds()
 
             rosterPeerIds == connectedIds
@@ -190,7 +208,10 @@ class PeerRosterPropertyTest {
             }
 
             // Invariant: no peer whose last action was disconnect should be in the roster
-            val rosterPeerIds = coordinator.activePeers.value.map { it.id }.toSet()
+            val rosterPeerIds =
+                coordinator.activePeers.value
+                    .map { it.id }
+                    .toSet()
             lastDisconnected.none { it in rosterPeerIds }
         }
     }
@@ -218,7 +239,10 @@ class PeerRosterPropertyTest {
             }
 
             // Invariant: every peer that is currently connected must be in the roster
-            val rosterPeerIds = coordinator.activePeers.value.map { it.id }.toSet()
+            val rosterPeerIds =
+                coordinator.activePeers.value
+                    .map { it.id }
+                    .toSet()
             currentlyConnected.all { it in rosterPeerIds }
         }
     }

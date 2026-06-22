@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Environment
@@ -28,7 +27,6 @@ import com.maku.idleharvest.domain.models.ThermalState
 actual class PlatformResourceScanner(
     private val context: Context,
 ) {
-
     private val batteryManager: BatteryManager by lazy {
         context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
     }
@@ -74,87 +72,80 @@ actual class PlatformResourceScanner(
         }
     }
 
-    actual suspend fun scanFreeStorage(): Long {
-        return try {
-            val path = Environment.getDataDirectory()
-            val stat = StatFs(path.path)
-            val availableBytes = stat.availableBlocksLong * stat.blockSizeLong
-            availableBytes / (1024L * 1024L) // Convert bytes to MB
-        } catch (_: Exception) {
-            0L
-        }
+    actual suspend fun scanFreeStorage(): Long = try {
+        val path = Environment.getDataDirectory()
+        val stat = StatFs(path.path)
+        val availableBytes = stat.availableBlocksLong * stat.blockSizeLong
+        availableBytes / (1024L * 1024L) // Convert bytes to MB
+    } catch (_: Exception) {
+        0L
     }
 
-    actual suspend fun scanIdleCompute(): Int {
-        return try {
-            // Use runtime available processors and memory pressure as a proxy
-            // for idle compute. Real CPU idle can be read from /proc/stat but
-            // requires sequential reads with a delay.
-            val memoryInfo = ActivityManager.MemoryInfo()
-            activityManager.getMemoryInfo(memoryInfo)
+    actual suspend fun scanIdleCompute(): Int = try {
+        // Use runtime available processors and memory pressure as a proxy
+        // for idle compute. Real CPU idle can be read from /proc/stat but
+        // requires sequential reads with a delay.
+        val memoryInfo = ActivityManager.MemoryInfo()
+        activityManager.getMemoryInfo(memoryInfo)
 
-            val totalMem = memoryInfo.totalMem
-            val availMem = memoryInfo.availMem
+        val totalMem = memoryInfo.totalMem
+        val availMem = memoryInfo.availMem
 
-            // Approximate idle compute from available memory ratio
-            // This is a simplified heuristic — more accurate CPU idle
-            // requires sampling /proc/stat over time.
-            val memoryIdlePercent = if (totalMem > 0) {
+        // Approximate idle compute from available memory ratio
+        // This is a simplified heuristic — more accurate CPU idle
+        // requires sampling /proc/stat over time.
+        val memoryIdlePercent =
+            if (totalMem > 0) {
                 ((availMem.toDouble() / totalMem.toDouble()) * 100).toInt()
             } else {
                 0
             }
-            memoryIdlePercent.coerceIn(0, 100)
-        } catch (_: Exception) {
-            0
-        }
+        memoryIdlePercent.coerceIn(0, 100)
+    } catch (_: Exception) {
+        0
     }
 
-    actual suspend fun scanBatteryLevel(): Int {
-        return try {
-            val level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
-            if (level in 0..100) level else -1
-        } catch (_: Exception) {
-            -1
-        }
+    actual suspend fun scanBatteryLevel(): Int = try {
+        val level = batteryManager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        if (level in 0..100) level else -1
+    } catch (_: Exception) {
+        -1
     }
 
-    actual suspend fun scanIsCharging(): Boolean {
-        return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                batteryManager.isCharging
-            } else {
-                // Fallback for older APIs: read sticky broadcast
-                val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-                val batteryStatus = context.registerReceiver(null, intentFilter)
-                val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
-                status == BatteryManager.BATTERY_STATUS_CHARGING ||
-                    status == BatteryManager.BATTERY_STATUS_FULL
+    actual suspend fun scanIsCharging(): Boolean = try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            batteryManager.isCharging
+        } else {
+            // Fallback for older APIs: read sticky broadcast
+            val intentFilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+            val batteryStatus = context.registerReceiver(null, intentFilter)
+            val status = batteryStatus?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+            status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                status == BatteryManager.BATTERY_STATUS_FULL
+        }
+    } catch (_: Exception) {
+        false
+    }
+
+    actual suspend fun scanThermalState(): ThermalState = try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            when (powerManager.currentThermalStatus) {
+                PowerManager.THERMAL_STATUS_NONE,
+                PowerManager.THERMAL_STATUS_LIGHT,
+                -> ThermalState.COOL
+                PowerManager.THERMAL_STATUS_MODERATE -> ThermalState.WARM
+                PowerManager.THERMAL_STATUS_SEVERE -> ThermalState.HOT
+                PowerManager.THERMAL_STATUS_CRITICAL,
+                PowerManager.THERMAL_STATUS_EMERGENCY,
+                PowerManager.THERMAL_STATUS_SHUTDOWN,
+                -> ThermalState.CRITICAL
+                else -> ThermalState.COOL
             }
-        } catch (_: Exception) {
-            false
-        }
-    }
-
-    actual suspend fun scanThermalState(): ThermalState {
-        return try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                when (powerManager.currentThermalStatus) {
-                    PowerManager.THERMAL_STATUS_NONE,
-                    PowerManager.THERMAL_STATUS_LIGHT -> ThermalState.COOL
-                    PowerManager.THERMAL_STATUS_MODERATE -> ThermalState.WARM
-                    PowerManager.THERMAL_STATUS_SEVERE -> ThermalState.HOT
-                    PowerManager.THERMAL_STATUS_CRITICAL,
-                    PowerManager.THERMAL_STATUS_EMERGENCY,
-                    PowerManager.THERMAL_STATUS_SHUTDOWN -> ThermalState.CRITICAL
-                    else -> ThermalState.COOL
-                }
-            } else {
-                // Thermal status API not available below API 29
-                ThermalState.COOL
-            }
-        } catch (_: Exception) {
+        } else {
+            // Thermal status API not available below API 29
             ThermalState.COOL
         }
+    } catch (_: Exception) {
+        ThermalState.COOL
     }
 }

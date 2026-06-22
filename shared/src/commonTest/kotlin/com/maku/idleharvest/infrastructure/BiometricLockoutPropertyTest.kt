@@ -8,8 +8,6 @@ import io.kotest.property.arbitrary.long
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -24,7 +22,6 @@ import kotlin.test.assertTrue
  * Validates: Requirements 13.4, 13.5
  */
 class BiometricLockoutPropertyTest {
-
     companion object {
         const val MAX_CONSECUTIVE_FAILURES = 3
         const val LOCKOUT_DURATION_MS = 30_000L // 30 seconds cooldown
@@ -98,7 +95,7 @@ class BiometricLockoutPropertyTest {
                     consecutiveFailures = 0
                 } else {
                     return Result.failure(
-                        IllegalStateException("Signing locked due to biometric failures")
+                        IllegalStateException("Signing locked due to biometric failures"),
                     )
                 }
             }

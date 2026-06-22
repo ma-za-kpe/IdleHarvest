@@ -19,7 +19,6 @@ import kotlin.test.Test
  * **Validates: Requirements 2.1**
  */
 class MonetizationRecommendationPropertyTest {
-
     companion object {
         /** Fixed clock value used as "now" for deterministic testing. */
         private const val FIXED_NOW_MS = 1_719_792_000_000L // 2024-07-01 00:00:00 UTC
@@ -36,10 +35,11 @@ class MonetizationRecommendationPropertyTest {
     private val eventBus = DefaultAgentEventBus()
     private val policyManager = DefaultPolicyManager(vault, eventBus)
     private val complianceEngine = DefaultComplianceEngine(vault)
-    private val inferenceEngine = DefaultInferenceEngine(
-        modelRegistry = DefaultModelRegistry(vault, cryptoProvider),
-        clock = { FIXED_NOW_MS },
-    )
+    private val inferenceEngine =
+        DefaultInferenceEngine(
+            modelRegistry = DefaultModelRegistry(vault, cryptoProvider),
+            clock = { FIXED_NOW_MS },
+        )
 
     private fun createTestAgent(): DefaultAirtimeAgent = DefaultAirtimeAgent(
         policyManager = policyManager,
@@ -57,9 +57,10 @@ class MonetizationRecommendationPropertyTest {
 
         forAll(Arb.airtimeBundle(), Arb.long(1L..SEVENTY_TWO_HOURS_MS)) { bundle, offsetMs ->
             // Set expiry within 72 hours of the fixed clock
-            val expiringBundle = bundle.copy(
-                expiryTimestamp = FIXED_NOW_MS + offsetMs
-            )
+            val expiringBundle =
+                bundle.copy(
+                    expiryTimestamp = FIXED_NOW_MS + offsetMs,
+                )
 
             val recommendation = agent.evaluateBundle(expiringBundle)
 
@@ -79,11 +80,12 @@ class MonetizationRecommendationPropertyTest {
         // So expiry > now + 72*HOUR_MS + HOUR_MS (to ensure integer division > 72)
         forAll(
             Arb.airtimeBundle(),
-            Arb.long(SEVENTY_TWO_HOURS_MS + ONE_HOUR_MS..SEVENTY_TWO_HOURS_MS * 10)
+            Arb.long(SEVENTY_TWO_HOURS_MS + ONE_HOUR_MS..SEVENTY_TWO_HOURS_MS * 10),
         ) { bundle, offsetMs ->
-            val farBundle = bundle.copy(
-                expiryTimestamp = FIXED_NOW_MS + offsetMs
-            )
+            val farBundle =
+                bundle.copy(
+                    expiryTimestamp = FIXED_NOW_MS + offsetMs,
+                )
 
             val recommendation = agent.evaluateBundle(farBundle)
 

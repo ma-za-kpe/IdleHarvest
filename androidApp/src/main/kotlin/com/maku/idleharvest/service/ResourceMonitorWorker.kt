@@ -23,16 +23,13 @@ class ResourceMonitorWorker(
     private val context: Context,
     workerParams: WorkerParameters,
 ) : Worker(context, workerParams) {
-
-    override fun doWork(): Result {
-        return try {
-            Log.d(TAG, "WorkManager heartbeat — ensuring ResourceMonitorService is running")
-            ResourceMonitorService.start(context)
-            Result.success()
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to restart ResourceMonitorService: ${e.message}")
-            Result.retry()
-        }
+    override fun doWork(): Result = try {
+        Log.d(TAG, "WorkManager heartbeat — ensuring ResourceMonitorService is running")
+        ResourceMonitorService.start(context)
+        Result.success()
+    } catch (e: Exception) {
+        Log.e(TAG, "Failed to restart ResourceMonitorService: ${e.message}")
+        Result.retry()
     }
 
     companion object {
@@ -50,14 +47,17 @@ class ResourceMonitorWorker(
          * Uses [ExistingPeriodicWorkPolicy.KEEP] to avoid replacing an already-running worker.
          */
         fun enqueue(context: Context) {
-            val constraints = Constraints.Builder()
-                .build()
+            val constraints =
+                Constraints
+                    .Builder()
+                    .build()
 
-            val workRequest = PeriodicWorkRequestBuilder<ResourceMonitorWorker>(
-                REPEAT_INTERVAL_MINUTES, TimeUnit.MINUTES,
-            )
-                .setConstraints(constraints)
-                .build()
+            val workRequest =
+                PeriodicWorkRequestBuilder<ResourceMonitorWorker>(
+                    REPEAT_INTERVAL_MINUTES,
+                    TimeUnit.MINUTES,
+                ).setConstraints(constraints)
+                    .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
                 WORK_NAME,

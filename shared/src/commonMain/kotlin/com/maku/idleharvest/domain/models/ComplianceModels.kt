@@ -29,7 +29,10 @@ sealed class ComplianceDecision {
 
     /** Transaction is blocked due to a regulatory violation. */
     @Serializable
-    data class Blocked(val regulation: String, val reason: String) : ComplianceDecision()
+    data class Blocked(
+        val regulation: String,
+        val reason: String,
+    ) : ComplianceDecision()
 }
 
 /**

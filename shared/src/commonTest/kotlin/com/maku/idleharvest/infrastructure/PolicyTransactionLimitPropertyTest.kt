@@ -23,12 +23,11 @@ import kotlin.test.Test
  * **Validates: Requirements 6.3**
  */
 class PolicyTransactionLimitPropertyTest {
-
     @Test
     fun cumulativeTransactionsNeverExceedDailyLimit() = runTest {
         forAll(
             Arb.double(1.0..1000.0), // daily limit
-            Arb.list(Arb.double(0.1..100.0), 1..20) // transaction amounts
+            Arb.list(Arb.double(0.1..100.0), 1..20), // transaction amounts
         ) { dailyLimit, amounts ->
             val vault = DefaultPrivacyVault(SimpleCryptoProvider())
             val eventBus = DefaultAgentEventBus()
@@ -46,19 +45,20 @@ class PolicyTransactionLimitPropertyTest {
                     resourceShareLimits = null,
                     requireBiometricAbove = null,
                     isActive = true,
-                )
+                ),
             )
 
             var cumulative = 0.0
             amounts.all { amount ->
-                val action = AgentAction(
-                    agentId = agentId,
-                    actionType = "transfer",
-                    description = "test transaction",
-                    amountUsdc = amount,
-                    resourceImpact = null,
-                    timestamp = fixedTime,
-                )
+                val action =
+                    AgentAction(
+                        agentId = agentId,
+                        actionType = "transfer",
+                        description = "test transaction",
+                        amountUsdc = amount,
+                        resourceImpact = null,
+                        timestamp = fixedTime,
+                    )
                 val decision = policyManager.checkAction(agentId, action)
                 if (cumulative + amount <= dailyLimit) {
                     cumulative += amount

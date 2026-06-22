@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">IdleHarvest</string>
+    <string name="app_tagline">Harvest Your Idle Power</string>
+
+    <!-- Common -->
+    <string name="skip">Skip</string>
+    <string name="next">Next</string>
+    <string name="back">Back</string>
+    <string name="done">Done</string>
+    <string name="cancel">Cancel</string>
+    <string name="continue_label">Continue</string>
+    <string name="get_started">Get Started</string>
+    <string name="settings">Settings</string>
+
+    <!-- Onboarding: Screen 1 — Welcome -->
+    <string name="onboarding_welcome_title">Welcome to IdleHarvest</string>
+    <string name="onboarding_welcome_subtitle">Harvest Your Idle Power</string>
+    <string name="onboarding_welcome_description">Turn unused airtime, data, and device resources into real earnings — privately, automatically, and securely on your phone.</string>
+    <string name="onboarding_welcome_cta">Get Started</string>
+
+    <!-- Onboarding: Screen 2 — Permissions -->
+    <string name="onboarding_permissions_title">Grant Permissions</string>
+    <string name="onboarding_permissions_subtitle">IdleHarvest needs a few permissions to work in the background.</string>
+    <string name="onboarding_perm_bluetooth_title">Bluetooth</string>
+    <string name="onboarding_perm_bluetooth_desc">Discover nearby IdleHarvest devices to pool resources and earn more together.</string>
+    <string name="onboarding_perm_notifications_title">Notifications</string>
+    <string name="onboarding_perm_notifications_desc">Receive alerts for completed earnings, policy violations, and agent status updates.</string>
+    <string name="onboarding_perm_battery_title">Battery Optimization</string>
+    <string name="onboarding_perm_battery_desc">Allow background operation so agents keep earning even when your screen is off.</string>
+    <string name="onboarding_perm_grant">Grant</string>
+    <string name="onboarding_perm_granted">Granted</string>
+
+    <!-- Onboarding: Screen 3 — Wallet Setup -->
+    <string name="onboarding_wallet_title">Set Up Your Wallet</string>
+    <string name="onboarding_wallet_subtitle">Your wallet is stored securely on this device. No cloud, no exposure.</string>
+    <string name="onboarding_wallet_generate">Create New Wallet</string>
+    <string name="onboarding_wallet_restore">Restore from Phrase</string>
+    <string name="onboarding_wallet_mnemonic_warning">Write down your recovery phrase. It will only be shown once. Without it, your wallet cannot be recovered.</string>
+    <string name="onboarding_wallet_mnemonic_copied">Phrase copied — store it somewhere safe.</string>
+    <string name="onboarding_wallet_copy_phrase">Copy Phrase</string>
+    <string name="onboarding_wallet_confirmed">I have saved my recovery phrase</string>
+    <string name="onboarding_wallet_skipped_notice">You can set up your wallet later in Settings.</string>
+
+    <!-- Onboarding: Screen 4 — Guardrails -->
+    <string name="onboarding_guardrails_title">Set Your Guardrails</string>
+    <string name="onboarding_guardrails_subtitle">Control how much the agents can do on your behalf. You can change these anytime.</string>
+    <string name="onboarding_guardrail_airtime_label">Airtime Agent</string>
+    <string name="onboarding_guardrail_airtime_desc">Automatically sell or transfer expiring airtime and data bundles.</string>
+    <string name="onboarding_guardrail_depin_label">DePIN Agent</string>
+    <string name="onboarding_guardrail_depin_desc">Share idle bandwidth and compute to earn passive crypto income.</string>
+    <string name="onboarding_guardrail_daily_limit_label">Daily Spending Limit</string>
+    <string name="onboarding_guardrail_daily_limit_hint">Maximum USDC per day (e.g. 5.00)</string>
+    <string name="onboarding_guardrail_single_limit_label">Single Transaction Limit</string>
+    <string name="onboarding_guardrail_single_limit_hint">Maximum USDC per transaction (e.g. 1.00)</string>
+    <string name="onboarding_guardrail_biometric_label">Biometric for transactions above</string>
+    <string name="onboarding_guardrail_autonomy_manual">Ask me every time</string>
+    <string name="onboarding_guardrail_autonomy_semi">Ask me for large actions</string>
+    <string name="onboarding_guardrail_autonomy_full">Run fully automatically</string>
+    <string name="onboarding_guardrails_safe_defaults_notice">Safe defaults applied. You can adjust these in Settings.</string>
+
+    <!-- Onboarding: Screen 5 — First Scan -->
+    <string name="onboarding_scan_title">Scanning Your Resources</string>
+    <string name="onboarding_scan_subtitle">Let\'s see what you can earn today.</string>
+    <string name="onboarding_scan_in_progress">Scanning device resources…</string>
+    <string name="onboarding_scan_complete">Scan complete!</string>
+    <string name="onboarding_scan_airtime_found">Airtime &amp; Data</string>
+    <string name="onboarding_scan_bandwidth_found">Idle Bandwidth</string>
+    <string name="onboarding_scan_storage_found">Free Storage</string>
+    <string name="onboarding_scan_nothing_found">No idle resources found right now. Agents will keep watching.</string>
+    <string name="onboarding_scan_go_to_dashboard">Go to Dashboard</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Dashboard</string>
+    <string name="dashboard_total_earnings">Total Earnings</string>
+    <string name="dashboard_active_agents">Active Agents</string>
+    <string name="dashboard_recent_transactions">Recent Transactions</string>
+    <string name="dashboard_system_health">System Health</string>
+    <string name="dashboard_health_green">All systems running</string>
+    <string name="dashboard_health_yellow">Some agents paused</string>
+    <string name="dashboard_health_red">Issues detected</string>
+
+    <!-- Currency -->
+    <string name="currency_usdc">USDC</string>
+    <string name="currency_format_usdc">%1$.2f USDC</string>
+
+    <!-- Compliance disclaimer -->
+    <string name="compliance_disclaimer_title">Important Notice</string>
+    <string name="compliance_disclaimer_body">Automated airtime and data resale is subject to your carrier\'s terms of service and local regulations. IdleHarvest applies conservative defaults and compliance rules to minimize risk. By continuing, you acknowledge these terms.</string>
+    <string name="compliance_disclaimer_accept">I Understand</string>
+    <string name="compliance_disclaimer_decline">Cancel</string>
+
+    <!-- Accessibility -->
+    <string name="cd_logo">IdleHarvest logo</string>
+    <string name="cd_health_green">System health: good</string>
+    <string name="cd_health_yellow">System health: degraded</string>
+    <string name="cd_health_red">System health: critical</string>
+    <string name="cd_back_button">Navigate back</string>
+    <string name="cd_skip_button">Skip this step</string>
+</resources>

@@ -9,10 +9,6 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * Property 26: Secure Keystore Signing Correctness
@@ -30,7 +26,6 @@ import kotlin.test.assertTrue
  * Validates: Requirements 13.1, 13.2, 13.3
  */
 class SecureKeystoreSigningPropertyTest {
-
     /**
      * Fake SecureKeystore that implements the signing contract using a simple
      * deterministic signing scheme (XOR-based HMAC simulation). This proves the
@@ -59,34 +54,44 @@ class SecureKeystoreSigningPropertyTest {
 
         fun generateKeyPair(alias: String): Result<PublicKey> {
             // Generate a deterministic "private key" from alias (simulating hardware keygen)
-            val privateKey = alias.encodeToByteArray().let { aliasBytes ->
-                ByteArray(32) { i -> aliasBytes[i % aliasBytes.size] }
-            }
-            val publicKey = PublicKey(
-                alias = alias,
-                encodedKey = privateKey.map { (it.toInt() xor 0xFF).toByte() }
-                    .toByteArray()
-                    .joinToString("") { "%02x".format(it) },
-                algorithm = "HMAC-SHA256-FAKE",
-                isInSecureHardware = true,
-            )
+            val privateKey =
+                alias.encodeToByteArray().let { aliasBytes ->
+                    ByteArray(32) { i -> aliasBytes[i % aliasBytes.size] }
+                }
+            val publicKey =
+                PublicKey(
+                    alias = alias,
+                    encodedKey =
+                    privateKey
+                        .map { (it.toInt() xor 0xFF).toByte() }
+                        .toByteArray()
+                        .joinToString("") { "%02x".format(it) },
+                    algorithm = "HMAC-SHA256-FAKE",
+                    isInSecureHardware = true,
+                )
             keys[alias] = KeyPair(privateKey, publicKey)
             return Result.success(publicKey)
         }
 
-        fun sign(alias: String, data: ByteArray): Result<ByteArray> {
-            val keyPair = keys[alias]
-                ?: return Result.failure(IllegalStateException("Key not found: $alias"))
+        fun sign(
+            alias: String,
+            data: ByteArray,
+        ): Result<ByteArray> {
+            val keyPair =
+                keys[alias]
+                    ?: return Result.failure(IllegalStateException("Key not found: $alias"))
             // Deterministic signature: HMAC-like XOR of data with private key
-            val signature = ByteArray(data.size) { i ->
-                (data[i].toInt() xor keyPair.privateKey[i % keyPair.privateKey.size].toInt()).toByte()
-            }
+            val signature =
+                ByteArray(data.size) { i ->
+                    (data[i].toInt() xor keyPair.privateKey[i % keyPair.privateKey.size].toInt()).toByte()
+                }
             return Result.success(signature)
         }
 
         fun getPublicKey(alias: String): Result<PublicKey> {
-            val keyPair = keys[alias]
-                ?: return Result.failure(IllegalStateException("Key not found: $alias"))
+            val keyPair =
+                keys[alias]
+                    ?: return Result.failure(IllegalStateException("Key not found: $alias"))
             return Result.success(keyPair.publicKey)
         }
 
@@ -99,14 +104,19 @@ class SecureKeystoreSigningPropertyTest {
          *
          * We verify by reconstructing the private key from the public key and checking.
          */
-        fun verify(alias: String, data: ByteArray, signature: ByteArray): Boolean {
+        fun verify(
+            alias: String,
+            data: ByteArray,
+            signature: ByteArray,
+        ): Boolean {
             val pubKey = keys[alias]?.publicKey ?: return false
             // Reconstruct the verification key from the public key encoding
-            val verificationKey = pubKey.encodedKey
-                .chunked(2)
-                .map { it.toInt(16).toByte() }
-                .map { (it.toInt() xor 0xFF).toByte() }
-                .toByteArray()
+            val verificationKey =
+                pubKey.encodedKey
+                    .chunked(2)
+                    .map { it.toInt(16).toByte() }
+                    .map { (it.toInt() xor 0xFF).toByte() }
+                    .toByteArray()
 
             // Verify: signature[i] XOR verificationKey[i % len] should equal data[i]
             if (signature.size != data.size) return false
@@ -161,8 +171,11 @@ class SecureKeystoreSigningPropertyTest {
 
             // If data is different, signatures must be different (collision resistance)
             // Skip if data happens to be equal
-            if (data1.contentEquals(data2)) true
-            else !sig1.contentEquals(sig2)
+            if (data1.contentEquals(data2)) {
+                true
+            } else {
+                !sig1.contentEquals(sig2)
+            }
         }
     }
 

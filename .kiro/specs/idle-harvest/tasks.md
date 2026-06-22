@@ -229,7 +229,7 @@ This plan implements IdleHarvest — a privacy-first, on-device agentic system f
 - [x] 11. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 12. Implement Earning Engine and Secure Keystore
+- [x] 12. Implement Earning Engine and Secure Keystore
   - [x] 12.1 Implement Earning Engine with Circle Agent Stack integration
     - Implement `EarningEngine` interface with payout initiation via Circle Agent Stack
     - Implement idempotent payout guarantee (reject duplicate payouts for same earning event)
@@ -256,15 +256,15 @@ This plan implements IdleHarvest — a privacy-first, on-device agentic system f
     - **Property 14: Biometric Gating by Transaction Value**
     - **Validates: Requirements 5.7, 13.4**
 
-  - [~] 12.5 Write property test for secure keystore signing correctness
+  - [x] 12.5 Write property test for secure keystore signing correctness
     - **Property 26: Secure Keystore Signing Correctness**
     - **Validates: Requirements 13.3**
 
-  - [~] 12.6 Write property test for biometric lockout after consecutive failures
+  - [x] 12.6 Write property test for biometric lockout after consecutive failures
     - **Property 27: Biometric Lockout After Consecutive Failures**
     - **Validates: Requirements 13.5**
 
-- [ ] 13. Implement error handling, resilience, and monitoring
+- [x] 13. Implement error handling, resilience, and monitoring
   - [x] 13.1 Implement Circuit Breaker pattern
     - Implement `CircuitBreaker` class with state machine (Closed → Open → HalfOpen)
     - Open after 5 consecutive failures, configurable backoff period
@@ -283,53 +283,53 @@ This plan implements IdleHarvest — a privacy-first, on-device agentic system f
     - Implement anonymized crash reports (with user consent) for critical failures — no PII
     - _Requirements: 16.2, 16.4, 16.6_
 
-  - [~] 13.4 Write property test for circuit breaker state machine
+  - [x] 13.4 Write property test for circuit breaker state machine
     - **Property 30: Circuit Breaker State Machine**
     - **Validates: Requirements 16.1**
 
-  - [~] 13.5 Write property test for rolling error log window
+  - [x] 13.5 Write property test for rolling error log window
     - **Property 31: Rolling Error Log Window**
     - **Validates: Requirements 16.2**
 
-  - [~] 13.6 Write property test for offline queue and retry
+  - [x] 13.6 Write property test for offline queue and retry
     - **Property 32: Offline Queue and Retry**
     - **Validates: Requirements 16.3**
 
-  - [~] 13.7 Write property test for watchdog agent restart
+  - [x] 13.7 Write property test for watchdog agent restart
     - **Property 33: Watchdog Agent Restart**
     - **Validates: Requirements 16.5**
 
-  - [~] 13.8 Write property test for system health indicator derivation
+  - [x] 13.8 Write property test for system health indicator derivation
     - **Property 34: System Health Indicator Derivation**
     - **Validates: Requirements 16.6**
 
-- [~] 14. Checkpoint - Ensure all tests pass
+- [x] 14. Checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 15. Implement onboarding, localization, and user experience
-  - [~] 15.1 Implement onboarding flow (max 5 screens)
+- [x] 15. Implement onboarding, localization, and user experience
+  - [x] 15.1 Implement onboarding flow (max 5 screens)
     - Create step-by-step onboarding: welcome, permission grants, wallet setup, guardrail configuration, first resource scan
     - Include educational tooltips explaining each agent capability and earning mechanism
     - Apply safe defaults when user skips steps; allow revisiting from settings
     - _Requirements: 15.1, 15.2, 15.5_
 
-  - [~] 15.2 Implement multi-language support and accessibility
+  - [x] 15.2 Implement multi-language support and accessibility
     - Set up localization framework supporting English, French, Swahili, Hausa
     - Implement locale-aware currency display (local currency + USDC equivalent), date/time formatting
     - Implement accessibility: screen reader compatibility, 48dp touch targets, scalable text, high-contrast mode
     - Implement offline-first experience with cached data availability
     - _Requirements: 15.3, 15.4, 15.6_
 
-  - [~] 15.3 Write property test for localization completeness
+  - [x] 15.3 Write property test for localization completeness
     - **Property 28: Localization Completeness**
     - **Validates: Requirements 14.6, 15.3**
 
-  - [~] 15.4 Write property test for safe defaults on incomplete onboarding
+  - [x] 15.4 Write property test for safe defaults on incomplete onboarding
     - **Property 29: Safe Defaults on Incomplete Onboarding**
     - **Validates: Requirements 15.5**
 
-- [ ] 16. Implement Web Dashboard (Kotlin/WASM)
-  - [~] 16.1 Create Kotlin/WASM web dashboard in wasmJsMain
+- [x] 16. Implement Web Dashboard (Kotlin/WASM)
+  - [x] 16.1 Create Kotlin/WASM web dashboard in wasmJsMain
     - Build marketing landing page with product overview, features, download links, and impact statistics
     - Implement authenticated lite earnings dashboard (total earnings, recent transactions, active agents, device status)
     - Share UI components and business logic with mobile app via shared KMP module
@@ -338,29 +338,29 @@ This plan implements IdleHarvest — a privacy-first, on-device agentic system f
     - Add multi-language content support (English, French, Swahili, Hausa)
     - _Requirements: 14.1, 14.2, 14.3, 14.4, 14.5, 14.6_
 
-- [ ] 17. Implement CI/CD pipeline with Firebase deployment
-  - [~] 17.1 Set up Firebase Hosting deployment pipeline
+- [x] 17. Implement CI/CD pipeline with Firebase deployment
+  - [x] 17.1 Set up Firebase Hosting deployment pipeline
     - Configure Firebase CLI for Kotlin/WASM web asset deployment
     - Implement deployment validation (HTTP 200 check within 60 seconds)
     - Implement failure handling (retain previous live version, notify team)
     - Implement concurrent deployment prevention and preview channel support for PRs
     - _Requirements: 17.1, 17.3, 17.4, 17.7, 17.8_
 
-  - [~] 17.2 Set up Firebase App Distribution pipeline
+  - [x] 17.2 Set up Firebase App Distribution pipeline
     - Configure upload for Android and iOS test builds with tester group notification
     - Tag releases with build version, commit SHA, and build timestamp
     - Implement retry logic (3 retries, exponential backoff) on upload failure
     - _Requirements: 17.2, 17.5, 17.6_
 
-  - [~] 17.3 Set up Validation Pipeline and pre-commit hooks
+  - [x] 17.3 Set up Validation Pipeline and pre-commit hooks
     - Configure Detekt for Kotlin static analysis with project ruleset
     - Configure Spotless for code formatting enforcement
     - Set up pre-commit hook executing: unit tests, lint, Detekt, Spotless
     - Block commits on any quality gate failure
     - _Requirements: 18.1, 18.2, 18.3, 18.4, 18.5, 18.6, 18.7, 18.8_
 
-- [ ] 18. Integration wiring and final assembly
-  - [~] 18.1 Wire all agents to Event Bus and Policy Manager
+- [x] 18. Integration wiring and final assembly
+  - [x] 18.1 Wire all agents to Event Bus and Policy Manager
     - Connect Resource_Monitor events to Airtime_Agent (bundle expiry detection)
     - Connect Resource_Monitor events to DePIN_Agent (threshold monitoring)
     - Connect Mesh_Coordinator peer events to Earning_Engine (nanopayments)
@@ -368,20 +368,20 @@ This plan implements IdleHarvest — a privacy-first, on-device agentic system f
     - Wire thermal and connectivity events to all adaptive subsystems
     - _Requirements: 1.1, 2.6, 3.2, 5.2, 6.4, 10.6_
 
-  - [~] 18.2 Implement Android MainActivity with DI and agent lifecycle orchestration
+  - [x] 18.2 Implement Android MainActivity with DI and agent lifecycle orchestration
     - Set up dependency injection for all agents and services
     - Initialize foreground service, register WorkManager jobs
     - Wire UI (Compose Multiplatform) to agent state flows and earning summaries
     - Implement compliance disclaimer/consent flow during onboarding
     - _Requirements: 10.1, 12.5, 15.1_
 
-  - [~] 18.3 Write integration tests for end-to-end agent flows
+  - [x] 18.3 Write integration tests for end-to-end agent flows
     - Test full agent lifecycle: resource detection → recommendation → policy check → execution → settlement
     - Test offline queue behavior: generate earning while offline → reconnect → auto-retry
     - Test graceful degradation order under resource constraints
     - _Requirements: 2.1, 2.2, 5.1, 16.1, 16.3_
 
-- [~] 19. Final checkpoint - Ensure all tests pass
+- [x] 19. Final checkpoint - Ensure all tests pass
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

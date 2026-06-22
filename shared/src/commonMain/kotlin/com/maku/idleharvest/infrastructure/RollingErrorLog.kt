@@ -26,7 +26,7 @@ data class ErrorLogEntry(
     val severity: LogSeverity,
     val message: String,
     val timestamp: Long,
-    val stackTrace: String? = null
+    val stackTrace: String? = null,
 )
 
 /**
@@ -42,7 +42,7 @@ data class ErrorLogEntry(
  */
 class RollingErrorLog(
     private val maxAgeDays: Int = 7,
-    private val clock: () -> Long = { currentTimeMillis() }
+    private val clock: () -> Long = { currentTimeMillis() },
 ) {
     private val entries = mutableListOf<ErrorLogEntry>()
 
@@ -117,7 +117,7 @@ class RollingErrorLog(
                 // Anonymize message: keep only the error type/category
                 message = anonymizeMessage(entry.message),
                 // Hash the stack trace to allow grouping without exposing details
-                stackTrace = entry.stackTrace?.let { anonymizeStackTrace(it) }
+                stackTrace = entry.stackTrace?.let { anonymizeStackTrace(it) },
             )
         }
     }
@@ -150,13 +150,13 @@ class RollingErrorLog(
      * Anonymize a stack trace by keeping only class/method names without line numbers
      * or file paths that could identify specific user devices.
      */
-    private fun anonymizeStackTrace(stackTrace: String): String {
-        return stackTrace.lines()
-            .take(5) // Keep only top 5 frames
-            .joinToString("\n") { line ->
-                // Remove file paths and line numbers, keep class.method pattern
-                line.replace(Regex("\\(.*\\)"), "()")
-                    .trim()
-            }
-    }
+    private fun anonymizeStackTrace(stackTrace: String): String = stackTrace
+        .lines()
+        .take(5) // Keep only top 5 frames
+        .joinToString("\n") { line ->
+            // Remove file paths and line numbers, keep class.method pattern
+            line
+                .replace(Regex("\\(.*\\)"), "()")
+                .trim()
+        }
 }

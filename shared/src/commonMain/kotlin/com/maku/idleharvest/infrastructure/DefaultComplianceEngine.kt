@@ -62,7 +62,8 @@ class DefaultComplianceEngine(
             if (transaction.amount > rules.kycThreshold) {
                 val decision = ComplianceDecision.Blocked(
                     regulation = "KYC_LIMIT",
-                    reason = "Transaction amount ${transaction.amount} exceeds KYC threshold of ${rules.kycThreshold}",
+                    reason =
+                    "Transaction amount ${transaction.amount} exceeds KYC threshold of ${rules.kycThreshold}",
                 )
                 logAudit(transaction, decision, rules)
                 return decision
@@ -80,7 +81,8 @@ class DefaultComplianceEngine(
             if (recentTransactions >= rules.rateLimitPerHour) {
                 val decision = ComplianceDecision.Blocked(
                     regulation = "RATE_LIMIT",
-                    reason = "Rate limit of ${rules.rateLimitPerHour} transactions per hour exceeded ($recentTransactions already processed)",
+                    reason =
+                    "Rate limit of ${rules.rateLimitPerHour} tx/hr exceeded ($recentTransactions already processed)",
                 )
                 logAudit(transaction, decision, rules)
                 return decision
@@ -100,7 +102,7 @@ class DefaultComplianceEngine(
             if (dailyTotal + transaction.amount > rules.dailyTransactionLimit) {
                 val decision = ComplianceDecision.Blocked(
                     regulation = "DAILY_CAP",
-                    reason = "Daily transaction total would be ${dailyTotal + transaction.amount}, exceeding daily limit of ${rules.dailyTransactionLimit}",
+                    reason = "Daily total ${dailyTotal + transaction.amount} exceeds limit of ${rules.dailyTransactionLimit}",
                 )
                 logAudit(transaction, decision, rules)
                 return decision
@@ -120,7 +122,7 @@ class DefaultComplianceEngine(
             if (monthlyTotal + transaction.amount > rules.monthlyTransactionLimit) {
                 val decision = ComplianceDecision.Blocked(
                     regulation = "MONTHLY_CAP",
-                    reason = "Monthly transaction total would be ${monthlyTotal + transaction.amount}, exceeding monthly limit of ${rules.monthlyTransactionLimit}",
+                    reason = "Monthly total ${monthlyTotal + transaction.amount} exceeds limit of ${rules.monthlyTransactionLimit}",
                 )
                 logAudit(transaction, decision, rules)
                 return decision
@@ -135,7 +137,7 @@ class DefaultComplianceEngine(
                     country = transaction.country,
                     carrier = transaction.carrier,
                     timestamp = now,
-                )
+                ),
             )
             logAudit(transaction, decision, rules)
             return decision
@@ -153,10 +155,8 @@ class DefaultComplianceEngine(
         vault.store(vaultKey, rulesJson.encodeToByteArray()).getOrThrow()
     }
 
-    override fun getCurrentRules(country: String, carrier: String): ComplianceRuleSet {
-        return findRules(country, carrier)
-            ?: defaultRulesFor(country, carrier)
-    }
+    override fun getCurrentRules(country: String, carrier: String): ComplianceRuleSet = findRules(country, carrier)
+        ?: defaultRulesFor(country, carrier)
 
     override fun getAuditLog(): Flow<List<ComplianceAuditEntry>> = _auditLog.asStateFlow()
 
@@ -184,17 +184,13 @@ class DefaultComplianceEngine(
      * Find the most specific ruleset for a country/carrier pair.
      * Looks for exact match first ("country:carrier"), then falls back to wildcard ("country:*").
      */
-    private fun findRules(country: String, carrier: String): ComplianceRuleSet? {
-        return rulesets["$country:$carrier"]
-            ?: rulesets["$country:*"]
-    }
+    private fun findRules(country: String, carrier: String): ComplianceRuleSet? = rulesets["$country:$carrier"]
+        ?: rulesets["$country:*"]
 
     /**
      * Build the map key for a ruleset.
      */
-    private fun rulesetKey(country: String, carrier: String?): String {
-        return if (carrier != null) "$country:$carrier" else "$country:*"
-    }
+    private fun rulesetKey(country: String, carrier: String?): String = if (carrier != null) "$country:$carrier" else "$country:*"
 
     /**
      * Log an audit entry for a compliance check.
@@ -219,18 +215,16 @@ class DefaultComplianceEngine(
      * Provides a permissive default ruleset when no rules are configured for a country/carrier.
      * This ensures audit entries always have a reference ruleset.
      */
-    private fun defaultRulesFor(country: String, carrier: String): ComplianceRuleSet {
-        return ComplianceRuleSet(
-            country = country,
-            carrier = carrier,
-            dailyTransactionLimit = Double.MAX_VALUE,
-            monthlyTransactionLimit = Double.MAX_VALUE,
-            kycThreshold = Double.MAX_VALUE,
-            rateLimitPerHour = Int.MAX_VALUE,
-            version = 0,
-            lastUpdated = 0L,
-        )
-    }
+    private fun defaultRulesFor(country: String, carrier: String): ComplianceRuleSet = ComplianceRuleSet(
+        country = country,
+        carrier = carrier,
+        dailyTransactionLimit = Double.MAX_VALUE,
+        monthlyTransactionLimit = Double.MAX_VALUE,
+        kycThreshold = Double.MAX_VALUE,
+        rateLimitPerHour = Int.MAX_VALUE,
+        version = 0,
+        lastUpdated = 0L,
+    )
 
     companion object {
         private const val ONE_HOUR_MS = 3_600_000L

@@ -12,7 +12,6 @@ import com.maku.idleharvest.domain.models.ThermalState
  * other iOS system APIs for resource detection.
  */
 actual class PlatformResourceScanner {
-
     actual suspend fun scanAirtimeBalance(): AirtimeBalance? {
         // TODO: Implement via carrier API or user input
         return null

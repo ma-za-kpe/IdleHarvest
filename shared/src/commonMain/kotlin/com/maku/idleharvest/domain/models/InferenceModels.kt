@@ -108,19 +108,24 @@ data class ModelSizeComparison(
          * - INT8: ~4x reduction
          * - INT4: ~8x reduction
          */
-        fun compute(quantizedSizeBytes: Long, quantizationLevel: QuantizationLevel): ModelSizeComparison {
-            val estimatedFp32Size = when (quantizationLevel) {
-                QuantizationLevel.FP32 -> quantizedSizeBytes
-                QuantizationLevel.FP16 -> quantizedSizeBytes * 2
-                QuantizationLevel.INT8 -> quantizedSizeBytes * 4
-                QuantizationLevel.INT4 -> quantizedSizeBytes * 8
-            }
+        fun compute(
+            quantizedSizeBytes: Long,
+            quantizationLevel: QuantizationLevel,
+        ): ModelSizeComparison {
+            val estimatedFp32Size =
+                when (quantizationLevel) {
+                    QuantizationLevel.FP32 -> quantizedSizeBytes
+                    QuantizationLevel.FP16 -> quantizedSizeBytes * 2
+                    QuantizationLevel.INT8 -> quantizedSizeBytes * 4
+                    QuantizationLevel.INT4 -> quantizedSizeBytes * 8
+                }
 
-            val reductionPercent = if (estimatedFp32Size > 0) {
-                ((estimatedFp32Size - quantizedSizeBytes).toFloat() / estimatedFp32Size.toFloat()) * 100f
-            } else {
-                0f
-            }
+            val reductionPercent =
+                if (estimatedFp32Size > 0) {
+                    ((estimatedFp32Size - quantizedSizeBytes).toFloat() / estimatedFp32Size.toFloat()) * 100f
+                } else {
+                    0f
+                }
 
             return ModelSizeComparison(
                 originalSizeFp32Bytes = estimatedFp32Size,

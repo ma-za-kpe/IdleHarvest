@@ -16,26 +16,27 @@ import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class DefaultAgentEventBusTest {
-
     private val eventBus = DefaultAgentEventBus()
 
-    private val sampleResourceProfile = ResourceProfile(
-        airtimeBalance = null,
-        dataBundles = emptyList(),
-        availableBandwidthMbps = 10f,
-        freeStorageMb = 5000L,
-        idleComputePercent = 70,
-        batteryLevel = 80,
-        isCharging = false,
-        thermalState = ThermalState.COOL,
-        timestamp = 1_000_000L,
-    )
+    private val sampleResourceProfile =
+        ResourceProfile(
+            airtimeBalance = null,
+            dataBundles = emptyList(),
+            availableBandwidthMbps = 10f,
+            freeStorageMb = 5000L,
+            idleComputePercent = 70,
+            batteryLevel = 80,
+            isCharging = false,
+            thermalState = ThermalState.COOL,
+            timestamp = 1_000_000L,
+        )
 
     @Test
     fun subscriberReceivesPublishedEvent() = runTest(UnconfinedTestDispatcher()) {
-        val deferred = async {
-            eventBus.subscribe(AgentEvent.ConnectivityChanged::class).first()
-        }
+        val deferred =
+            async {
+                eventBus.subscribe(AgentEvent.ConnectivityChanged::class).first()
+            }
 
         eventBus.publish(AgentEvent.ConnectivityChanged(isOnline = true))
 
@@ -45,9 +46,10 @@ class DefaultAgentEventBusTest {
 
     @Test
     fun subscriberOnlyReceivesMatchingEventType() = runTest(UnconfinedTestDispatcher()) {
-        val deferred = async {
-            eventBus.subscribe(AgentEvent.ConnectivityChanged::class).take(1).toList()
-        }
+        val deferred =
+            async {
+                eventBus.subscribe(AgentEvent.ConnectivityChanged::class).take(1).toList()
+            }
 
         // Publish a non-matching event first
         eventBus.publish(AgentEvent.ThermalStateChanged(state = ThermalState.HOT))
@@ -61,12 +63,14 @@ class DefaultAgentEventBusTest {
 
     @Test
     fun multipleSubscribersReceiveSameEvent() = runTest(UnconfinedTestDispatcher()) {
-        val deferred1 = async {
-            eventBus.subscribe(AgentEvent.ResourceUpdated::class).first()
-        }
-        val deferred2 = async {
-            eventBus.subscribe(AgentEvent.ResourceUpdated::class).first()
-        }
+        val deferred1 =
+            async {
+                eventBus.subscribe(AgentEvent.ResourceUpdated::class).first()
+            }
+        val deferred2 =
+            async {
+                eventBus.subscribe(AgentEvent.ResourceUpdated::class).first()
+            }
 
         eventBus.publish(AgentEvent.ResourceUpdated(profile = sampleResourceProfile))
 
@@ -77,12 +81,14 @@ class DefaultAgentEventBusTest {
 
     @Test
     fun multipleEventTypesRoutedCorrectly() = runTest(UnconfinedTestDispatcher()) {
-        val thermalDeferred = async {
-            eventBus.subscribe(AgentEvent.ThermalStateChanged::class).first()
-        }
-        val connectivityDeferred = async {
-            eventBus.subscribe(AgentEvent.ConnectivityChanged::class).first()
-        }
+        val thermalDeferred =
+            async {
+                eventBus.subscribe(AgentEvent.ThermalStateChanged::class).first()
+            }
+        val connectivityDeferred =
+            async {
+                eventBus.subscribe(AgentEvent.ConnectivityChanged::class).first()
+            }
 
         eventBus.publish(AgentEvent.ThermalStateChanged(state = ThermalState.HOT))
         eventBus.publish(AgentEvent.ConnectivityChanged(isOnline = true))

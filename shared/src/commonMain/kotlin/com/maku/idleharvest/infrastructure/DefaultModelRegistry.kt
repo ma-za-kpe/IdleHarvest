@@ -33,7 +33,6 @@ class DefaultModelRegistry(
     private val modelDownloader: ModelDownloader = NoOpModelDownloader(),
     private val clock: () -> Long = { currentTimeMillis() },
 ) : ModelRegistry {
-
     private val json = Json { ignoreUnknownKeys = true }
     private val mutex = Mutex()
 
@@ -93,44 +92,48 @@ class DefaultModelRegistry(
     }
 
     override suspend fun downloadModel(modelId: String): Result<ModelFile> = runCatching {
-        val metadata = findMetadata(modelId)
-            ?: throw IllegalArgumentException("Model not found in registry: $modelId")
+        val metadata =
+            findMetadata(modelId)
+                ?: throw IllegalArgumentException("Model not found in registry: $modelId")
 
         // Check connectivity state — prefer Wi-Fi over metered
         val connectivity = connectivityProvider.getConnectivityState()
         if (connectivity.isMetered && !connectivity.allowMeteredDownloads) {
             throw MeteredConnectionException(
-                "Download blocked: metered connection detected. Connect to Wi-Fi or enable metered downloads."
+                "Download blocked: metered connection detected. Connect to Wi-Fi or enable metered downloads.",
             )
         }
 
         // Check for existing download progress (resumable download)
-        val resumeFromByte = mutex.withLock {
-            downloadProgress[modelId] ?: 0L
-        }
+        val resumeFromByte =
+            mutex.withLock {
+                downloadProgress[modelId] ?: 0L
+            }
 
         // Perform download (with resume support)
-        val modelFileData = modelDownloader.download(
-            modelId = modelId,
-            metadata = metadata,
-            resumeFromByte = resumeFromByte,
-            onProgress = { bytesDownloaded ->
-                mutex.withLock {
-                    downloadProgress[modelId] = bytesDownloaded
-                    // Persist download progress for crash recovery
-                    persistDownloadProgress(modelId, bytesDownloaded)
-                }
-            }
-        )
+        val modelFileData =
+            modelDownloader.download(
+                modelId = modelId,
+                metadata = metadata,
+                resumeFromByte = resumeFromByte,
+                onProgress = { bytesDownloaded ->
+                    mutex.withLock {
+                        downloadProgress[modelId] = bytesDownloaded
+                        // Persist download progress for crash recovery
+                        persistDownloadProgress(modelId, bytesDownloaded)
+                    }
+                },
+            )
 
-        val modelFile = ModelFile(
-            modelId = modelId,
-            version = metadata.version,
-            filePath = modelFileData.filePath,
-            sizeBytes = modelFileData.sizeBytes,
-            sha256Checksum = metadata.sha256Checksum,
-            downloadedAt = clock(),
-        )
+        val modelFile =
+            ModelFile(
+                modelId = modelId,
+                version = metadata.version,
+                filePath = modelFileData.filePath,
+                sizeBytes = modelFileData.sizeBytes,
+                sha256Checksum = metadata.sha256Checksum,
+                downloadedAt = clock(),
+            )
 
         // Verify integrity before making available
         if (!verifyIntegrity(modelFile)) {
@@ -140,7 +143,7 @@ class DefaultModelRegistry(
             }
             vault.delete("$DOWNLOAD_PROGRESS_PREFIX$modelId")
             throw IntegrityVerificationException(
-                "Model integrity verification failed for $modelId: SHA-256 mismatch"
+                "Model integrity verification failed for $modelId: SHA-256 mismatch",
             )
         }
 
@@ -168,8 +171,9 @@ class DefaultModelRegistry(
 
     override suspend fun verifyIntegrity(modelFile: ModelFile): Boolean {
         // Compute SHA-256 hash of the model file content
-        val fileContent = modelDownloader.readFileContent(modelFile.filePath)
-            ?: return false
+        val fileContent =
+            modelDownloader.readFileContent(modelFile.filePath)
+                ?: return false
 
         val computedHash = computeSha256Hex(fileContent)
         return computedHash == modelFile.sha256Checksum
@@ -177,8 +181,9 @@ class DefaultModelRegistry(
 
     override suspend fun rollback(modelId: String): Result<ModelFile> = runCatching {
         mutex.withLock {
-            val previousFile = previousVersions[modelId]
-                ?: throw IllegalStateException("No previous version available for rollback: $modelId")
+            val previousFile =
+                previousVersions[modelId]
+                    ?: throw IllegalStateException("No previous version available for rollback: $modelId")
 
             // Restore the previous version as the active model
             downloadedModels[modelId] = previousFile
@@ -186,19 +191,18 @@ class DefaultModelRegistry(
             // Find and update the active model for the corresponding purpose
             val metadata = _availableModels.value.firstOrNull { it.id == modelId }
             if (metadata != null) {
-                activeModels[metadata.purpose] = metadata.copy(
-                    version = previousFile.version,
-                    isStable = true,
-                )
+                activeModels[metadata.purpose] =
+                    metadata.copy(
+                        version = previousFile.version,
+                        isStable = true,
+                    )
             }
 
             previousFile
         }
     }
 
-    override fun getActiveModel(purpose: ModelPurpose): ModelMetadata? {
-        return activeModels[purpose]
-    }
+    override fun getActiveModel(purpose: ModelPurpose): ModelMetadata? = activeModels[purpose]
 
     /**
      * Marks a model version as stable, removing the rollback copy.
@@ -231,29 +235,21 @@ class DefaultModelRegistry(
     /**
      * Gets the downloaded model file for a given model ID, if available.
      */
-    fun getDownloadedModel(modelId: String): ModelFile? {
-        return downloadedModels[modelId]
-    }
+    fun getDownloadedModel(modelId: String): ModelFile? = downloadedModels[modelId]
 
     /**
      * Gets the previous model version stored for rollback.
      */
-    fun getPreviousVersion(modelId: String): ModelFile? {
-        return previousVersions[modelId]
-    }
+    fun getPreviousVersion(modelId: String): ModelFile? = previousVersions[modelId]
 
     /**
      * Gets the current download progress (bytes downloaded) for a model.
      */
-    fun getDownloadProgress(modelId: String): Long? {
-        return downloadProgress[modelId]
-    }
+    fun getDownloadProgress(modelId: String): Long? = downloadProgress[modelId]
 
     // --- Private helpers ---
 
-    private fun findMetadata(modelId: String): ModelMetadata? {
-        return _availableModels.value.firstOrNull { it.id == modelId }
-    }
+    private fun findMetadata(modelId: String): ModelMetadata? = _availableModels.value.firstOrNull { it.id == modelId }
 
     private suspend fun persistMetadata(metadata: ModelMetadata) {
         val metaJson = json.encodeToString(metadata)
@@ -265,7 +261,10 @@ class DefaultModelRegistry(
         vault.store(MODEL_INDEX_KEY, indexJson.encodeToByteArray())
     }
 
-    private suspend fun persistDownloadProgress(modelId: String, bytesDownloaded: Long) {
+    private suspend fun persistDownloadProgress(
+        modelId: String,
+        bytesDownloaded: Long,
+    ) {
         val progressJson = json.encodeToString(bytesDownloaded)
         vault.store("$DOWNLOAD_PROGRESS_PREFIX$modelId", progressJson.encodeToByteArray())
     }
@@ -362,7 +361,10 @@ class NoOpModelDownloader : ModelDownloader {
     /**
      * Pre-populate the simulated file system for testing.
      */
-    fun putFile(filePath: String, content: ByteArray) {
+    fun putFile(
+        filePath: String,
+        content: ByteArray,
+    ) {
         fileSystem[filePath] = content
     }
 
@@ -387,17 +389,19 @@ class NoOpModelDownloader : ModelDownloader {
         return DownloadResult(filePath = filePath, sizeBytes = metadata.sizeBytes)
     }
 
-    override suspend fun readFileContent(filePath: String): ByteArray? {
-        return fileSystem[filePath]
-    }
+    override suspend fun readFileContent(filePath: String): ByteArray? = fileSystem[filePath]
 }
 
 /**
  * Exception thrown when a download is blocked due to metered connection.
  */
-class MeteredConnectionException(message: String) : Exception(message)
+class MeteredConnectionException(
+    message: String,
+) : Exception(message)
 
 /**
  * Exception thrown when model integrity verification fails.
  */
-class IntegrityVerificationException(message: String) : Exception(message)
+class IntegrityVerificationException(
+    message: String,
+) : Exception(message)

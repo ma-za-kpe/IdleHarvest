@@ -17,7 +17,6 @@ import kotlin.test.Test
  * **Validates: Requirements 11.3**
  */
 class BenchmarkStatisticsPropertyTest {
-
     /**
      * Computes p95 using the same algorithm as DefaultInferenceEngine.
      */

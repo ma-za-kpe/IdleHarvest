@@ -29,11 +29,16 @@ sealed class PolicyDecision {
 
     /** Action is blocked by a policy; includes violation reason and the violated policy. */
     @Serializable
-    data class Denied(val reason: String, val violatedPolicy: Policy) : PolicyDecision()
+    data class Denied(
+        val reason: String,
+        val violatedPolicy: Policy,
+    ) : PolicyDecision()
 
     /** Action requires explicit user approval before proceeding. */
     @Serializable
-    data class RequiresApproval(val action: AgentAction) : PolicyDecision()
+    data class RequiresApproval(
+        val action: AgentAction,
+    ) : PolicyDecision()
 }
 
 /**

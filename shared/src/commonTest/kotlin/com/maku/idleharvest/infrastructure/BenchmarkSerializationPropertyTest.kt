@@ -18,7 +18,6 @@ import kotlin.test.Test
  * **Validates: Requirements 11.5**
  */
 class BenchmarkSerializationPropertyTest {
-
     private val json = Json { ignoreUnknownKeys = true }
 
     @Test

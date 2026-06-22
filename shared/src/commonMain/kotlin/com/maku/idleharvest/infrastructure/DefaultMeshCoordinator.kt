@@ -41,7 +41,6 @@ class DefaultMeshCoordinator(
     private val scope: CoroutineScope,
     private val clock: () -> Long = { currentTimeMillis() },
 ) : MeshCoordinator {
-
     companion object {
         /** Aggressive scan interval when device is charging (5 seconds). */
         const val SCAN_INTERVAL_CHARGING_MS = 5_000L
@@ -96,17 +95,18 @@ class DefaultMeshCoordinator(
         }
 
         // Start adaptive scan cycle
-        scanJob = scope.launch {
-            while (isDiscoveryActive) {
-                val interval = getCurrentScanInterval()
-                delay(interval)
-                if (isDiscoveryActive) {
-                    // Rotate advertising to allow additional peers beyond max connections
-                    // to discover us
-                    refreshAdvertising()
+        scanJob =
+            scope.launch {
+                while (isDiscoveryActive) {
+                    val interval = getCurrentScanInterval()
+                    delay(interval)
+                    if (isDiscoveryActive) {
+                        // Rotate advertising to allow additional peers beyond max connections
+                        // to discover us
+                        refreshAdvertising()
+                    }
                 }
             }
-        }
     }
 
     /**
@@ -138,15 +138,15 @@ class DefaultMeshCoordinator(
             return Result.failure(
                 MaxConnectionsReachedException(
                     "Cannot connect: maximum $MAX_GATT_CONNECTIONS simultaneous GATT connections reached. " +
-                        "Peer remains discoverable via advertising rotation."
-                )
+                        "Peer remains discoverable via advertising rotation.",
+                ),
             )
         }
 
         // Check if already connected
         if (connections.containsKey(peerId)) {
             return Result.failure(
-                IllegalStateException("Already connected to peer ${peerId.value}")
+                IllegalStateException("Already connected to peer ${peerId.value}"),
             )
         }
 
@@ -166,12 +166,13 @@ class DefaultMeshCoordinator(
                 // Update mesh state
                 _meshState.value = MeshState.CONNECTED
 
-                val peerConnection = PeerConnection(
-                    peerId = peerId,
-                    connectionId = "${peerId.value}_${now}",
-                    establishedAt = now,
-                    mtu = DEFAULT_MTU,
-                )
+                val peerConnection =
+                    PeerConnection(
+                        peerId = peerId,
+                        connectionId = "${peerId.value}_$now",
+                        establishedAt = now,
+                        mtu = DEFAULT_MTU,
+                    )
 
                 Result.success(peerConnection)
             },
@@ -179,7 +180,7 @@ class DefaultMeshCoordinator(
                 updatePeerState(peerId, PeerConnectionState.DISCONNECTED)
                 _meshState.value = if (connections.isEmpty()) MeshState.SCANNING else MeshState.CONNECTED
                 Result.failure(error)
-            }
+            },
         )
     }
 
@@ -203,11 +204,12 @@ class DefaultMeshCoordinator(
         }
 
         // Update mesh state
-        _meshState.value = when {
-            connections.isEmpty() && isDiscoveryActive -> MeshState.SCANNING
-            connections.isEmpty() -> MeshState.IDLE
-            else -> MeshState.CONNECTED
-        }
+        _meshState.value =
+            when {
+                connections.isEmpty() && isDiscoveryActive -> MeshState.SCANNING
+                connections.isEmpty() -> MeshState.IDLE
+                else -> MeshState.CONNECTED
+            }
     }
 
     /**
@@ -246,9 +248,7 @@ class DefaultMeshCoordinator(
      *
      * Validates: Requirements 4.6
      */
-    fun getCurrentScanInterval(): Long {
-        return if (isCharging) SCAN_INTERVAL_CHARGING_MS else SCAN_INTERVAL_BATTERY_MS
-    }
+    fun getCurrentScanInterval(): Long = if (isCharging) SCAN_INTERVAL_CHARGING_MS else SCAN_INTERVAL_BATTERY_MS
 
     /**
      * Get the current number of active GATT connections.
@@ -260,18 +260,14 @@ class DefaultMeshCoordinator(
      *
      * Validates: Requirements 4.5
      */
-    fun encryptMessage(plaintext: ByteArray): ByteArray {
-        return cryptoProvider.encrypt(encryptionKey, plaintext)
-    }
+    fun encryptMessage(plaintext: ByteArray): ByteArray = cryptoProvider.encrypt(encryptionKey, plaintext)
 
     /**
      * Decrypt a received peer message using AES-GCM.
      *
      * Validates: Requirements 4.5
      */
-    fun decryptMessage(ciphertext: ByteArray): ByteArray {
-        return cryptoProvider.decrypt(encryptionKey, ciphertext)
-    }
+    fun decryptMessage(ciphertext: ByteArray): ByteArray = cryptoProvider.decrypt(encryptionKey, ciphertext)
 
     // --- Private helpers ---
 
@@ -279,7 +275,11 @@ class DefaultMeshCoordinator(
      * Handle a discovered peer from BLE scan callback.
      * Adds or updates the peer in the roster.
      */
-    private fun handlePeerDiscovered(peerId: PeerId, signalStrength: Int, advertisingData: ByteArray) {
+    private fun handlePeerDiscovered(
+        peerId: PeerId,
+        signalStrength: Int,
+        advertisingData: ByteArray,
+    ) {
         val now = clock()
         val currentPeers = _activePeers.value.toMutableList()
 
@@ -288,18 +288,20 @@ class DefaultMeshCoordinator(
         // Try to decode the resource profile from advertising data
         val resourceProfile = tryDecodeResourceProfile(advertisingData)
 
-        val peer = Peer(
-            id = peerId,
-            displayName = "Peer-${peerId.value.take(8)}",
-            resourceProfile = resourceProfile ?: ResourceProfile.empty(),
-            signalStrength = signalStrength,
-            connectionState = if (connections.containsKey(peerId)) {
-                PeerConnectionState.CONNECTED
-            } else {
-                PeerConnectionState.DISCONNECTED
-            },
-            lastSeen = now,
-        )
+        val peer =
+            Peer(
+                id = peerId,
+                displayName = "Peer-${peerId.value.take(8)}",
+                resourceProfile = resourceProfile ?: ResourceProfile.empty(),
+                signalStrength = signalStrength,
+                connectionState =
+                if (connections.containsKey(peerId)) {
+                    PeerConnectionState.CONNECTED
+                } else {
+                    PeerConnectionState.DISCONNECTED
+                },
+                lastSeen = now,
+            )
 
         if (existingIndex >= 0) {
             currentPeers[existingIndex] = peer
@@ -316,20 +318,21 @@ class DefaultMeshCoordinator(
      * Try to decode a ResourceProfile from encrypted advertising data.
      * Returns null if decoding fails (malformed data, wrong key, etc.)
      */
-    private fun tryDecodeResourceProfile(data: ByteArray): ResourceProfile? {
-        return try {
-            val decrypted = cryptoProvider.decrypt(encryptionKey, data)
-            val jsonString = decrypted.decodeToString()
-            json.decodeFromString<ResourceProfile>(jsonString)
-        } catch (_: Exception) {
-            null
-        }
+    private fun tryDecodeResourceProfile(data: ByteArray): ResourceProfile? = try {
+        val decrypted = cryptoProvider.decrypt(encryptionKey, data)
+        val jsonString = decrypted.decodeToString()
+        json.decodeFromString<ResourceProfile>(jsonString)
+    } catch (_: Exception) {
+        null
     }
 
     /**
      * Update a peer's connection state in the roster.
      */
-    private fun updatePeerState(peerId: PeerId, state: PeerConnectionState) {
+    private fun updatePeerState(
+        peerId: PeerId,
+        state: PeerConnectionState,
+    ) {
         val currentPeers = _activePeers.value.toMutableList()
         val index = currentPeers.indexOfFirst { it.id == peerId }
 
@@ -358,14 +361,15 @@ class DefaultMeshCoordinator(
         // Publish a peer disconnect event through the event bus.
         // Subscribing agents (e.g., DePIN_Agent, Earning_Engine) should
         // redistribute any tasks associated with this peer within 5 seconds.
-        val disconnectedPeer = Peer(
-            id = peerId,
-            displayName = "Peer-${peerId.value.take(8)}",
-            resourceProfile = ResourceProfile.empty(),
-            signalStrength = 0,
-            connectionState = PeerConnectionState.DISCONNECTED,
-            lastSeen = clock(),
-        )
+        val disconnectedPeer =
+            Peer(
+                id = peerId,
+                displayName = "Peer-${peerId.value.take(8)}",
+                resourceProfile = ResourceProfile.empty(),
+                signalStrength = 0,
+                connectionState = PeerConnectionState.DISCONNECTED,
+                lastSeen = clock(),
+            )
         eventBus.publish(AgentEvent.PeerDiscovered(disconnectedPeer))
     }
 
@@ -387,4 +391,6 @@ class DefaultMeshCoordinator(
  * Exception thrown when attempting to establish a GATT connection
  * while at the maximum connection capacity.
  */
-class MaxConnectionsReachedException(message: String) : Exception(message)
+class MaxConnectionsReachedException(
+    message: String,
+) : Exception(message)

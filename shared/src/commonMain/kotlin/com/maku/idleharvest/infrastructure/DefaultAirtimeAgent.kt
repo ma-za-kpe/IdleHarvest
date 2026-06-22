@@ -59,7 +59,6 @@ class DefaultAirtimeAgent(
     private val vtuClient: VtuPlatformClient? = null,
     private val clock: () -> Long = { currentTimeMillis() },
 ) : AirtimeAgent {
-
     private val json = Json { ignoreUnknownKeys = true }
 
     private val _state = MutableStateFlow(AgentState.IDLE)
@@ -94,11 +93,12 @@ class DefaultAirtimeAgent(
             val policyDecision = policyManager.checkAction(agentId, agentAction)
 
             if (policyDecision !is PolicyDecision.Approved) {
-                val errorMsg = when (policyDecision) {
-                    is PolicyDecision.Denied -> "Policy denied: ${policyDecision.reason}"
-                    is PolicyDecision.RequiresApproval -> "Action requires user approval"
-                    PolicyDecision.Approved -> "Policy check failed" // unreachable
-                }
+                val errorMsg =
+                    when (policyDecision) {
+                        is PolicyDecision.Denied -> "Policy denied: ${policyDecision.reason}"
+                        is PolicyDecision.RequiresApproval -> "Action requires user approval"
+                        PolicyDecision.Approved -> "Policy check failed" // unreachable
+                    }
                 return failedResult(action, errorMsg)
             }
 
@@ -107,11 +107,12 @@ class DefaultAirtimeAgent(
             val complianceDecision = complianceEngine.checkTransaction(complianceRequest)
 
             if (complianceDecision !is ComplianceDecision.Approved) {
-                val errorMsg = when (complianceDecision) {
-                    is ComplianceDecision.Blocked ->
-                        "Compliance blocked: ${complianceDecision.regulation} - ${complianceDecision.reason}"
-                    ComplianceDecision.Approved -> "Compliance check failed" // unreachable
-                }
+                val errorMsg =
+                    when (complianceDecision) {
+                        is ComplianceDecision.Blocked ->
+                            "Compliance blocked: ${complianceDecision.regulation} - ${complianceDecision.reason}"
+                        ComplianceDecision.Approved -> "Compliance check failed" // unreachable
+                    }
                 return failedResult(action, errorMsg)
             }
 
@@ -127,8 +128,7 @@ class DefaultAirtimeAgent(
         }
     }
 
-    override fun getTransactionHistory(): Flow<List<AirtimeTransaction>> =
-        _transactionHistory.asStateFlow()
+    override fun getTransactionHistory(): Flow<List<AirtimeTransaction>> = _transactionHistory.asStateFlow()
 
     // --- Private helpers ---
 
@@ -155,9 +155,7 @@ class DefaultAirtimeAgent(
      * Select the best VTU platform for a transaction.
      * Uses the configured client's platform if available, otherwise defaults to PRESTMIT.
      */
-    private fun selectPlatform(): VtuPlatform {
-        return vtuClient?.platform ?: VtuPlatform.PRESTMIT
-    }
+    private fun selectPlatform(): VtuPlatform = vtuClient?.platform ?: VtuPlatform.PRESTMIT
 
     /**
      * Calculate confidence score based on bundle proximity to expiry.
@@ -201,7 +199,7 @@ class DefaultAirtimeAgent(
             AgentEvent.PolicyViolation(
                 agentId = AIRTIME_AGENT_ID,
                 action = buildAgentAction(action),
-            )
+            ),
         )
 
         return TransactionResult(
@@ -219,76 +217,76 @@ class DefaultAirtimeAgent(
     private suspend fun executeSingleAttempt(
         client: VtuPlatformClient,
         action: MonetizationAction,
-    ): TransactionResult {
-        return when (val rec = action.recommendation) {
-            is MonetizationRecommendation.Sell -> {
-                val request = SellRequest(
+    ): TransactionResult = when (val rec = action.recommendation) {
+        is MonetizationRecommendation.Sell -> {
+            val request =
+                SellRequest(
                     bundleId = action.bundleId,
                     amount = rec.amount,
                     currency = "NGN",
                     carrier = "default",
                 )
-                client.sell(request).fold(
-                    onSuccess = { response ->
-                        TransactionResult(
-                            transactionId = response.transactionId,
-                            success = true,
-                            amountSettled = response.amountSettled,
-                            errorMessage = null,
-                            timestamp = response.timestamp,
-                        )
-                    },
-                    onFailure = { error ->
-                        TransactionResult(
-                            transactionId = generateTransactionId(),
-                            success = false,
-                            amountSettled = null,
-                            errorMessage = error.message ?: "VTU sell failed",
-                            timestamp = clock(),
-                        )
-                    },
-                )
-            }
+            client.sell(request).fold(
+                onSuccess = { response ->
+                    TransactionResult(
+                        transactionId = response.transactionId,
+                        success = true,
+                        amountSettled = response.amountSettled,
+                        errorMessage = null,
+                        timestamp = response.timestamp,
+                    )
+                },
+                onFailure = { error ->
+                    TransactionResult(
+                        transactionId = generateTransactionId(),
+                        success = false,
+                        amountSettled = null,
+                        errorMessage = error.message ?: "VTU sell failed",
+                        timestamp = clock(),
+                    )
+                },
+            )
+        }
 
-            is MonetizationRecommendation.Transfer -> {
-                val request = TransferRequest(
+        is MonetizationRecommendation.Transfer -> {
+            val request =
+                TransferRequest(
                     bundleId = action.bundleId,
                     amount = rec.amount,
                     recipient = rec.recipient,
                     carrier = "default",
                 )
-                client.transfer(request).fold(
-                    onSuccess = { response ->
-                        TransactionResult(
-                            transactionId = response.transactionId,
-                            success = true,
-                            amountSettled = response.amountTransferred,
-                            errorMessage = null,
-                            timestamp = response.timestamp,
-                        )
-                    },
-                    onFailure = { error ->
-                        TransactionResult(
-                            transactionId = generateTransactionId(),
-                            success = false,
-                            amountSettled = null,
-                            errorMessage = error.message ?: "VTU transfer failed",
-                            timestamp = clock(),
-                        )
-                    },
-                )
-            }
+            client.transfer(request).fold(
+                onSuccess = { response ->
+                    TransactionResult(
+                        transactionId = response.transactionId,
+                        success = true,
+                        amountSettled = response.amountTransferred,
+                        errorMessage = null,
+                        timestamp = response.timestamp,
+                    )
+                },
+                onFailure = { error ->
+                    TransactionResult(
+                        transactionId = generateTransactionId(),
+                        success = false,
+                        amountSettled = null,
+                        errorMessage = error.message ?: "VTU transfer failed",
+                        timestamp = clock(),
+                    )
+                },
+            )
+        }
 
-            is MonetizationRecommendation.Hold -> {
-                // Should not happen — Hold recommendations shouldn't reach execution
-                TransactionResult(
-                    transactionId = generateTransactionId(),
-                    success = false,
-                    amountSettled = null,
-                    errorMessage = "Cannot execute a Hold recommendation",
-                    timestamp = clock(),
-                )
-            }
+        is MonetizationRecommendation.Hold -> {
+            // Should not happen — Hold recommendations shouldn't reach execution
+            TransactionResult(
+                transactionId = generateTransactionId(),
+                success = false,
+                amountSettled = null,
+                errorMessage = "Cannot execute a Hold recommendation",
+                timestamp = clock(),
+            )
         }
     }
 
@@ -297,11 +295,12 @@ class DefaultAirtimeAgent(
      * Returns a successful result for testing/development purposes.
      */
     private fun mockExecution(action: MonetizationAction): TransactionResult {
-        val amount = when (val rec = action.recommendation) {
-            is MonetizationRecommendation.Sell -> rec.amount
-            is MonetizationRecommendation.Transfer -> rec.amount
-            is MonetizationRecommendation.Hold -> 0L
-        }
+        val amount =
+            when (val rec = action.recommendation) {
+                is MonetizationRecommendation.Sell -> rec.amount
+                is MonetizationRecommendation.Transfer -> rec.amount
+                is MonetizationRecommendation.Hold -> 0L
+            }
         return TransactionResult(
             transactionId = generateTransactionId(),
             success = true,
@@ -314,32 +313,40 @@ class DefaultAirtimeAgent(
     /**
      * Record a transaction in the Privacy_Vault and update the in-memory history.
      */
-    private suspend fun recordTransaction(action: MonetizationAction, result: TransactionResult) {
-        val transaction = AirtimeTransaction(
-            id = result.transactionId,
-            type = when (action.recommendation) {
-                is MonetizationRecommendation.Sell -> TransactionType.SELL
-                is MonetizationRecommendation.Transfer -> TransactionType.TRANSFER
-                is MonetizationRecommendation.Hold -> TransactionType.SELL // fallback
-            },
-            amount = when (val rec = action.recommendation) {
-                is MonetizationRecommendation.Sell -> rec.amount
-                is MonetizationRecommendation.Transfer -> rec.amount
-                is MonetizationRecommendation.Hold -> 0L
-            },
-            currency = "NGN",
-            counterparty = when (val rec = action.recommendation) {
-                is MonetizationRecommendation.Transfer -> rec.recipient
-                else -> null
-            },
-            platform = when (val rec = action.recommendation) {
-                is MonetizationRecommendation.Sell -> rec.platform.name
-                else -> "DIRECT"
-            },
-            outcome = if (result.success) TransactionOutcome.SUCCESS else TransactionOutcome.FAILED,
-            timestamp = result.timestamp,
-            complianceCheckId = "${AIRTIME_AGENT_ID.value}_${result.timestamp}",
-        )
+    private suspend fun recordTransaction(
+        action: MonetizationAction,
+        result: TransactionResult,
+    ) {
+        val transaction =
+            AirtimeTransaction(
+                id = result.transactionId,
+                type =
+                when (action.recommendation) {
+                    is MonetizationRecommendation.Sell -> TransactionType.SELL
+                    is MonetizationRecommendation.Transfer -> TransactionType.TRANSFER
+                    is MonetizationRecommendation.Hold -> TransactionType.SELL // fallback
+                },
+                amount =
+                when (val rec = action.recommendation) {
+                    is MonetizationRecommendation.Sell -> rec.amount
+                    is MonetizationRecommendation.Transfer -> rec.amount
+                    is MonetizationRecommendation.Hold -> 0L
+                },
+                currency = "NGN",
+                counterparty =
+                when (val rec = action.recommendation) {
+                    is MonetizationRecommendation.Transfer -> rec.recipient
+                    else -> null
+                },
+                platform =
+                when (val rec = action.recommendation) {
+                    is MonetizationRecommendation.Sell -> rec.platform.name
+                    else -> "DIRECT"
+                },
+                outcome = if (result.success) TransactionOutcome.SUCCESS else TransactionOutcome.FAILED,
+                timestamp = result.timestamp,
+                complianceCheckId = "${AIRTIME_AGENT_ID.value}_${result.timestamp}",
+            )
 
         // Update in-memory history
         _transactionHistory.value = _transactionHistory.value + transaction
@@ -354,14 +361,16 @@ class DefaultAirtimeAgent(
      * Build an [AgentAction] from a monetization action for policy checks.
      */
     private fun buildAgentAction(action: MonetizationAction): AgentAction {
-        val amount = when (val rec = action.recommendation) {
-            is MonetizationRecommendation.Sell -> rec.amount.toDouble()
-            is MonetizationRecommendation.Transfer -> rec.amount.toDouble()
-            is MonetizationRecommendation.Hold -> 0.0
-        }
+        val amount =
+            when (val rec = action.recommendation) {
+                is MonetizationRecommendation.Sell -> rec.amount.toDouble()
+                is MonetizationRecommendation.Transfer -> rec.amount.toDouble()
+                is MonetizationRecommendation.Hold -> 0.0
+            }
         return AgentAction(
             agentId = AIRTIME_AGENT_ID,
-            actionType = when (action.recommendation) {
+            actionType =
+            when (action.recommendation) {
                 is MonetizationRecommendation.Sell -> "AIRTIME_SELL"
                 is MonetizationRecommendation.Transfer -> "AIRTIME_TRANSFER"
                 is MonetizationRecommendation.Hold -> "AIRTIME_HOLD"
@@ -377,25 +386,29 @@ class DefaultAirtimeAgent(
      * Build a [TransactionRequest] from a monetization action for compliance checks.
      */
     private fun buildComplianceRequest(action: MonetizationAction): TransactionRequest {
-        val amount = when (val rec = action.recommendation) {
-            is MonetizationRecommendation.Sell -> rec.amount.toDouble()
-            is MonetizationRecommendation.Transfer -> rec.amount.toDouble()
-            is MonetizationRecommendation.Hold -> 0.0
-        }
+        val amount =
+            when (val rec = action.recommendation) {
+                is MonetizationRecommendation.Sell -> rec.amount.toDouble()
+                is MonetizationRecommendation.Transfer -> rec.amount.toDouble()
+                is MonetizationRecommendation.Hold -> 0.0
+            }
         return TransactionRequest(
             agentId = AIRTIME_AGENT_ID,
             amount = amount,
             currency = "NGN",
-            type = when (action.recommendation) {
+            type =
+            when (action.recommendation) {
                 is MonetizationRecommendation.Sell -> TransactionType.SELL
                 is MonetizationRecommendation.Transfer -> TransactionType.TRANSFER
                 is MonetizationRecommendation.Hold -> TransactionType.SELL
             },
-            counterparty = when (val rec = action.recommendation) {
+            counterparty =
+            when (val rec = action.recommendation) {
                 is MonetizationRecommendation.Transfer -> rec.recipient
                 else -> null
             },
-            platform = when (val rec = action.recommendation) {
+            platform =
+            when (val rec = action.recommendation) {
                 is MonetizationRecommendation.Sell -> rec.platform.name
                 else -> "DIRECT"
             },
@@ -408,14 +421,18 @@ class DefaultAirtimeAgent(
     /**
      * Create a failed transaction result and record it.
      */
-    private suspend fun failedResult(action: MonetizationAction, errorMessage: String): TransactionResult {
-        val result = TransactionResult(
-            transactionId = generateTransactionId(),
-            success = false,
-            amountSettled = null,
-            errorMessage = errorMessage,
-            timestamp = clock(),
-        )
+    private suspend fun failedResult(
+        action: MonetizationAction,
+        errorMessage: String,
+    ): TransactionResult {
+        val result =
+            TransactionResult(
+                transactionId = generateTransactionId(),
+                success = false,
+                amountSettled = null,
+                errorMessage = errorMessage,
+                timestamp = clock(),
+            )
         recordTransaction(action, result)
         return result
     }
@@ -423,9 +440,7 @@ class DefaultAirtimeAgent(
     /**
      * Generate a unique transaction identifier.
      */
-    private fun generateTransactionId(): String {
-        return "tx_${AIRTIME_AGENT_ID.value}_${clock()}"
-    }
+    private fun generateTransactionId(): String = "tx_${AIRTIME_AGENT_ID.value}_${clock()}"
 
     companion object {
         /** Agent identifier for the airtime agent. */

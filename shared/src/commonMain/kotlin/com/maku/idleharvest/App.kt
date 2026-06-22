@@ -22,11 +22,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.maku.idleharvest.ui.theme.IdleHarvestBrand
 import com.maku.idleharvest.ui.theme.IdleHarvestDimens
 import com.maku.idleharvest.ui.theme.IdleHarvestTheme
-import com.maku.idleharvest.ui.theme.IdleHarvestTheme as Theme
-import org.jetbrains.compose.resources.painterResource
-
 import idleharvest.shared.generated.resources.Res
 import idleharvest.shared.generated.resources.idleharvest_logo
+import org.jetbrains.compose.resources.painterResource
+import com.maku.idleharvest.ui.theme.IdleHarvestTheme as Theme
 
 @Composable
 @Preview
@@ -34,7 +33,8 @@ fun App() {
     IdleHarvestTheme {
         var showContent by remember { mutableStateOf(false) }
         Column(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .background(MaterialTheme.colorScheme.background)
                 .safeContentPadding()
                 .fillMaxSize(),
@@ -61,7 +61,8 @@ fun App() {
             Spacer(modifier = Modifier.height(IdleHarvestDimens.SpaceXXL))
             Button(
                 onClick = { showContent = !showContent },
-                colors = ButtonDefaults.buttonColors(
+                colors =
+                ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                 ),
             ) {

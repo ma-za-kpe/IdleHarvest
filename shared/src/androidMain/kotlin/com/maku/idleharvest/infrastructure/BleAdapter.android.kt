@@ -41,8 +41,9 @@ import kotlin.coroutines.resume
  * Validates: Requirements 4.1
  */
 @SuppressLint("MissingPermission")
-actual class BleAdapter(private val context: Context) {
-
+actual class BleAdapter(
+    private val context: Context,
+) {
     companion object {
         /**
          * IdleHarvest service UUID used for BLE scanning filters and advertising.
@@ -90,41 +91,51 @@ actual class BleAdapter(private val context: Context) {
         // Stop any existing scan before starting a new one
         stopScan()
 
-        val scanFilter = ScanFilter.Builder()
-            .setServiceUuid(ParcelUuid(IDLE_HARVEST_SERVICE_UUID))
-            .build()
+        val scanFilter =
+            ScanFilter
+                .Builder()
+                .setServiceUuid(ParcelUuid(IDLE_HARVEST_SERVICE_UUID))
+                .build()
 
-        val scanSettings = ScanSettings.Builder()
-            .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
-            .setReportDelay(0)
-            .build()
+        val scanSettings =
+            ScanSettings
+                .Builder()
+                .setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY)
+                .setReportDelay(0)
+                .build()
 
-        val scanCallback = object : ScanCallback() {
-            override fun onScanResult(callbackType: Int, result: ScanResult) {
-                val peerId = PeerId(result.device.address)
-                val rssi = result.rssi
-                val data = result.scanRecord?.serviceData?.get(
-                    ParcelUuid(IDLE_HARVEST_SERVICE_UUID)
-                ) ?: result.scanRecord?.bytes ?: byteArrayOf()
-                callback(peerId, rssi, data)
-            }
-
-            override fun onBatchScanResults(results: MutableList<ScanResult>) {
-                results.forEach { result ->
+        val scanCallback =
+            object : ScanCallback() {
+                override fun onScanResult(
+                    callbackType: Int,
+                    result: ScanResult,
+                ) {
                     val peerId = PeerId(result.device.address)
                     val rssi = result.rssi
-                    val data = result.scanRecord?.serviceData?.get(
-                        ParcelUuid(IDLE_HARVEST_SERVICE_UUID)
-                    ) ?: result.scanRecord?.bytes ?: byteArrayOf()
+                    val data =
+                        result.scanRecord?.serviceData?.get(
+                            ParcelUuid(IDLE_HARVEST_SERVICE_UUID),
+                        ) ?: result.scanRecord?.bytes ?: byteArrayOf()
                     callback(peerId, rssi, data)
                 }
-            }
 
-            override fun onScanFailed(errorCode: Int) {
-                // Scan failed — log silently. The MeshCoordinator can retry via
-                // its adaptive scan cycle.
+                override fun onBatchScanResults(results: MutableList<ScanResult>) {
+                    results.forEach { result ->
+                        val peerId = PeerId(result.device.address)
+                        val rssi = result.rssi
+                        val data =
+                            result.scanRecord?.serviceData?.get(
+                                ParcelUuid(IDLE_HARVEST_SERVICE_UUID),
+                            ) ?: result.scanRecord?.bytes ?: byteArrayOf()
+                        callback(peerId, rssi, data)
+                    }
+                }
+
+                override fun onScanFailed(errorCode: Int) {
+                    // Scan failed — log silently. The MeshCoordinator can retry via
+                    // its adaptive scan cycle.
+                }
             }
-        }
 
         activeScanCallback = scanCallback
         bleScanner.startScan(listOf(scanFilter), scanSettings, scanCallback)
@@ -150,70 +161,76 @@ actual class BleAdapter(private val context: Context) {
      * @return A [BleConnection] on success, or failure if connection cannot be established.
      */
     actual suspend fun connect(peerId: PeerId): Result<BleConnection> {
-        val device: BluetoothDevice = try {
-            bluetoothAdapter.getRemoteDevice(peerId.value)
-        } catch (e: IllegalArgumentException) {
-            return Result.failure(
-                IllegalArgumentException("Invalid Bluetooth address: ${peerId.value}", e)
-            )
-        }
+        val device: BluetoothDevice =
+            try {
+                bluetoothAdapter.getRemoteDevice(peerId.value)
+            } catch (e: IllegalArgumentException) {
+                return Result.failure(
+                    IllegalArgumentException("Invalid Bluetooth address: ${peerId.value}", e),
+                )
+            }
 
         return suspendCancellableCoroutine { continuation ->
             var resumed = false
 
-            val gattCallback = object : BluetoothGattCallback() {
-                override fun onConnectionStateChange(
-                    gatt: BluetoothGatt,
-                    status: Int,
-                    newState: Int,
-                ) {
-                    if (resumed) return
+            val gattCallback =
+                object : BluetoothGattCallback() {
+                    override fun onConnectionStateChange(
+                        gatt: BluetoothGatt,
+                        status: Int,
+                        newState: Int,
+                    ) {
+                        if (resumed) return
 
-                    when (newState) {
-                        BluetoothProfile.STATE_CONNECTED -> {
-                            // Discover services after connection
-                            gatt.discoverServices()
+                        when (newState) {
+                            BluetoothProfile.STATE_CONNECTED -> {
+                                // Discover services after connection
+                                gatt.discoverServices()
+                            }
+                            BluetoothProfile.STATE_DISCONNECTED -> {
+                                resumed = true
+                                gatt.close()
+                                activeGattConnections.remove(peerId.value)
+                                continuation.resume(
+                                    Result.failure(
+                                        BleConnectionException(
+                                            "Connection to ${peerId.value} failed or was disconnected (status=$status)",
+                                        ),
+                                    ),
+                                )
+                            }
                         }
-                        BluetoothProfile.STATE_DISCONNECTED -> {
-                            resumed = true
+                    }
+
+                    override fun onServicesDiscovered(
+                        gatt: BluetoothGatt,
+                        status: Int,
+                    ) {
+                        if (resumed) return
+                        resumed = true
+
+                        if (status == BluetoothGatt.GATT_SUCCESS) {
+                            activeGattConnections[peerId.value] = gatt
+                            val connection =
+                                AndroidBleConnection(
+                                    peerId = peerId,
+                                    gatt = gatt,
+                                    serviceUuid = IDLE_HARVEST_SERVICE_UUID,
+                                    characteristicUuid = DATA_CHARACTERISTIC_UUID,
+                                )
+                            continuation.resume(Result.success(connection))
+                        } else {
                             gatt.close()
-                            activeGattConnections.remove(peerId.value)
                             continuation.resume(
                                 Result.failure(
                                     BleConnectionException(
-                                        "Connection to ${peerId.value} failed or was disconnected (status=$status)"
-                                    )
-                                )
+                                        "Service discovery failed for ${peerId.value} (status=$status)",
+                                    ),
+                                ),
                             )
                         }
                     }
                 }
-
-                override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
-                    if (resumed) return
-                    resumed = true
-
-                    if (status == BluetoothGatt.GATT_SUCCESS) {
-                        activeGattConnections[peerId.value] = gatt
-                        val connection = AndroidBleConnection(
-                            peerId = peerId,
-                            gatt = gatt,
-                            serviceUuid = IDLE_HARVEST_SERVICE_UUID,
-                            characteristicUuid = DATA_CHARACTERISTIC_UUID,
-                        )
-                        continuation.resume(Result.success(connection))
-                    } else {
-                        gatt.close()
-                        continuation.resume(
-                            Result.failure(
-                                BleConnectionException(
-                                    "Service discovery failed for ${peerId.value} (status=$status)"
-                                )
-                            )
-                        )
-                    }
-                }
-            }
 
             val gatt = device.connectGatt(context, false, gattCallback)
 
@@ -221,8 +238,8 @@ actual class BleAdapter(private val context: Context) {
                 resumed = true
                 continuation.resume(
                     Result.failure(
-                        BleConnectionException("Failed to initiate GATT connection to ${peerId.value}")
-                    )
+                        BleConnectionException("Failed to initiate GATT connection to ${peerId.value}"),
+                    ),
                 )
             }
 
@@ -260,30 +277,35 @@ actual class BleAdapter(private val context: Context) {
         // Stop any existing advertising before starting a new one
         stopAdvertise()
 
-        val settings = AdvertiseSettings.Builder()
-            .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
-            .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
-            .setConnectable(true)
-            .build()
+        val settings =
+            AdvertiseSettings
+                .Builder()
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY)
+                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+                .setConnectable(true)
+                .build()
 
-        val advertiseData = AdvertiseData.Builder()
-            .setIncludeDeviceName(false)
-            .setIncludeTxPowerLevel(false)
-            .addServiceUuid(ParcelUuid(IDLE_HARVEST_SERVICE_UUID))
-            .addServiceData(ParcelUuid(IDLE_HARVEST_SERVICE_UUID), truncateForAdvertising(data))
-            .build()
+        val advertiseData =
+            AdvertiseData
+                .Builder()
+                .setIncludeDeviceName(false)
+                .setIncludeTxPowerLevel(false)
+                .addServiceUuid(ParcelUuid(IDLE_HARVEST_SERVICE_UUID))
+                .addServiceData(ParcelUuid(IDLE_HARVEST_SERVICE_UUID), truncateForAdvertising(data))
+                .build()
 
-        val advertiseCallback = object : AdvertiseCallback() {
-            override fun onStartSuccess(settingsInEffect: AdvertiseSettings?) {
-                // Advertising started successfully
+        val advertiseCallback =
+            object : AdvertiseCallback() {
+                override fun onStartSuccess(settingsInEffect: AdvertiseSettings?) {
+                    // Advertising started successfully
+                }
+
+                override fun onStartFailure(errorCode: Int) {
+                    // Advertising failed — the MeshCoordinator will handle retries
+                    // via its periodic refresh mechanism.
+                    activeAdvertiseCallback = null
+                }
             }
-
-            override fun onStartFailure(errorCode: Int) {
-                // Advertising failed — the MeshCoordinator will handle retries
-                // via its periodic refresh mechanism.
-                activeAdvertiseCallback = null
-            }
-        }
 
         activeAdvertiseCallback = advertiseCallback
         bleAdvertiser.startAdvertising(settings, advertiseData, advertiseCallback)
@@ -327,7 +349,6 @@ class AndroidBleConnection(
     private val serviceUuid: UUID,
     private val characteristicUuid: UUID,
 ) : BleConnection {
-
     /** Channel for receiving data from the remote peer via notifications. */
     private val receiveChannel = Channel<ByteArray>(Channel.BUFFERED)
 
@@ -347,15 +368,16 @@ class AndroidBleConnection(
             return Result.failure(IllegalStateException("Connection is closed"))
         }
 
-        val service: BluetoothGattService = gatt.getService(serviceUuid)
-            ?: return Result.failure(
-                BleConnectionException("IdleHarvest GATT service not found on peer ${peerId.value}")
-            )
+        val service: BluetoothGattService =
+            gatt.getService(serviceUuid)
+                ?: return Result.failure(
+                    BleConnectionException("IdleHarvest GATT service not found on peer ${peerId.value}"),
+                )
 
         val characteristic: BluetoothGattCharacteristic =
             service.getCharacteristic(characteristicUuid)
                 ?: return Result.failure(
-                    BleConnectionException("Data characteristic not found on peer ${peerId.value}")
+                    BleConnectionException("Data characteristic not found on peer ${peerId.value}"),
                 )
 
         return try {
@@ -367,7 +389,7 @@ class AndroidBleConnection(
                 Result.success(Unit)
             } else {
                 Result.failure(
-                    BleConnectionException("Failed to write characteristic to peer ${peerId.value}")
+                    BleConnectionException("Failed to write characteristic to peer ${peerId.value}"),
                 )
             }
         } catch (e: Exception) {
@@ -413,4 +435,6 @@ class AndroidBleConnection(
 /**
  * Exception indicating a BLE connection failure.
  */
-class BleConnectionException(message: String) : Exception(message)
+class BleConnectionException(
+    message: String,
+) : Exception(message)

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">IdleHarvest</string>
+    <string name="app_tagline">Vuna Nguvu Yako ya Bure</string>
+
+    <!-- Common -->
+    <string name="skip">Ruka</string>
+    <string name="next">Endelea</string>
+    <string name="back">Rudi</string>
+    <string name="done">Imekamilika</string>
+    <string name="cancel">Ghairi</string>
+    <string name="continue_label">Endelea</string>
+    <string name="get_started">Anza</string>
+    <string name="settings">Mipangilio</string>
+
+    <!-- Onboarding: Screen 1 — Welcome -->
+    <string name="onboarding_welcome_title">Karibu IdleHarvest</string>
+    <string name="onboarding_welcome_subtitle">Vuna Nguvu Yako ya Bure</string>
+    <string name="onboarding_welcome_description">Geuza muda wa hewa, data, na rasilimali zisizotumika kuwa mapato halisi — kwa faragha, kiotomatiki, na kwa usalama kwenye simu yako.</string>
+    <string name="onboarding_welcome_cta">Anza</string>
+
+    <!-- Onboarding: Screen 2 — Permissions -->
+    <string name="onboarding_permissions_title">Ruhusa za Programu</string>
+    <string name="onboarding_permissions_subtitle">IdleHarvest inahitaji ruhusa chache kufanya kazi chinichini.</string>
+    <string name="onboarding_perm_bluetooth_title">Bluetooth</string>
+    <string name="onboarding_perm_bluetooth_desc">Gundua vifaa vya IdleHarvest vilivyo karibu ili kushiriki rasilimali na kupata zaidi pamoja.</string>
+    <string name="onboarding_perm_notifications_title">Arifa</string>
+    <string name="onboarding_perm_notifications_desc">Pokea arifa za mapato yaliyokamilika, ukiukaji wa sera, na masasisho ya hali ya wakala.</string>
+    <string name="onboarding_perm_battery_title">Uboreshaji wa Betri</string>
+    <string name="onboarding_perm_battery_desc">Ruhusu uendeshaji chinichini ili mawakala waendelee kupata hata wakati skrini yako imezimwa.</string>
+    <string name="onboarding_perm_grant">Ruhusu</string>
+    <string name="onboarding_perm_granted">Umeruhusiwa</string>
+
+    <!-- Onboarding: Screen 3 — Wallet Setup -->
+    <string name="onboarding_wallet_title">Weka Pochi Yako</string>
+    <string name="onboarding_wallet_subtitle">Pochi yako imehifadhiwa kwa usalama kwenye kifaa hiki. Hakuna wingu, hakuna mfiduo.</string>
+    <string name="onboarding_wallet_generate">Unda Pochi Mpya</string>
+    <string name="onboarding_wallet_restore">Rejesha kutoka kwa Msemo</string>
+    <string name="onboarding_wallet_mnemonic_warning">Andika msemo wako wa uokoaji. Utaonyeshwa mara moja tu. Bila hiyo, pochi yako haiwezi kuokolewa.</string>
+    <string name="onboarding_wallet_mnemonic_copied">Msemo umenakiliwa — uhifadhi mahali salama.</string>
+    <string name="onboarding_wallet_copy_phrase">Nakili Msemo</string>
+    <string name="onboarding_wallet_confirmed">Nimehifadhi msemo wangu wa uokoaji</string>
+    <string name="onboarding_wallet_skipped_notice">Unaweza kuweka pochi yako baadaye katika Mipangilio.</string>
+
+    <!-- Onboarding: Screen 4 — Guardrails -->
+    <string name="onboarding_guardrails_title">Weka Mipaka Yako</string>
+    <string name="onboarding_guardrails_subtitle">Dhibiti mawakala wanachoweza kufanya kwa niaba yako. Unaweza kubadilisha hii wakati wowote.</string>
+    <string name="onboarding_guardrail_airtime_label">Wakala wa Muda wa Hewa</string>
+    <string name="onboarding_guardrail_airtime_desc">Uza au hamisha kiotomatiki muda wa hewa na vifurushi vya data vinavyokwisha muda wake.</string>
+    <string name="onboarding_guardrail_depin_label">Wakala wa DePIN</string>
+    <string name="onboarding_guardrail_depin_desc">Shiriki bandwidth na kompyuta isiyotumika ili kupata mapato ya crypto ya kupita.</string>
+    <string name="onboarding_guardrail_daily_limit_label">Kikomo cha Kila Siku</string>
+    <string name="onboarding_guardrail_daily_limit_hint">USDC ya juu kwa siku (mfano 5.00)</string>
+    <string name="onboarding_guardrail_single_limit_label">Kikomo cha Muamala Mmoja</string>
+    <string name="onboarding_guardrail_single_limit_hint">USDC ya juu kwa muamala (mfano 1.00)</string>
+    <string name="onboarding_guardrail_biometric_label">Biometri kwa miamala inayozidi</string>
+    <string name="onboarding_guardrail_autonomy_manual">Niulize kila wakati</string>
+    <string name="onboarding_guardrail_autonomy_semi">Niulize kwa vitendo vikubwa</string>
+    <string name="onboarding_guardrail_autonomy_full">Endesha kiotomatiki kabisa</string>
+    <string name="onboarding_guardrails_safe_defaults_notice">Mipangilio salama imetumika. Unaweza kuirekebishwa katika Mipangilio.</string>
+
+    <!-- Onboarding: Screen 5 — First Scan -->
+    <string name="onboarding_scan_title">Kukagua Rasilimali Zako</string>
+    <string name="onboarding_scan_subtitle">Hebu tuone unachoweza kupata leo.</string>
+    <string name="onboarding_scan_in_progress">Inakagua rasilimali za kifaa…</string>
+    <string name="onboarding_scan_complete">Ukaguzi umekamilika!</string>
+    <string name="onboarding_scan_airtime_found">Muda wa Hewa na Data</string>
+    <string name="onboarding_scan_bandwidth_found">Bandwidth isiyotumika</string>
+    <string name="onboarding_scan_storage_found">Hifadhi huru</string>
+    <string name="onboarding_scan_nothing_found">Hakuna rasilimali zisizotumika kwa sasa. Mawakala wataendelea kuangalia.</string>
+    <string name="onboarding_scan_go_to_dashboard">Nenda kwenye Dashibodi</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Dashibodi</string>
+    <string name="dashboard_total_earnings">Jumla ya Mapato</string>
+    <string name="dashboard_active_agents">Mawakala Wanaofanya Kazi</string>
+    <string name="dashboard_recent_transactions">Miamala ya Hivi Karibuni</string>
+    <string name="dashboard_system_health">Afya ya Mfumo</string>
+    <string name="dashboard_health_green">Mifumo yote inafanya kazi</string>
+    <string name="dashboard_health_yellow">Mawakala wengine wamesimamishwa</string>
+    <string name="dashboard_health_red">Matatizo yamegunduliwa</string>
+
+    <!-- Currency -->
+    <string name="currency_usdc">USDC</string>
+    <string name="currency_format_usdc">%1$.2f USDC</string>
+
+    <!-- Compliance disclaimer -->
+    <string name="compliance_disclaimer_title">Taarifa Muhimu</string>
+    <string name="compliance_disclaimer_body">Uuzaji wa kiotomatiki wa muda wa hewa na data unategemea masharti ya kampuni yako ya simu na sheria za ndani. IdleHarvest inatumia mipangilio salama ya chaguo-msingi na sheria za kufuata ili kupunguza hatari.</string>
+    <string name="compliance_disclaimer_accept">Ninaelewa</string>
+    <string name="compliance_disclaimer_decline">Ghairi</string>
+
+    <!-- Accessibility -->
+    <string name="cd_logo">Nembo ya IdleHarvest</string>
+    <string name="cd_health_green">Afya ya mfumo: nzuri</string>
+    <string name="cd_health_yellow">Afya ya mfumo: imepungua</string>
+    <string name="cd_health_red">Afya ya mfumo: mbaya</string>
+    <string name="cd_back_button">Rudi nyuma</string>
+    <string name="cd_skip_button">Ruka hatua hii</string>
+</resources>

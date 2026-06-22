@@ -5,14 +5,34 @@
 </p>
 
 <p align="center">
+  <a href="https://idleharvest-86163.web.app"><img src="https://img.shields.io/badge/Live%20Demo-Firebase-FF6F00?logo=firebase&logoColor=white" alt="Live Demo" /></a>
+  &nbsp;
+  <a href="https://github.com/ma-za-kpe/IdleHarvest"><img src="https://img.shields.io/badge/Source-GitHub-181717?logo=github&logoColor=white" alt="GitHub" /></a>
+</p>
+
+<p align="center">
+  <a href="#try-idleharvest">Try It</a> •
+  <a href="#functionality--output">Functionality</a> •
   <a href="#features">Features</a> •
   <a href="#architecture">Architecture</a> •
   <a href="#installation">Installation</a> •
   <a href="#building">Building</a> •
   <a href="#testing">Testing</a> •
-  <a href="#project-structure">Structure</a> •
-  <a href="#implementation-log">Log</a>
+  <a href="#project-structure">Structure</a>
 </p>
+
+> **Web dashboard live at:** https://idleharvest-86163.web.app
+
+---
+
+## Try IdleHarvest
+
+| Platform | How to access |
+|----------|--------------|
+| **Web** | Visit [idleharvest-86163.web.app](https://idleharvest-86163.web.app) — no install needed |
+| **Android (Beta APK)** | Email **makpalyy@gmail.com** with subject `IdleHarvest Beta Request` and your device model. We'll send you the APK directly. |
+
+> Beta builds require Android 7.0+ (API 24) on any Arm64 device.
 
 ---
 
@@ -23,6 +43,30 @@ IdleHarvest runs on Arm-powered phones using lightweight AI agents that autonomo
 Built with **Kotlin Multiplatform (KMP)** for cross-platform reach: Android-first + iOS + Web (Kotlin/WASM). Models are trained on Vast.ai and exported via **ExecuTorch** for edge deployment with **Arm-optimized acceleration** (KleidiAI/SME2/XNNPACK).
 
 **Target:** [Arm AI Optimization Challenge](https://www.arm.com/) — Mobile AI Track.
+
+## Functionality & Output
+
+### What IdleHarvest does
+
+IdleHarvest runs three always-on AI agents in the background of your Android phone:
+
+| Agent | What it does | Output |
+|-------|-------------|--------|
+| **Airtime Agent** | Monitors prepaid airtime and data bundles. When a bundle is within 72 hours of expiry and below the usage threshold, the agent initiates a VTU sell or peer transfer. | USDC deposited to your Circle wallet |
+| **DePIN Agent** | Shares idle bandwidth, storage, and compute to decentralized physical infrastructure networks (Helium, Filecoin, etc.) within user-defined limits. | Passive crypto earnings per resource-hour |
+| **Mesh Coordinator** | Scans for nearby IdleHarvest peers over BLE, pools idle resources to unlock higher-tier earning opportunities, and routes nanopayments between devices. | Collective earnings split by contribution |
+
+### Final output
+
+- **On-device**: A continuously updated `EarningsSummary` (total USDC, last 24h, last 7d, breakdown by source)
+- **Wallet**: USDC settled to a Circle-managed wallet with biometric-gated withdrawals
+- **Audit log**: Encrypted on-device ledger of every agent action, policy decision, and payout
+- **Web dashboard**: Live earnings view at [idleharvest-86163.web.app](https://idleharvest-86163.web.app)
+- **Optimized model**: ExecuTorch `.pte` bundle (`<10 MB`, `<100ms` inference) for on-device resource classification
+
+### Privacy guarantees
+
+All agent reasoning, raw telemetry, and personal data remain on-device. The Privacy Vault encrypts everything with AES-256. Only USDC settlement messages leave the device, and only after explicit policy approval.
 
 ## Features
 
@@ -122,7 +166,57 @@ cd IdleHarvest
 
 # Release build
 ./gradlew androidApp:assembleRelease
+
+# Beta APK for tester distribution (output: dist/IdleHarvest-beta-1.0.apk)
+./gradlew androidApp:buildBetaApk
 ```
+
+### Arm64 Device — Build, Sideload & Validate
+
+> Tested on: Pixel 6 (Tensor G2 / Arm Cortex-X1), Samsung Galaxy A54 (Exynos 1380 / Arm Cortex-A78)
+
+**Step 1 — Enable Developer Options on your device**
+```
+Settings → About phone → tap "Build number" 7 times
+Settings → Developer options → enable "USB debugging"
+```
+
+**Step 2 — Build and install**
+```bash
+# Build debug APK
+./gradlew androidApp:assembleDebug
+
+# Install directly over ADB (device must be connected via USB)
+adb install -r androidApp/build/outputs/apk/debug/androidApp-debug.apk
+```
+
+**Step 3 — Validate agents are running**
+```bash
+# Tail logcat for agent events
+adb logcat -s IdleHarvest:V AgentOrchestrator:V ResourceMonitor:V
+
+# Check WorkManager background task is scheduled
+adb shell dumpsys jobscheduler | grep idleharvest
+```
+
+**Step 4 — Run tests on an Arm64 host (CI / Arm Virtual Hardware)**
+```bash
+# All 180+ property-based tests (runs on JVM via Android host test)
+./gradlew shared:testAndroidHostTest
+
+# Verify Arm-specific optimizations compile
+./gradlew shared:compileKotlinIosArm64     # cross-compile for Arm64
+./gradlew shared:wasmJsBrowserDistribution # Kotlin/WASM production bundle
+```
+
+**Step 5 — Verify performance targets**
+
+| Metric | Target | How to measure |
+|--------|--------|---------------|
+| Inference latency | < 100ms | `adb logcat -s InferenceEngine` |
+| Model size | < 10 MB | `ls -lh shared/src/commonMain/ml/` |
+| Battery impact | < 5%/hr | Android Battery & power settings → app usage |
+| Background memory | < 64 MB | `adb shell dumpsys meminfo com.maku.idleharvest` |
 
 ### Shared Module (all targets)
 

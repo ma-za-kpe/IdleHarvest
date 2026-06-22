@@ -31,21 +31,23 @@ fun HealthIndicator(
     modifier: Modifier = Modifier,
 ) {
     val extended = IdleHarvestTheme.extendedColors
-    val color: Color = when (status) {
-        HealthStatus.HEALTHY -> extended.healthGreen
-        HealthStatus.DEGRADED -> extended.healthYellow
-        HealthStatus.CRITICAL -> extended.healthRed
-    }
+    val color: Color =
+        when (status) {
+            HealthStatus.HEALTHY -> extended.healthGreen
+            HealthStatus.DEGRADED -> extended.healthYellow
+            HealthStatus.CRITICAL -> extended.healthRed
+        }
 
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(
-            modifier = Modifier
+            modifier =
+            Modifier
                 .size(IdleHarvestDimens.HealthIndicatorSize)
                 .clip(CircleShape)
-                .background(color)
+                .background(color),
         )
         if (label != null) {
             Spacer(modifier = Modifier.width(IdleHarvestDimens.SpaceSM))

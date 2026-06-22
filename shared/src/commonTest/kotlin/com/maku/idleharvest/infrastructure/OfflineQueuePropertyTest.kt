@@ -5,16 +5,11 @@ import com.maku.idleharvest.domain.models.ConsentToken
 import com.maku.idleharvest.domain.models.DataType
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
-import io.kotest.property.arbitrary.list
-import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.of
 import io.kotest.property.arbitrary.string
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
  * Property 32: Offline Queue and Retry
@@ -28,21 +23,21 @@ import kotlin.test.assertTrue
  * Validates: Requirements 16.3
  */
 class OfflineQueuePropertyTest {
-
     /**
      * In-memory fake PrivacyVault for testing OfflineQueue without real encryption.
      */
     private class FakePrivacyVault : PrivacyVault {
         private val store = mutableMapOf<String, ByteArray>()
 
-        override suspend fun store(key: String, data: ByteArray): Result<Unit> {
+        override suspend fun store(
+            key: String,
+            data: ByteArray,
+        ): Result<Unit> {
             store[key] = data.copyOf()
             return Result.success(Unit)
         }
 
-        override suspend fun retrieve(key: String): Result<ByteArray?> {
-            return Result.success(store[key]?.copyOf())
-        }
+        override suspend fun retrieve(key: String): Result<ByteArray?> = Result.success(store[key]?.copyOf())
 
         override suspend fun delete(key: String): Result<Unit> {
             store.remove(key)
@@ -54,9 +49,10 @@ class OfflineQueuePropertyTest {
             return Result.success(Unit)
         }
 
-        override suspend fun exportAnonymized(dataType: DataType, consentToken: ConsentToken): Result<ByteArray> {
-            return Result.success(byteArrayOf())
-        }
+        override suspend fun exportAnonymized(
+            dataType: DataType,
+            consentToken: ConsentToken,
+        ): Result<ByteArray> = Result.success(byteArrayOf())
 
         override fun isIntegrityValid(): Boolean = true
     }
@@ -177,11 +173,12 @@ class OfflineQueuePropertyTest {
             // Even-indexed items succeed, odd-indexed items fail
             var index = 0
             queue.retryAll { item ->
-                val result = if (item.id.substringAfter("-").toInt() % 2 == 0) {
-                    Result.success(Unit)
-                } else {
-                    Result.failure(RuntimeException("failed"))
-                }
+                val result =
+                    if (item.id.substringAfter("-").toInt() % 2 == 0) {
+                        Result.success(Unit)
+                    } else {
+                        Result.failure(RuntimeException("failed"))
+                    }
                 index++
                 result
             }

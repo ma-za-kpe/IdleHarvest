@@ -1,0 +1,459 @@
+package com.maku.idleharvest.ui.web
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.PathParser
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.maku.idleharvest.ui.theme.IdleHarvestBrand
+import com.maku.idleharvest.ui.theme.IdleHarvestDimens
+import com.maku.idleharvest.ui.theme.IdleHarvestTheme
+
+/** Root entry point for the Kotlin/WASM web app. */
+@Composable
+fun WebApp(onOpenUrl: (String) -> Unit = {}) {
+    IdleHarvestTheme {
+        WebDashboard(onOpenUrl = onOpenUrl)
+    }
+}
+
+@Composable
+fun WebDashboard(onOpenUrl: (String) -> Unit = {}) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        LandingHero(onOpenUrl = onOpenUrl)
+        FeaturesSection()
+        ImpactStatsSection()
+        EarningsDashboardSection()
+        FooterSection(onOpenUrl = onOpenUrl)
+    }
+}
+
+@Composable
+private fun LandingHero(onOpenUrl: (String) -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(vertical = 64.dp, horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier.widthIn(max = 720.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = IdleHarvestBrand.APP_NAME,
+                style = IdleHarvestBrand.LogoTextStyle,
+                color = MaterialTheme.colorScheme.onPrimary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            Text(
+                text = IdleHarvestBrand.APP_TAGLINE,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onPrimary,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
+            Text(
+                text = IdleHarvestBrand.APP_DESCRIPTION,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceXXL))
+            Row(horizontalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceLG)) {
+                Button(onClick = {}) {
+                    Text("Download for Android")
+                }
+                OutlinedButton(onClick = { onOpenUrl(GITHUB_URL) }) {
+                    val icon = rememberGitHubMark()
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                    )
+                    Spacer(Modifier.width(IdleHarvestDimens.SpaceXS))
+                    Text("View on GitHub")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FeaturesSection() {
+    Column(
+        modifier = Modifier
+            .widthIn(max = 960.dp)
+            .fillMaxWidth()
+            .padding(vertical = IdleHarvestDimens.SpaceXXL, horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "How It Works",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceLG),
+        ) {
+            FeatureCard(
+                modifier = Modifier.weight(1f),
+                icon = rememberPhoneAndroidIcon(),
+                title = "Airtime Agent",
+                description = "Automatically sells or transfers expiring airtime and data bundles. " +
+                    "You earn USDC instead of losing value.",
+            )
+            FeatureCard(
+                modifier = Modifier.weight(1f),
+                icon = rememberLanguageIcon(),
+                title = "DePIN Agent",
+                description = "Shares idle bandwidth and compute to decentralized networks. " +
+                    "Earn passive crypto income without manual work.",
+            )
+            FeatureCard(
+                modifier = Modifier.weight(1f),
+                icon = rememberBluetoothIcon(),
+                title = "Mesh Coordinator",
+                description = "Connects nearby devices via Bluetooth to pool resources and unlock larger earning opportunities.",
+            )
+        }
+        Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceLG),
+        ) {
+            FeatureCard(
+                modifier = Modifier.weight(1f),
+                icon = rememberLockIcon(),
+                title = "Privacy First",
+                description = "All AI reasoning stays on-device. Nothing leaves without your explicit consent. Hardware-backed wallet keys.",
+            )
+            FeatureCard(
+                modifier = Modifier.weight(1f),
+                icon = rememberMemoryIcon(),
+                title = "On-Device AI",
+                description = "ExecuTorch models run locally with KleidiAI acceleration. No cloud dependency, no privacy loss.",
+            )
+            FeatureCard(
+                modifier = Modifier.weight(1f),
+                icon = rememberTuneIcon(),
+                title = "Your Guardrails",
+                description = "You define the limits. Set transaction caps, autonomy levels, and biometric thresholds. Agents never exceed your rules.",
+            )
+        }
+    }
+}
+
+@Composable
+private fun FeatureCard(modifier: Modifier = Modifier, icon: ImageVector, title: String, description: String) {
+    Card(
+        modifier = modifier,
+        elevation = CardDefaults.cardElevation(defaultElevation = IdleHarvestDimens.CardElevation),
+    ) {
+        Column(modifier = Modifier.padding(IdleHarvestDimens.CardPadding)) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(36.dp),
+                tint = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceXS))
+            Text(text = description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+    }
+}
+
+@Composable
+private fun ImpactStatsSection() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(vertical = IdleHarvestDimens.SpaceXXL, horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            modifier = Modifier.widthIn(max = 720.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text(
+                text = "Impact at a Glance",
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+            ) {
+                StatItem("<100ms", "Inference latency\n(Arm optimized)")
+                StatItem("<10MB", "Model size\n(quantized)")
+                StatItem("<5%/hr", "Battery impact\n(all agents active)")
+                StatItem("4 languages", "EN · FR · SW · HA")
+            }
+        }
+    }
+}
+
+@Composable
+private fun StatItem(value: String, label: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.primary,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(IdleHarvestDimens.SpaceXS))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+private fun EarningsDashboardSection() {
+    Column(
+        modifier = Modifier
+            .widthIn(max = 960.dp)
+            .fillMaxWidth()
+            .padding(vertical = IdleHarvestDimens.SpaceXXL, horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Your Earnings Dashboard",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+        Text(
+            text = "Sign in to see your live earnings, active agents, and transaction history. " +
+                "End-to-end encrypted — nothing stored on our servers.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
+
+        Card(modifier = Modifier.fillMaxWidth()) {
+            Column(modifier = Modifier.padding(IdleHarvestDimens.CardPadding)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    DashboardMetric("Total Earnings", "—— USDC", "Sign in to view")
+                    DashboardMetric("Active Agents", "——", "Sign in to view")
+                    DashboardMetric("System Health", "——", "Sign in to view")
+                }
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
+                Button(
+                    onClick = {},
+                    modifier = Modifier.fillMaxWidth().height(IdleHarvestDimens.ButtonHeight),
+                ) {
+                    Text("Sign In to View Dashboard")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun DashboardMetric(title: String, value: String, subtitle: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(IdleHarvestDimens.SpaceXS))
+        Text(text = value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
+        Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+private const val GITHUB_URL = "https://github.com/ma-za-kpe/IdleHarvest"
+
+@Composable
+private fun rememberGitHubMark(): ImageVector = remember {
+    val path = buildString {
+        append("M12 2C6.477 2 2 6.484 2 12.017")
+        append("c0 4.425 2.865 8.18 6.839 9.504")
+        append(".5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703")
+        append("-2.782.605-3.369-1.343-3.369-1.343")
+        append("-.454-1.158-1.11-1.466-1.11-1.466")
+        append("-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032")
+        append(".892 1.53 2.341 1.088 2.91.832")
+        append(".092-.647.35-1.088.636-1.338")
+        append("-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688")
+        append("-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026")
+        append("A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337")
+        append(" 1.909-1.296 2.747-1.027 2.747-1.027")
+        append(".546 1.379.202 2.398.1 2.651")
+        append(".64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943")
+        append(".359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747")
+        append(" 0 .268.18.58.688.482")
+        append("A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z")
+    }
+    buildIcon("GitHub", path)
+}
+
+@Composable
+private fun rememberPhoneAndroidIcon(): ImageVector = remember {
+    buildIcon(
+        "PhoneAndroid",
+        "M16 1H8C6.34 1 5 2.34 5 4v16c0 1.66 1.34 3 3 3h8c1.66 0 3-1.34 3-3V4c0-1.66-1.34-3-3-3z" +
+            "m-2 20h-4v-1h4v1zm3-3H7V4h10v14z",
+    )
+}
+
+@Composable
+private fun rememberLanguageIcon(): ImageVector = remember {
+    buildIcon(
+        "Language",
+        "M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2z" +
+            "m6.93 6h-2.95c-.32-1.25-.78-2.45-1.38-3.56 1.84.63 3.37 1.91 4.33 3.56z" +
+            "M12 4.04c.83 1.2 1.48 2.53 1.91 3.96h-3.82c.43-1.43 1.08-2.76 1.91-3.96z" +
+            "M4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.38c-.08.66-.14 1.32-.14 2s.06 1.34.14 2H4.26z" +
+            "m.82 2h2.95c.32 1.25.78 2.45 1.38 3.56-1.84-.63-3.37-1.9-4.33-3.56z" +
+            "m2.95-8H5.08c.96-1.66 2.49-2.93 4.33-3.56C8.81 5.55 8.35 6.75 8.03 8z" +
+            "M12 19.96c-.83-1.2-1.48-2.53-1.91-3.96h3.82c-.43 1.43-1.08 2.76-1.91 3.96z" +
+            "M14.34 14H9.66c-.09-.66-.16-1.32-.16-2s.07-1.35.16-2h4.68c.09.65.16 1.32.16 2s-.07 1.34-.16 2z" +
+            "m.25 5.56c.6-1.11 1.06-2.31 1.38-3.56h2.95c-.96 1.65-2.49 2.93-4.33 3.56z" +
+            "M16.36 14c.08-.66.14-1.32.14-2s-.06-1.34-.14-2h3.38c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.38z",
+    )
+}
+
+@Composable
+private fun rememberBluetoothIcon(): ImageVector = remember {
+    buildIcon(
+        "Bluetooth",
+        "M17.71 7.71L12 2h-1v7.59L6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 11 14.41V22h1l5.71-5.71" +
+            "-4.3-4.29 4.3-4.29zM13 5.83l1.88 1.88L13 9.59V5.83zm1.88 10.46L13 18.17v-3.76l1.88 1.88z",
+    )
+}
+
+@Composable
+private fun rememberLockIcon(): ImageVector = remember {
+    buildIcon(
+        "Lock",
+        "M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12" +
+            "c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z" +
+            "m3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z",
+    )
+}
+
+@Composable
+private fun rememberMemoryIcon(): ImageVector = remember {
+    buildIcon(
+        "Memory",
+        "M15 9H9v6h6V9zm-2 4h-2v-2h2v2zm8-2V9h-2V7c0-1.1-.9-2-2-2h-2V3h-2v2h-2V3H9v2H7" +
+            "c-1.1 0-2 .9-2 2v2H3v2h2v2H3v2h2v2c0 1.1.9 2 2 2h2v2h2v-2h2v2h2v-2h2c1.1 0 2-.9 2-2v-2h2v-2h-2v-2h2z" +
+            "M17 17H7V7h10v10z",
+    )
+}
+
+@Composable
+private fun rememberTuneIcon(): ImageVector = remember {
+    buildIcon(
+        "Tune",
+        "M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7z" +
+            "m14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z",
+    )
+}
+
+private fun buildIcon(name: String, svgPath: String): ImageVector = ImageVector.Builder(
+    name = name,
+    defaultWidth = 24.dp,
+    defaultHeight = 24.dp,
+    viewportWidth = 24f,
+    viewportHeight = 24f,
+).addPath(
+    pathData = PathParser().parsePathString(svgPath).toNodes(),
+    fill = SolidColor(Color.Black),
+).build()
+
+@Composable
+private fun FooterSection(onOpenUrl: (String) -> Unit) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.inverseSurface)
+            .padding(vertical = IdleHarvestDimens.SpaceXL, horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = "${IdleHarvestBrand.APP_NAME} — ${IdleHarvestBrand.APP_TAGLINE}",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.inverseOnSurface,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceXS))
+            Text(
+                text = "Privacy-first · On-device AI · Arm-optimized · KMP",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.inverseOnSurface.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            TextButton(onClick = { onOpenUrl(GITHUB_URL) }) {
+                val icon = rememberGitHubMark()
+                Icon(
+                    imageVector = icon,
+                    contentDescription = "GitHub repository",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.inverseOnSurface,
+                )
+                Spacer(Modifier.width(IdleHarvestDimens.SpaceXS))
+                Text(
+                    text = "Open source on GitHub",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
+                )
+            }
+        }
+    }
+}

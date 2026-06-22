@@ -15,13 +15,15 @@ import kotlin.random.Random
 class SimpleCryptoProvider(
     private val random: Random = Random.Default,
 ) : CryptoProvider {
-
     companion object {
         private const val NONCE_SIZE = 4
         private const val KEY_SIZE = 32 // 256 bits
     }
 
-    override fun encrypt(key: ByteArray, plaintext: ByteArray): ByteArray {
+    override fun encrypt(
+        key: ByteArray,
+        plaintext: ByteArray,
+    ): ByteArray {
         require(key.size == KEY_SIZE) { "Key must be $KEY_SIZE bytes, got ${key.size}" }
 
         // Generate a random nonce for this encryption
@@ -31,15 +33,19 @@ class SimpleCryptoProvider(
         val keystream = deriveKeystream(key, nonce, plaintext.size)
 
         // XOR plaintext with keystream
-        val ciphertext = ByteArray(plaintext.size) { i ->
-            (plaintext[i].toInt() xor keystream[i].toInt()).toByte()
-        }
+        val ciphertext =
+            ByteArray(plaintext.size) { i ->
+                (plaintext[i].toInt() xor keystream[i].toInt()).toByte()
+            }
 
         // Prepend nonce to ciphertext
         return nonce + ciphertext
     }
 
-    override fun decrypt(key: ByteArray, ciphertext: ByteArray): ByteArray {
+    override fun decrypt(
+        key: ByteArray,
+        ciphertext: ByteArray,
+    ): ByteArray {
         require(key.size == KEY_SIZE) { "Key must be $KEY_SIZE bytes, got ${key.size}" }
 
         if (ciphertext.size < NONCE_SIZE) {
@@ -59,11 +65,12 @@ class SimpleCryptoProvider(
         }
     }
 
-    override fun generateKey(): ByteArray {
-        return ByteArray(KEY_SIZE).also { random.nextBytes(it) }
-    }
+    override fun generateKey(): ByteArray = ByteArray(KEY_SIZE).also { random.nextBytes(it) }
 
-    override fun computeHash(key: ByteArray, data: ByteArray): ByteArray {
+    override fun computeHash(
+        key: ByteArray,
+        data: ByteArray,
+    ): ByteArray {
         // Simple keyed hash: iterative XOR mixing (not cryptographically strong, but deterministic
         // and suitable for testing the integrity check pattern).
         val hashSize = KEY_SIZE
@@ -96,7 +103,11 @@ class SimpleCryptoProvider(
      * Derive a deterministic keystream from key + nonce.
      * Uses iterative mixing to produce [length] bytes.
      */
-    private fun deriveKeystream(key: ByteArray, nonce: ByteArray, length: Int): ByteArray {
+    private fun deriveKeystream(
+        key: ByteArray,
+        nonce: ByteArray,
+        length: Int,
+    ): ByteArray {
         val stream = ByteArray(length)
         // Seed state from key and nonce
         var state = 0

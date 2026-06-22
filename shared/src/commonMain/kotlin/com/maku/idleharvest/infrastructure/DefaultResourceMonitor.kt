@@ -35,7 +35,6 @@ class DefaultResourceMonitor(
     private val scope: CoroutineScope,
     private val eventBus: AgentEventBus,
 ) : ResourceMonitor {
-
     private val _resourceProfile = MutableStateFlow(ResourceProfile.empty())
     override val resourceProfile: StateFlow<ResourceProfile> = _resourceProfile.asStateFlow()
 
@@ -46,21 +45,22 @@ class DefaultResourceMonitor(
     override fun startMonitoring(config: MonitorConfig) {
         this.config = config
         monitoringJob?.cancel()
-        monitoringJob = scope.launch {
-            // Initial cold-start scan — fast, just collects whatever is available
-            val initialProfile = performScan()
-            _resourceProfile.value = initialProfile
-            eventBus.publish(AgentEvent.ResourceUpdated(initialProfile))
+        monitoringJob =
+            scope.launch {
+                // Initial cold-start scan — fast, just collects whatever is available
+                val initialProfile = performScan()
+                _resourceProfile.value = initialProfile
+                eventBus.publish(AgentEvent.ResourceUpdated(initialProfile))
 
-            // Periodic scanning loop
-            while (isActive) {
-                val interval = computeEffectiveInterval()
-                delay(interval)
-                val profile = performScan()
-                _resourceProfile.value = profile
-                eventBus.publish(AgentEvent.ResourceUpdated(profile))
+                // Periodic scanning loop
+                while (isActive) {
+                    val interval = computeEffectiveInterval()
+                    delay(interval)
+                    val profile = performScan()
+                    _resourceProfile.value = profile
+                    eventBus.publish(AgentEvent.ResourceUpdated(profile))
+                }
             }
-        }
     }
 
     override fun stopMonitoring() {
@@ -135,21 +135,23 @@ class DefaultResourceMonitor(
         val baseInterval = config.scanIntervalMs
 
         // Apply thermal multiplier
-        val thermalMultiplier = when (thermalState) {
-            ThermalState.COOL -> 1.0
-            ThermalState.WARM -> 1.5
-            ThermalState.HOT -> 3.0
-            ThermalState.CRITICAL -> return Long.MAX_VALUE // Should not reach here; scanning is paused
-        }
+        val thermalMultiplier =
+            when (thermalState) {
+                ThermalState.COOL -> 1.0
+                ThermalState.WARM -> 1.5
+                ThermalState.HOT -> 3.0
+                ThermalState.CRITICAL -> return Long.MAX_VALUE // Should not reach here; scanning is paused
+            }
 
         // Apply battery multiplier
         val currentBattery = _resourceProfile.value.batteryLevel
         val isCharging = _resourceProfile.value.isCharging
-        val batteryMultiplier = if (!isCharging && currentBattery in 0 until config.lowBatteryThreshold) {
-            2.0
-        } else {
-            1.0
-        }
+        val batteryMultiplier =
+            if (!isCharging && currentBattery in 0 until config.lowBatteryThreshold) {
+                2.0
+            } else {
+                1.0
+            }
 
         return (baseInterval * thermalMultiplier * batteryMultiplier).toLong()
     }
@@ -158,14 +160,15 @@ class DefaultResourceMonitor(
      * Safely executes a scan operation, catching any exceptions.
      * Logs failures and returns null on error so monitoring continues.
      */
-    private suspend inline fun <T> scanSafely(metricName: String, block: () -> T): T? {
-        return try {
-            block()
-        } catch (e: Exception) {
-            // Log the failure — in production this would go to the rolling error log
-            println("[ResourceMonitor] Failed to scan $metricName: ${e.message}")
-            null
-        }
+    private suspend inline fun <T> scanSafely(
+        metricName: String,
+        block: () -> T,
+    ): T? = try {
+        block()
+    } catch (e: Exception) {
+        // Log the failure — in production this would go to the rolling error log
+        println("[ResourceMonitor] Failed to scan $metricName: ${e.message}")
+        null
     }
 
     companion object {

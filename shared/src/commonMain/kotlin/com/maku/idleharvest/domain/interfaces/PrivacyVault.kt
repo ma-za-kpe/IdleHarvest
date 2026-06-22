@@ -12,7 +12,10 @@ import com.maku.idleharvest.domain.models.DataType
  */
 interface PrivacyVault {
     /** Store encrypted data under the given key. */
-    suspend fun store(key: String, data: ByteArray): Result<Unit>
+    suspend fun store(
+        key: String,
+        data: ByteArray,
+    ): Result<Unit>
 
     /** Retrieve and decrypt data for the given key. Returns null if key does not exist. */
     suspend fun retrieve(key: String): Result<ByteArray?>
@@ -27,7 +30,10 @@ interface PrivacyVault {
      * Export anonymized data of the specified type.
      * Requires a valid consent token; PII is stripped before export.
      */
-    suspend fun exportAnonymized(dataType: DataType, consentToken: ConsentToken): Result<ByteArray>
+    suspend fun exportAnonymized(
+        dataType: DataType,
+        consentToken: ConsentToken,
+    ): Result<ByteArray>
 
     /** Verify the integrity of the vault's encrypted storage. */
     fun isIntegrityValid(): Boolean

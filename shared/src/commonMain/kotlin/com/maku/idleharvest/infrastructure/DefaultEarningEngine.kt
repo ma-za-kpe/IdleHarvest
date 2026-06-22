@@ -52,7 +52,6 @@ class DefaultEarningEngine(
     private val biometricThreshold: Double = DEFAULT_BIOMETRIC_THRESHOLD,
     private val clock: () -> Long = { currentTimeMillis() },
 ) : EarningEngine {
-
     private val json = Json { ignoreUnknownKeys = true }
 
     private val _pendingPayouts = MutableStateFlow<List<PayoutRequest>>(emptyList())
@@ -68,7 +67,7 @@ class DefaultEarningEngine(
         // 1. Idempotent payout guarantee — reject duplicates
         if (event.id in processedPayoutIds) {
             return Result.failure(
-                DuplicatePayoutException("Payout already processed for earning event: ${event.id}")
+                DuplicatePayoutException("Payout already processed for earning event: ${event.id}"),
             )
         }
 
@@ -77,11 +76,12 @@ class DefaultEarningEngine(
         val policyDecision = policyManager.checkAction(EARNING_ENGINE_ID, agentAction)
 
         if (policyDecision !is PolicyDecision.Approved) {
-            val reason = when (policyDecision) {
-                is PolicyDecision.Denied -> "Policy denied: ${policyDecision.reason}"
-                is PolicyDecision.RequiresApproval -> "Action requires user approval"
-                PolicyDecision.Approved -> "" // unreachable
-            }
+            val reason =
+                when (policyDecision) {
+                    is PolicyDecision.Denied -> "Policy denied: ${policyDecision.reason}"
+                    is PolicyDecision.RequiresApproval -> "Action requires user approval"
+                    PolicyDecision.Approved -> "" // unreachable
+                }
             logRejection(event, reason)
             notifyUserOfRejection(event, reason)
             return Result.failure(PayoutRejectedException(reason))
@@ -92,21 +92,23 @@ class DefaultEarningEngine(
         if (requiresBiometric) {
             val biometricResult = performBiometricCheck(event)
             if (biometricResult.isFailure) {
-                val reason = "Biometric authentication required but failed: ${biometricResult.exceptionOrNull()?.message}"
+                val reason =
+                    "Biometric authentication required but failed: ${biometricResult.exceptionOrNull()?.message}"
                 logRejection(event, reason)
                 return Result.failure(BiometricRequiredException(reason))
             }
         }
 
         // 4. Create payout request and add to pending
-        val payoutRequest = PayoutRequest(
-            id = generatePayoutId(event),
-            earningEventId = event.id,
-            amountUsdc = event.amountUsdc,
-            destination = walletAddress,
-            status = PayoutStatus.SUBMITTED,
-            requiresBiometric = requiresBiometric,
-        )
+        val payoutRequest =
+            PayoutRequest(
+                id = generatePayoutId(event),
+                earningEventId = event.id,
+                amountUsdc = event.amountUsdc,
+                destination = walletAddress,
+                status = PayoutStatus.SUBMITTED,
+                requiresBiometric = requiresBiometric,
+            )
         addPendingPayout(payoutRequest)
 
         // 5. Execute payout via Circle Agent Stack (or mock)
@@ -140,44 +142,48 @@ class DefaultEarningEngine(
 
     override suspend fun processNanopayment(payment: NanopaymentRequest): Result<NanopaymentReceipt> {
         // Policy check for nanopayments
-        val agentAction = AgentAction(
-            agentId = payment.fromAgent,
-            actionType = "NANOPAYMENT",
-            description = "Nanopayment to ${payment.toAgent.value} for: ${payment.serviceDescription}",
-            amountUsdc = payment.amountUsdc,
-            resourceImpact = null,
-            timestamp = payment.timestamp,
-        )
+        val agentAction =
+            AgentAction(
+                agentId = payment.fromAgent,
+                actionType = "NANOPAYMENT",
+                description = "Nanopayment to ${payment.toAgent.value} for: ${payment.serviceDescription}",
+                amountUsdc = payment.amountUsdc,
+                resourceImpact = null,
+                timestamp = payment.timestamp,
+            )
 
         val policyDecision = policyManager.checkAction(payment.fromAgent, agentAction)
 
         if (policyDecision !is PolicyDecision.Approved) {
-            val reason = when (policyDecision) {
-                is PolicyDecision.Denied -> "Nanopayment denied by policy: ${policyDecision.reason}"
-                is PolicyDecision.RequiresApproval -> "Nanopayment requires user approval"
-                PolicyDecision.Approved -> "" // unreachable
-            }
+            val reason =
+                when (policyDecision) {
+                    is PolicyDecision.Denied -> "Nanopayment denied by policy: ${policyDecision.reason}"
+                    is PolicyDecision.RequiresApproval -> "Nanopayment requires user approval"
+                    PolicyDecision.Approved -> "" // unreachable
+                }
             return Result.failure(PayoutRejectedException(reason))
         }
 
         // Execute nanopayment (via payout rail or mock)
-        val receipt = NanopaymentReceipt(
-            requestId = "np_${payment.fromAgent.value}_${payment.timestamp}",
-            transactionHash = "hash_${payment.timestamp}_${payment.amountUsdc}",
-            amountUsdc = payment.amountUsdc,
-            confirmedAt = clock(),
-        )
+        val receipt =
+            NanopaymentReceipt(
+                requestId = "np_${payment.fromAgent.value}_${payment.timestamp}",
+                transactionHash = "hash_${payment.timestamp}_${payment.amountUsdc}",
+                amountUsdc = payment.amountUsdc,
+                confirmedAt = clock(),
+            )
 
         // Record in earning history as a nanopayment event
-        val earningEvent = EarningEvent(
-            id = receipt.requestId,
-            source = EarningSource.NANOPAYMENT,
-            amountUsdc = payment.amountUsdc,
-            amountLocal = null,
-            localCurrency = null,
-            agentId = payment.toAgent,
-            timestamp = receipt.confirmedAt,
-        )
+        val earningEvent =
+            EarningEvent(
+                id = receipt.requestId,
+                source = EarningSource.NANOPAYMENT,
+                amountUsdc = payment.amountUsdc,
+                amountLocal = null,
+                localCurrency = null,
+                agentId = payment.toAgent,
+                timestamp = receipt.confirmedAt,
+            )
         addToEarningHistory(earningEvent)
         persistEarningEvent(earningEvent)
 
@@ -194,8 +200,10 @@ class DefaultEarningEngine(
         val last24h = history.filter { it.timestamp >= oneDayAgo }.sumOf { it.amountUsdc }
         val last7d = history.filter { it.timestamp >= sevenDaysAgo }.sumOf { it.amountUsdc }
 
-        val bySource = history.groupBy { it.source }
-            .mapValues { (_, events) -> events.sumOf { it.amountUsdc } }
+        val bySource =
+            history
+                .groupBy { it.source }
+                .mapValues { (_, events) -> events.sumOf { it.amountUsdc } }
 
         return EarningsSummary(
             totalEarnedUsdc = totalUsdc,
@@ -210,24 +218,23 @@ class DefaultEarningEngine(
     /**
      * Build an [AgentAction] from an earning event for policy checks.
      */
-    private fun buildAgentAction(event: EarningEvent): AgentAction {
-        return AgentAction(
-            agentId = EARNING_ENGINE_ID,
-            actionType = "PAYOUT_${event.source.name}",
-            description = "Payout for earning event ${event.id} from ${event.source.name}",
-            amountUsdc = event.amountUsdc,
-            resourceImpact = null,
-            timestamp = event.timestamp,
-        )
-    }
+    private fun buildAgentAction(event: EarningEvent): AgentAction = AgentAction(
+        agentId = EARNING_ENGINE_ID,
+        actionType = "PAYOUT_${event.source.name}",
+        description = "Payout for earning event ${event.id} from ${event.source.name}",
+        amountUsdc = event.amountUsdc,
+        resourceImpact = null,
+        timestamp = event.timestamp,
+    )
 
     /**
      * Perform biometric authentication via SecureKeystore.
      * Returns success if biometric passed, failure otherwise.
      */
     private fun performBiometricCheck(event: EarningEvent): Result<ByteArray> {
-        val keystore = secureKeystore
-            ?: return Result.failure(BiometricRequiredException("SecureKeystore not available"))
+        val keystore =
+            secureKeystore
+                ?: return Result.failure(BiometricRequiredException("SecureKeystore not available"))
 
         val challenge = "payout_${event.id}_${event.amountUsdc}".encodeToByteArray()
         return keystore.requireBiometric(SIGNING_KEY_ALIAS, challenge)
@@ -244,40 +251,48 @@ class DefaultEarningEngine(
         }
 
         // Mock execution when no rail is configured (testing/development)
-        val receipt = PayoutReceipt(
-            payoutRequestId = request.id,
-            transactionHash = "mock_tx_${request.id}_${clock()}",
-            amountUsdc = request.amountUsdc,
-            destination = request.destination,
-            confirmedAt = clock(),
-        )
+        val receipt =
+            PayoutReceipt(
+                payoutRequestId = request.id,
+                transactionHash = "mock_tx_${request.id}_${clock()}",
+                amountUsdc = request.amountUsdc,
+                destination = request.destination,
+                confirmedAt = clock(),
+            )
         return Result.success(receipt)
     }
 
     /**
      * Log a payout rejection to the Privacy_Vault for audit purposes.
      */
-    private suspend fun logRejection(event: EarningEvent, reason: String) {
-        val logEntry = json.encodeToString(
-            RejectionLog(
-                earningEventId = event.id,
-                reason = reason,
-                timestamp = clock(),
-                amountUsdc = event.amountUsdc,
+    private suspend fun logRejection(
+        event: EarningEvent,
+        reason: String,
+    ) {
+        val logEntry =
+            json.encodeToString(
+                RejectionLog(
+                    earningEventId = event.id,
+                    reason = reason,
+                    timestamp = clock(),
+                    amountUsdc = event.amountUsdc,
+                ),
             )
-        )
         vault.store("rejection_${event.id}_${clock()}", logEntry.encodeToByteArray())
     }
 
     /**
      * Notify the user of a payout rejection via the event bus.
      */
-    private fun notifyUserOfRejection(event: EarningEvent, reason: String) {
+    private fun notifyUserOfRejection(
+        event: EarningEvent,
+        reason: String,
+    ) {
         eventBus.publish(
             AgentEvent.PolicyViolation(
                 agentId = EARNING_ENGINE_ID,
                 action = buildAgentAction(event),
-            )
+            ),
         )
     }
 
@@ -297,19 +312,21 @@ class DefaultEarningEngine(
         _pendingPayouts.value = _pendingPayouts.value.filter { it.id != payoutId }
     }
 
-    private fun updatePayoutStatus(payoutId: String, status: PayoutStatus) {
-        _pendingPayouts.value = _pendingPayouts.value.map { payout ->
-            if (payout.id == payoutId) payout.copy(status = status) else payout
-        }
+    private fun updatePayoutStatus(
+        payoutId: String,
+        status: PayoutStatus,
+    ) {
+        _pendingPayouts.value =
+            _pendingPayouts.value.map { payout ->
+                if (payout.id == payoutId) payout.copy(status = status) else payout
+            }
     }
 
     private fun addToEarningHistory(event: EarningEvent) {
         _earningHistory.value = _earningHistory.value + event
     }
 
-    private fun generatePayoutId(event: EarningEvent): String {
-        return "payout_${event.id}_${clock()}"
-    }
+    private fun generatePayoutId(event: EarningEvent): String = "payout_${event.id}_${clock()}"
 
     companion object {
         /** Agent identifier for the earning engine. */
@@ -338,22 +355,30 @@ interface CirclePayoutRail {
 /**
  * Exception indicating a duplicate payout attempt for an already-processed earning event.
  */
-class DuplicatePayoutException(message: String) : Exception(message)
+class DuplicatePayoutException(
+    message: String,
+) : Exception(message)
 
 /**
  * Exception indicating a payout was rejected by policy or compliance checks.
  */
-class PayoutRejectedException(message: String) : Exception(message)
+class PayoutRejectedException(
+    message: String,
+) : Exception(message)
 
 /**
  * Exception indicating biometric authentication is required but was not satisfied.
  */
-class BiometricRequiredException(message: String) : Exception(message)
+class BiometricRequiredException(
+    message: String,
+) : Exception(message)
 
 /**
  * Exception indicating the payout rail (Circle Agent Stack) failed to process the payout.
  */
-class PayoutFailedException(message: String) : Exception(message)
+class PayoutFailedException(
+    message: String,
+) : Exception(message)
 
 /**
  * Internal log entry for payout rejections, stored in the Privacy_Vault.

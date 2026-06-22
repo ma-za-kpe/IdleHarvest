@@ -18,19 +18,17 @@ import kotlin.reflect.KClass
  * to avoid blocking publishers. DROP_OLDEST overflow strategy ensures publishers never suspend.
  */
 class DefaultAgentEventBus : AgentEventBus {
-
-    private val _events = MutableSharedFlow<AgentEvent>(
-        replay = 0,
-        extraBufferCapacity = 64,
-        onBufferOverflow = BufferOverflow.DROP_OLDEST
-    )
+    private val _events =
+        MutableSharedFlow<AgentEvent>(
+            replay = 0,
+            extraBufferCapacity = 64,
+            onBufferOverflow = BufferOverflow.DROP_OLDEST,
+        )
 
     override fun <T : AgentEvent> publish(event: T) {
         _events.tryEmit(event)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun <T : AgentEvent> subscribe(eventType: KClass<T>): Flow<T> {
-        return _events.filter { eventType.isInstance(it) } as Flow<T>
-    }
+    override fun <T : AgentEvent> subscribe(eventType: KClass<T>): Flow<T> = _events.filter { eventType.isInstance(it) } as Flow<T>
 }

@@ -1,7 +1,6 @@
 package com.maku.idleharvest.infrastructure
 
 import com.maku.idleharvest.domain.models.AgentId
-import com.maku.idleharvest.domain.models.ComplianceAuditEntry
 import com.maku.idleharvest.domain.models.ComplianceDecision
 import com.maku.idleharvest.domain.models.ComplianceRuleSet
 import com.maku.idleharvest.domain.models.TransactionRequest
@@ -21,8 +20,6 @@ import io.kotest.property.forAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Property 25: Compliance Audit Completeness
@@ -34,7 +31,6 @@ import kotlin.test.assertTrue
  * **Validates: Requirements 12.4**
  */
 class ComplianceAuditPropertyTest {
-
     private val fixedClock = 1_719_792_000_000L // 2024-07-01 00:00:00 UTC
 
     /**
@@ -65,23 +61,24 @@ class ComplianceAuditPropertyTest {
         return DefaultComplianceEngine(vault, clock = { fixedClock })
     }
 
-    private fun testRuleSet(country: String, carrier: String): ComplianceRuleSet {
-        return ComplianceRuleSet(
-            country = country,
-            carrier = carrier,
-            dailyTransactionLimit = 50_000.0,
-            monthlyTransactionLimit = 200_000.0,
-            kycThreshold = 5_000.0, // Amounts above 5000 will be blocked
-            rateLimitPerHour = 100, // High enough to not interfere
-            version = 1,
-            lastUpdated = fixedClock - 86_400_000L,
-        )
-    }
+    private fun testRuleSet(
+        country: String,
+        carrier: String,
+    ): ComplianceRuleSet = ComplianceRuleSet(
+        country = country,
+        carrier = carrier,
+        dailyTransactionLimit = 50_000.0,
+        monthlyTransactionLimit = 200_000.0,
+        kycThreshold = 5_000.0, // Amounts above 5000 will be blocked
+        rateLimitPerHour = 100, // High enough to not interfere
+        version = 1,
+        lastUpdated = fixedClock - 86_400_000L,
+    )
 
     @Test
     fun everyComplianceCheckIsAudited() = runTest {
         forAll(
-            Arb.list(transactionRequestArb(), 1..20)
+            Arb.list(transactionRequestArb(), 1..20),
         ) { transactions ->
             val engine = createEngineWithRules()
 
@@ -105,7 +102,7 @@ class ComplianceAuditPropertyTest {
     @Test
     fun auditEntriesContainCorrectDecisions() = runTest {
         forAll(
-            Arb.list(transactionRequestArb(), 1..15)
+            Arb.list(transactionRequestArb(), 1..15),
         ) { transactions ->
             val engine = createEngineWithRules()
 
@@ -116,26 +113,30 @@ class ComplianceAuditPropertyTest {
             }
 
             // Execute checks and collect decisions
-            val decisions = transactions.map { tx ->
-                engine.checkTransaction(tx)
-            }
+            val decisions =
+                transactions.map { tx ->
+                    engine.checkTransaction(tx)
+                }
 
             // Verify each audit entry contains correct fields
             val auditEntries = engine.getAuditLog().first()
 
             // Every entry has a non-null decision, timestamp, and transaction details
-            val allEntriesComplete = auditEntries.all { entry ->
-                entry.id.isNotEmpty() &&
-                    entry.timestamp > 0 &&
-                    entry.transactionRequest.agentId.value.isNotEmpty() &&
-                    entry.transactionRequest.amount > 0 &&
-                    entry.appliedRules.country.isNotEmpty()
-            }
+            val allEntriesComplete =
+                auditEntries.all { entry ->
+                    entry.id.isNotEmpty() &&
+                        entry.timestamp > 0 &&
+                        entry.transactionRequest.agentId.value
+                            .isNotEmpty() &&
+                        entry.transactionRequest.amount > 0 &&
+                        entry.appliedRules.country.isNotEmpty()
+                }
 
             // Decisions in audit log match the decisions returned by checkTransaction
-            val decisionsMatch = auditEntries.zip(decisions).all { (entry, decision) ->
-                entry.decision == decision
-            }
+            val decisionsMatch =
+                auditEntries.zip(decisions).all { (entry, decision) ->
+                    entry.decision == decision
+                }
 
             allEntriesComplete && decisionsMatch
         }
@@ -144,34 +145,36 @@ class ComplianceAuditPropertyTest {
     @Test
     fun auditLogsApprovedAndBlockedDecisions() = runTest {
         forAll(
-            Arb.int(1..10)
+            Arb.int(1..10),
         ) { count ->
             val engine = createEngineWithRules()
             engine.updateRules(testRuleSet("KE", "Safaricom"))
 
             // Create transactions: some under KYC threshold (approved), some over (blocked)
-            val approvedTx = TransactionRequest(
-                agentId = AgentId("agent_1"),
-                amount = 100.0, // Well under 5000 KYC threshold
-                currency = "KES",
-                type = TransactionType.SELL,
-                counterparty = "buyer123",
-                platform = "Prestmit",
-                country = "KE",
-                carrier = "Safaricom",
-                timestamp = fixedClock,
-            )
-            val blockedTx = TransactionRequest(
-                agentId = AgentId("agent_1"),
-                amount = 10_000.0, // Over 5000 KYC threshold
-                currency = "KES",
-                type = TransactionType.SELL,
-                counterparty = "buyer456",
-                platform = "Prestmit",
-                country = "KE",
-                carrier = "Safaricom",
-                timestamp = fixedClock,
-            )
+            val approvedTx =
+                TransactionRequest(
+                    agentId = AgentId("agent_1"),
+                    amount = 100.0, // Well under 5000 KYC threshold
+                    currency = "KES",
+                    type = TransactionType.SELL,
+                    counterparty = "buyer123",
+                    platform = "Prestmit",
+                    country = "KE",
+                    carrier = "Safaricom",
+                    timestamp = fixedClock,
+                )
+            val blockedTx =
+                TransactionRequest(
+                    agentId = AgentId("agent_1"),
+                    amount = 10_000.0, // Over 5000 KYC threshold
+                    currency = "KES",
+                    type = TransactionType.SELL,
+                    counterparty = "buyer456",
+                    platform = "Prestmit",
+                    country = "KE",
+                    carrier = "Safaricom",
+                    timestamp = fixedClock,
+                )
 
             // Execute both types of checks multiple times
             repeat(count) {
@@ -195,7 +198,7 @@ class ComplianceAuditPropertyTest {
     @Test
     fun auditEntryTimestampsAreNonZero() = runTest {
         forAll(
-            Arb.list(transactionRequestArb(), 1..10)
+            Arb.list(transactionRequestArb(), 1..10),
         ) { transactions ->
             val engine = createEngineWithRules()
 

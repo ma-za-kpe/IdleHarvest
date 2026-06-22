@@ -53,41 +53,87 @@ private const val ONE_HOUR_MS = 3_600_000L
 
 // --- Primitive domain generators ---
 
-private val carrierArb: Arb<String> = Arb.of(
-    "Safaricom", "Airtel", "MTN", "Glo", "9mobile", "Orange", "Vodacom"
-)
+private val carrierArb: Arb<String> =
+    Arb.of(
+        "Safaricom",
+        "Airtel",
+        "MTN",
+        "Glo",
+        "9mobile",
+        "Orange",
+        "Vodacom",
+    )
 
-private val currencyArb: Arb<String> = Arb.of(
-    "KES", "NGN", "UGX", "TZS", "GHS", "ZAR", "USD"
-)
+private val currencyArb: Arb<String> =
+    Arb.of(
+        "KES",
+        "NGN",
+        "UGX",
+        "TZS",
+        "GHS",
+        "ZAR",
+        "USD",
+    )
 
-private val bundleTypeArb: Arb<String> = Arb.of(
-    "daily", "weekly", "monthly", "hourly"
-)
+private val bundleTypeArb: Arb<String> =
+    Arb.of(
+        "daily",
+        "weekly",
+        "monthly",
+        "hourly",
+    )
 
-private val platformArb: Arb<String> = Arb.of(
-    "Prestmit", "VTU.ng", "Reloadly", "DT One"
-)
+private val platformArb: Arb<String> =
+    Arb.of(
+        "Prestmit",
+        "VTU.ng",
+        "Reloadly",
+        "DT One",
+    )
 
-private val tokenSymbolArb: Arb<String> = Arb.of(
-    "GRASS", "TITAN", "HNT", "FIL", "AR"
-)
+private val tokenSymbolArb: Arb<String> =
+    Arb.of(
+        "GRASS",
+        "TITAN",
+        "HNT",
+        "FIL",
+        "AR",
+    )
 
-private val socModelArb: Arb<String> = Arb.of(
-    "Snapdragon 680", "Dimensity 700", "Helio G99", "Exynos 1280", "Cortex-A76"
-)
+private val socModelArb: Arb<String> =
+    Arb.of(
+        "Snapdragon 680",
+        "Dimensity 700",
+        "Helio G99",
+        "Exynos 1280",
+        "Cortex-A76",
+    )
 
-private val coreConfigArb: Arb<String> = Arb.of(
-    "4xA76+4xA55", "2xA78+6xA55", "4xA73+4xA53", "2xX1+2xA78+4xA55"
-)
+private val coreConfigArb: Arb<String> =
+    Arb.of(
+        "4xA76+4xA55",
+        "2xA78+6xA55",
+        "4xA73+4xA53",
+        "2xX1+2xA78+4xA55",
+    )
 
-private val osVersionArb: Arb<String> = Arb.of(
-    "Android 13", "Android 14", "Android 15", "iOS 17.4", "iOS 18.0"
-)
+private val osVersionArb: Arb<String> =
+    Arb.of(
+        "Android 13",
+        "Android 14",
+        "Android 15",
+        "iOS 17.4",
+        "iOS 18.0",
+    )
 
-private val agentIdArb: Arb<AgentId> = Arb.of(
-    "airtime_agent", "depin_agent", "mesh_coordinator", "earning_engine"
-).map { AgentId(it) }
+private val agentIdArb: Arb<AgentId> =
+    Arb
+        .of(
+            "airtime_agent",
+            "depin_agent",
+            "mesh_coordinator",
+            "earning_engine",
+        ).map { AgentId(it) }
 
 // --- Domain type generators ---
 
@@ -97,9 +143,12 @@ fun Arb.Companion.airtimeBalance(): Arb<AirtimeBalance> = arbitrary {
         carrier = carrierArb.bind(),
         amountUnits = Arb.long(0L..100_000L).bind(),
         currency = currencyArb.bind(),
-        expiryTimestamp = Arb.long(
-            REFERENCE_NOW_MS..(REFERENCE_NOW_MS + THIRTY_DAYS_MS)
-        ).orNull(0.3).bind(),
+        expiryTimestamp =
+        Arb
+            .long(
+                REFERENCE_NOW_MS..(REFERENCE_NOW_MS + THIRTY_DAYS_MS),
+            ).orNull(0.3)
+            .bind(),
     )
 }
 
@@ -110,9 +159,11 @@ fun Arb.Companion.dataBundle(): Arb<DataBundle> = arbitrary {
         carrier = carrierArb.bind(),
         remainingMb = Arb.long(0L..totalMb).bind(),
         totalMb = totalMb,
-        expiryTimestamp = Arb.long(
-            REFERENCE_NOW_MS..(REFERENCE_NOW_MS + THIRTY_DAYS_MS)
-        ).bind(),
+        expiryTimestamp =
+        Arb
+            .long(
+                REFERENCE_NOW_MS..(REFERENCE_NOW_MS + THIRTY_DAYS_MS),
+            ).bind(),
         bundleType = bundleTypeArb.bind(),
     )
 }
@@ -142,9 +193,11 @@ fun Arb.Companion.airtimeBundle(): Arb<AirtimeBundle> = arbitrary {
         amountUnits = Arb.long(100L..50_000L).bind(),
         currency = currencyArb.bind(),
         remainingMb = Arb.long(0L..5_000L).orNull(0.4).bind(),
-        expiryTimestamp = Arb.long(
-            REFERENCE_NOW_MS..(REFERENCE_NOW_MS + THIRTY_DAYS_MS)
-        ).bind(),
+        expiryTimestamp =
+        Arb
+            .long(
+                REFERENCE_NOW_MS..(REFERENCE_NOW_MS + THIRTY_DAYS_MS),
+            ).bind(),
         purchasedAt = purchasedAt,
     )
 }
@@ -234,9 +287,15 @@ fun Arb.Companion.deviceMetadata(): Arb<DeviceMetadata> = arbitrary {
 fun Arb.Companion.peer(): Arb<Peer> = arbitrary {
     Peer(
         id = PeerId(Arb.uuid().map { it.toString() }.bind()),
-        displayName = Arb.of(
-            "Phone-A", "Phone-B", "Device-1", "IdleHarvest-Node", "Peer-X"
-        ).bind(),
+        displayName =
+        Arb
+            .of(
+                "Phone-A",
+                "Phone-B",
+                "Device-1",
+                "IdleHarvest-Node",
+                "Peer-X",
+            ).bind(),
         resourceProfile = Arb.resourceProfile().bind(),
         signalStrength = Arb.int(-100..-30).bind(),
         connectionState = Arb.enum<PeerConnectionState>().bind(),

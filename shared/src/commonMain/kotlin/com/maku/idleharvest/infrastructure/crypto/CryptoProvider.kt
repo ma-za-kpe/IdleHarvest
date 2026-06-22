@@ -12,7 +12,10 @@ interface CryptoProvider {
      * @param plaintext The data to encrypt.
      * @return The ciphertext bytes (may include IV/nonce prepended).
      */
-    fun encrypt(key: ByteArray, plaintext: ByteArray): ByteArray
+    fun encrypt(
+        key: ByteArray,
+        plaintext: ByteArray,
+    ): ByteArray
 
     /**
      * Decrypt ciphertext bytes using the provided key.
@@ -21,7 +24,10 @@ interface CryptoProvider {
      * @return The original plaintext bytes.
      * @throws CryptoException if decryption fails (tampered data, wrong key, etc.)
      */
-    fun decrypt(key: ByteArray, ciphertext: ByteArray): ByteArray
+    fun decrypt(
+        key: ByteArray,
+        ciphertext: ByteArray,
+    ): ByteArray
 
     /**
      * Generate a new random encryption key suitable for AES-256 (32 bytes).
@@ -34,10 +40,16 @@ interface CryptoProvider {
      * @param data The data to hash.
      * @return The hash bytes.
      */
-    fun computeHash(key: ByteArray, data: ByteArray): ByteArray
+    fun computeHash(
+        key: ByteArray,
+        data: ByteArray,
+    ): ByteArray
 }
 
 /**
  * Exception thrown when a crypto operation fails.
  */
-class CryptoException(message: String, cause: Throwable? = null) : Exception(message, cause)
+class CryptoException(
+    message: String,
+    cause: Throwable? = null,
+) : Exception(message, cause)

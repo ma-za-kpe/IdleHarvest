@@ -6,12 +6,9 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.of
-import io.kotest.property.arbitrary.string
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Property 31: Rolling Error Log Window
@@ -24,7 +21,6 @@ import kotlin.test.assertTrue
  * Validates: Requirements 16.2, 16.4
  */
 class RollingErrorLogPropertyTest {
-
     companion object {
         private const val SEVEN_DAYS_MS = 7L * 24L * 60L * 60L * 1000L
         private const val ONE_DAY_MS = 24L * 60L * 60L * 1000L
@@ -92,13 +88,14 @@ class RollingErrorLogPropertyTest {
 
     @Test
     fun mixedAgedEntriesOnlyRetainsRecent() = runTest {
-        val severityArb = Arb.of(
-            LogSeverity.DEBUG,
-            LogSeverity.INFO,
-            LogSeverity.WARNING,
-            LogSeverity.ERROR,
-            LogSeverity.CRITICAL,
-        )
+        val severityArb =
+            Arb.of(
+                LogSeverity.DEBUG,
+                LogSeverity.INFO,
+                LogSeverity.WARNING,
+                LogSeverity.ERROR,
+                LogSeverity.CRITICAL,
+            )
 
         forAll(Arb.int(2..10), severityArb) { entryCount, severity ->
             val now = SEVEN_DAYS_MS * 3
@@ -108,19 +105,21 @@ class RollingErrorLogPropertyTest {
             for (i in 0 until entryCount) {
                 // Alternate between old entries and recent entries
                 val isRecent = i % 2 == 0
-                val timestamp = if (isRecent) {
-                    now - ONE_DAY_MS * (i % 6 + 1) // 1-6 days ago (within window)
-                } else {
-                    now - SEVEN_DAYS_MS - ONE_DAY_MS * (i + 1) // Beyond 7 days
-                }
+                val timestamp =
+                    if (isRecent) {
+                        now - ONE_DAY_MS * (i % 6 + 1) // 1-6 days ago (within window)
+                    } else {
+                        now - SEVEN_DAYS_MS - ONE_DAY_MS * (i + 1) // Beyond 7 days
+                    }
 
                 if (isRecent) recentCount++
 
-                val entry = createEntry(
-                    id = "entry-$i",
-                    timestamp = timestamp,
-                    severity = severity,
-                )
+                val entry =
+                    createEntry(
+                        id = "entry-$i",
+                        timestamp = timestamp,
+                        severity = severity,
+                    )
                 log.log(entry)
             }
 

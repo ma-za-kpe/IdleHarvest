@@ -6,14 +6,20 @@ import kotlin.jvm.JvmInline
 /** Unique identifier for an agent instance. */
 @Serializable
 @JvmInline
-value class AgentId(val value: String)
+value class AgentId(
+    val value: String,
+)
 
 /** Identifier for a BLE mesh peer. */
 @Serializable
 @JvmInline
-value class PeerId(val value: String)
+value class PeerId(
+    val value: String,
+)
 
 /** Wallet address for USDC/token transactions. */
 @Serializable
 @JvmInline
-value class WalletAddress(val value: String)
+value class WalletAddress(
+    val value: String,
+)

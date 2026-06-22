@@ -43,16 +43,13 @@ import kotlin.test.assertTrue
  */
 @OptIn(ExperimentalCoroutinesApi::class)
 class RetryLogicPropertyTest {
-
     private val cryptoProvider = SimpleCryptoProvider()
 
     /**
      * Creates a VtuPlatformClient that always fails with a RuntimeException,
      * tracking how many times each method is called.
      */
-    private fun alwaysFailingClient(
-        callCounter: () -> Unit,
-    ): VtuPlatformClient = object : VtuPlatformClient {
+    private fun alwaysFailingClient(callCounter: () -> Unit): VtuPlatformClient = object : VtuPlatformClient {
         override val platform: VtuPlatform = VtuPlatform.PRESTMIT
 
         override suspend fun sell(request: SellRequest): Result<SellResponse> {
@@ -81,34 +78,37 @@ class RetryLogicPropertyTest {
         vault: DefaultPrivacyVault,
     ): DefaultAirtimeAgent {
         val policyManager = DefaultPolicyManager(vault, eventBus)
-        val permissivePolicy = Policy(
-            id = "test_policy_auto",
-            agentId = AgentId("airtime_agent"),
-            autonomyLevel = AutonomyLevel.FULLY_AUTOMATIC,
-            maxTransactionPerDay = 1_000_000.0,
-            maxTransactionSingle = 1_000_000.0,
-            resourceShareLimits = null,
-            requireBiometricAbove = null,
-            isActive = true,
-        )
+        val permissivePolicy =
+            Policy(
+                id = "test_policy_auto",
+                agentId = AgentId("airtime_agent"),
+                autonomyLevel = AutonomyLevel.FULLY_AUTOMATIC,
+                maxTransactionPerDay = 1_000_000.0,
+                maxTransactionSingle = 1_000_000.0,
+                resourceShareLimits = null,
+                requireBiometricAbove = null,
+                isActive = true,
+            )
         policyManager.setPolicy(permissivePolicy)
 
         val complianceEngine = DefaultComplianceEngine(vault)
-        val permissiveRules = ComplianceRuleSet(
-            country = "NG",
-            carrier = "MTN",
-            dailyTransactionLimit = 1_000_000.0,
-            monthlyTransactionLimit = 10_000_000.0,
-            kycThreshold = 1_000_000.0,
-            rateLimitPerHour = 10_000,
-            version = 1,
-            lastUpdated = 0L,
-        )
+        val permissiveRules =
+            ComplianceRuleSet(
+                country = "NG",
+                carrier = "MTN",
+                dailyTransactionLimit = 1_000_000.0,
+                monthlyTransactionLimit = 10_000_000.0,
+                kycThreshold = 1_000_000.0,
+                rateLimitPerHour = 10_000,
+                version = 1,
+                lastUpdated = 0L,
+            )
         complianceEngine.updateRules(permissiveRules)
 
-        val inferenceEngine = DefaultInferenceEngine(
-            modelRegistry = DefaultModelRegistry(vault, cryptoProvider),
-        )
+        val inferenceEngine =
+            DefaultInferenceEngine(
+                modelRegistry = DefaultModelRegistry(vault, cryptoProvider),
+            )
 
         return DefaultAirtimeAgent(
             policyManager = policyManager,
@@ -129,16 +129,18 @@ class RetryLogicPropertyTest {
 
         val agent = createAgentWithFailingClient(failingClient, eventBus, vault)
 
-        val action = MonetizationAction(
-            bundleId = "bundle_001",
-            recommendation = MonetizationRecommendation.Sell(
-                amount = 500L,
-                platform = VtuPlatform.PRESTMIT,
-                confidence = 0.9f,
-            ),
-            approvedBy = ApprovalSource.POLICY_AUTO,
-            timestamp = 1_719_792_000_000L,
-        )
+        val action =
+            MonetizationAction(
+                bundleId = "bundle_001",
+                recommendation =
+                MonetizationRecommendation.Sell(
+                    amount = 500L,
+                    platform = VtuPlatform.PRESTMIT,
+                    confidence = 0.9f,
+                ),
+                approvedBy = ApprovalSource.POLICY_AUTO,
+                timestamp = 1_719_792_000_000L,
+            )
 
         val result = agent.executeAction(action)
 
@@ -149,7 +151,7 @@ class RetryLogicPropertyTest {
         // Verify error message mentions retries
         assertTrue(
             result.errorMessage?.contains("${DefaultAirtimeAgent.MAX_RETRIES} retries") == true,
-            "Error message should mention retry count, got: ${result.errorMessage}"
+            "Error message should mention retry count, got: ${result.errorMessage}",
         )
     }
 
@@ -163,16 +165,18 @@ class RetryLogicPropertyTest {
 
             val agent = createAgentWithFailingClient(failingClient, eventBus, vault)
 
-            val action = MonetizationAction(
-                bundleId = "bundle_property_test",
-                recommendation = MonetizationRecommendation.Sell(
-                    amount = 1000L,
-                    platform = VtuPlatform.PRESTMIT,
-                    confidence = 0.85f,
-                ),
-                approvedBy = ApprovalSource.POLICY_AUTO,
-                timestamp = 1_719_792_000_000L,
-            )
+            val action =
+                MonetizationAction(
+                    bundleId = "bundle_property_test",
+                    recommendation =
+                    MonetizationRecommendation.Sell(
+                        amount = 1000L,
+                        platform = VtuPlatform.PRESTMIT,
+                        confidence = 0.85f,
+                    ),
+                    approvedBy = ApprovalSource.POLICY_AUTO,
+                    timestamp = 1_719_792_000_000L,
+                )
 
             val result = agent.executeAction(action)
 
@@ -194,16 +198,18 @@ class RetryLogicPropertyTest {
 
             val agent = createAgentWithFailingClient(failingClient, eventBus, vault)
 
-            val action = MonetizationAction(
-                bundleId = "bundle_amounts_${amount}",
-                recommendation = MonetizationRecommendation.Sell(
-                    amount = amount,
-                    platform = platform,
-                    confidence = 0.8f,
-                ),
-                approvedBy = ApprovalSource.POLICY_AUTO,
-                timestamp = 1_719_792_000_000L,
-            )
+            val action =
+                MonetizationAction(
+                    bundleId = "bundle_amounts_$amount",
+                    recommendation =
+                    MonetizationRecommendation.Sell(
+                        amount = amount,
+                        platform = platform,
+                        confidence = 0.8f,
+                    ),
+                    approvedBy = ApprovalSource.POLICY_AUTO,
+                    timestamp = 1_719_792_000_000L,
+                )
 
             val result = agent.executeAction(action)
 
@@ -225,25 +231,28 @@ class RetryLogicPropertyTest {
 
         // Subscribe to PolicyViolation events (used as the notification mechanism)
         val violations = mutableListOf<AgentEvent.PolicyViolation>()
-        val job = launch {
-            eventBus.subscribe(AgentEvent.PolicyViolation::class).collect {
-                violations.add(it)
+        val job =
+            launch {
+                eventBus.subscribe(AgentEvent.PolicyViolation::class).collect {
+                    violations.add(it)
+                }
             }
-        }
 
         // Ensure subscriber is active
         yield()
 
-        val action = MonetizationAction(
-            bundleId = "bundle_notify_test",
-            recommendation = MonetizationRecommendation.Sell(
-                amount = 1000L,
-                platform = VtuPlatform.PRESTMIT,
-                confidence = 0.9f,
-            ),
-            approvedBy = ApprovalSource.POLICY_AUTO,
-            timestamp = 1_719_792_000_000L,
-        )
+        val action =
+            MonetizationAction(
+                bundleId = "bundle_notify_test",
+                recommendation =
+                MonetizationRecommendation.Sell(
+                    amount = 1000L,
+                    platform = VtuPlatform.PRESTMIT,
+                    confidence = 0.9f,
+                ),
+                approvedBy = ApprovalSource.POLICY_AUTO,
+                timestamp = 1_719_792_000_000L,
+            )
 
         val result = agent.executeAction(action)
 
@@ -257,12 +266,12 @@ class RetryLogicPropertyTest {
         // Verify user notification was sent via event bus
         assertTrue(
             violations.isNotEmpty(),
-            "A PolicyViolation event should be published to notify the user on final failure"
+            "A PolicyViolation event should be published to notify the user on final failure",
         )
         assertEquals(
             DefaultAirtimeAgent.AIRTIME_AGENT_ID,
             violations.first().agentId,
-            "Notification should identify the airtime agent"
+            "Notification should identify the airtime agent",
         )
 
         job.cancel()
@@ -277,15 +286,17 @@ class RetryLogicPropertyTest {
 
         val agent = createAgentWithFailingClient(failingClient, eventBus, vault)
 
-        val action = MonetizationAction(
-            bundleId = "bundle_transfer_retry",
-            recommendation = MonetizationRecommendation.Transfer(
-                recipient = "+2341234567890",
-                amount = 2000L,
-            ),
-            approvedBy = ApprovalSource.POLICY_AUTO,
-            timestamp = 1_719_792_000_000L,
-        )
+        val action =
+            MonetizationAction(
+                bundleId = "bundle_transfer_retry",
+                recommendation =
+                MonetizationRecommendation.Transfer(
+                    recipient = "+2341234567890",
+                    amount = 2000L,
+                ),
+                approvedBy = ApprovalSource.POLICY_AUTO,
+                timestamp = 1_719_792_000_000L,
+            )
 
         val result = agent.executeAction(action)
 
@@ -298,34 +309,33 @@ class RetryLogicPropertyTest {
     fun earlySuccessStopsRetrying() = runTest {
         var callCount = 0
         // Client that succeeds on the 2nd attempt
-        val clientSucceedsOn2nd = object : VtuPlatformClient {
-            override val platform: VtuPlatform = VtuPlatform.PRESTMIT
+        val clientSucceedsOn2nd =
+            object : VtuPlatformClient {
+                override val platform: VtuPlatform = VtuPlatform.PRESTMIT
 
-            override suspend fun sell(request: SellRequest): Result<SellResponse> {
-                callCount++
-                return if (callCount >= 2) {
-                    Result.success(
-                        SellResponse(
-                            transactionId = "tx_success",
-                            amountSettled = request.amount,
-                            fee = 10L,
-                            timestamp = 1_719_792_000_000L,
+                override suspend fun sell(request: SellRequest): Result<SellResponse> {
+                    callCount++
+                    return if (callCount >= 2) {
+                        Result.success(
+                            SellResponse(
+                                transactionId = "tx_success",
+                                amountSettled = request.amount,
+                                fee = 10L,
+                                timestamp = 1_719_792_000_000L,
+                            ),
                         )
-                    )
-                } else {
-                    Result.failure(RuntimeException("Temporary failure"))
+                    } else {
+                        Result.failure(RuntimeException("Temporary failure"))
+                    }
                 }
-            }
 
-            override suspend fun transfer(request: TransferRequest): Result<TransferResponse> {
-                callCount++
-                return Result.failure(RuntimeException("Not implemented"))
-            }
+                override suspend fun transfer(request: TransferRequest): Result<TransferResponse> {
+                    callCount++
+                    return Result.failure(RuntimeException("Not implemented"))
+                }
 
-            override suspend fun checkBalance(): Result<BalanceResponse> {
-                return Result.failure(RuntimeException("Not implemented"))
+                override suspend fun checkBalance(): Result<BalanceResponse> = Result.failure(RuntimeException("Not implemented"))
             }
-        }
 
         val vault = DefaultPrivacyVault(cryptoProvider)
         val eventBus = DefaultAgentEventBus()
@@ -341,7 +351,7 @@ class RetryLogicPropertyTest {
                 resourceShareLimits = null,
                 requireBiometricAbove = null,
                 isActive = true,
-            )
+            ),
         )
 
         val complianceEngine = DefaultComplianceEngine(vault)
@@ -355,32 +365,36 @@ class RetryLogicPropertyTest {
                 rateLimitPerHour = 10_000,
                 version = 1,
                 lastUpdated = 0L,
-            )
-        )
-
-        val inferenceEngine = DefaultInferenceEngine(
-            modelRegistry = DefaultModelRegistry(vault, cryptoProvider),
-        )
-
-        val agent = DefaultAirtimeAgent(
-            policyManager = policyManager,
-            complianceEngine = complianceEngine,
-            vault = vault,
-            eventBus = eventBus,
-            inferenceEngine = inferenceEngine,
-            vtuClient = clientSucceedsOn2nd,
-        )
-
-        val action = MonetizationAction(
-            bundleId = "bundle_early_success",
-            recommendation = MonetizationRecommendation.Sell(
-                amount = 500L,
-                platform = VtuPlatform.PRESTMIT,
-                confidence = 0.9f,
             ),
-            approvedBy = ApprovalSource.POLICY_AUTO,
-            timestamp = 1_719_792_000_000L,
         )
+
+        val inferenceEngine =
+            DefaultInferenceEngine(
+                modelRegistry = DefaultModelRegistry(vault, cryptoProvider),
+            )
+
+        val agent =
+            DefaultAirtimeAgent(
+                policyManager = policyManager,
+                complianceEngine = complianceEngine,
+                vault = vault,
+                eventBus = eventBus,
+                inferenceEngine = inferenceEngine,
+                vtuClient = clientSucceedsOn2nd,
+            )
+
+        val action =
+            MonetizationAction(
+                bundleId = "bundle_early_success",
+                recommendation =
+                MonetizationRecommendation.Sell(
+                    amount = 500L,
+                    platform = VtuPlatform.PRESTMIT,
+                    confidence = 0.9f,
+                ),
+                approvedBy = ApprovalSource.POLICY_AUTO,
+                timestamp = 1_719_792_000_000L,
+            )
 
         val result = agent.executeAction(action)
 

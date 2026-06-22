@@ -27,7 +27,6 @@ import kotlin.test.assertTrue
  * **Validates: Requirements 5.7, 13.4**
  */
 class BiometricGatingPropertyTest {
-
     private val cryptoProvider = SimpleCryptoProvider()
     private val vault = DefaultPrivacyVault(cryptoProvider)
     private val eventBus = DefaultAgentEventBus()
@@ -44,16 +43,17 @@ class BiometricGatingPropertyTest {
     private suspend fun createEngine(threshold: Double = biometricThreshold): DefaultEarningEngine {
         // Set up a FULLY_AUTOMATIC policy with very high limits to ensure policy approval
         val policyManager = DefaultPolicyManager(vault, eventBus)
-        val permissivePolicy = Policy(
-            id = "test_earning_policy",
-            agentId = earningEngineAgentId,
-            autonomyLevel = AutonomyLevel.FULLY_AUTOMATIC,
-            maxTransactionPerDay = 1_000_000.0,
-            maxTransactionSingle = 1_000_000.0,
-            resourceShareLimits = null,
-            requireBiometricAbove = null,
-            isActive = true,
-        )
+        val permissivePolicy =
+            Policy(
+                id = "test_earning_policy",
+                agentId = earningEngineAgentId,
+                autonomyLevel = AutonomyLevel.FULLY_AUTOMATIC,
+                maxTransactionPerDay = 1_000_000.0,
+                maxTransactionSingle = 1_000_000.0,
+                resourceShareLimits = null,
+                requireBiometricAbove = null,
+                isActive = true,
+            )
         policyManager.setPolicy(permissivePolicy)
 
         return DefaultEarningEngine(
@@ -70,17 +70,18 @@ class BiometricGatingPropertyTest {
     /**
      * Creates an EarningEvent with the given amount and a unique ID.
      */
-    private fun createEvent(amountUsdc: Double, id: String): EarningEvent {
-        return EarningEvent(
-            id = id,
-            source = EarningSource.AIRTIME_SALE,
-            amountUsdc = amountUsdc,
-            amountLocal = null,
-            localCurrency = null,
-            agentId = earningEngineAgentId,
-            timestamp = 1_719_792_000_000L,
-        )
-    }
+    private fun createEvent(
+        amountUsdc: Double,
+        id: String,
+    ): EarningEvent = EarningEvent(
+        id = id,
+        source = EarningSource.AIRTIME_SALE,
+        amountUsdc = amountUsdc,
+        amountLocal = null,
+        localCurrency = null,
+        agentId = earningEngineAgentId,
+        timestamp = 1_719_792_000_000L,
+    )
 
     @Test
     fun amountsAboveThresholdRequireBiometric() = runTest {

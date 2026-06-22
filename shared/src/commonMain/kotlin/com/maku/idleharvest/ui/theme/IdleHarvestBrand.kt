@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.sp
  * Tone: Modern, trustworthy, empowering, slightly vibrant (Africa-friendly energy)
  */
 object IdleHarvestBrand {
-
     // ─── Core Brand Colors ───────────────────────────────────────────────
     val PrimaryGreen = Color(0xFF0A7C6B)
     val AccentGold = Color(0xFFFFB300)
@@ -25,12 +24,13 @@ object IdleHarvestBrand {
     val WarmGray = Color(0xFFE5E7EB)
 
     // ─── Logo Text Style ─────────────────────────────────────────────────
-    val LogoTextStyle = TextStyle(
-        fontFamily = FontFamily.SansSerif,
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 28.sp,
-        letterSpacing = 1.5.sp,
-    )
+    val LogoTextStyle =
+        TextStyle(
+            fontFamily = FontFamily.SansSerif,
+            fontWeight = FontWeight.ExtraBold,
+            fontSize = 28.sp,
+            letterSpacing = 1.5.sp,
+        )
 
     // ─── Brand Name ──────────────────────────────────────────────────────
     const val APP_NAME = "IdleHarvest"

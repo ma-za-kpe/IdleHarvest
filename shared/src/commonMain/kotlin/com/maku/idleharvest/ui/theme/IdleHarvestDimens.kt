@@ -10,7 +10,6 @@ import androidx.compose.ui.unit.dp
  * All touch targets respect WCAG minimum (48dp).
  */
 object IdleHarvestDimens {
-
     // ─── Spacing Scale (4dp base grid) ───────────────────────────────────
     val SpaceXXS: Dp = 2.dp
     val SpaceXS: Dp = 4.dp

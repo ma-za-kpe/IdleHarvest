@@ -10,13 +10,14 @@ import androidx.compose.ui.unit.dp
  * Rounded but not overly soft — modern and trustworthy.
  * Cards and containers use 16dp, buttons use 12dp, chips use full rounding.
  */
-val IdleHarvestShapes = Shapes(
-    extraSmall = RoundedCornerShape(4.dp),
-    small = RoundedCornerShape(8.dp),
-    medium = RoundedCornerShape(12.dp),
-    large = RoundedCornerShape(16.dp),
-    extraLarge = RoundedCornerShape(24.dp),
-)
+val IdleHarvestShapes =
+    Shapes(
+        extraSmall = RoundedCornerShape(4.dp),
+        small = RoundedCornerShape(8.dp),
+        medium = RoundedCornerShape(12.dp),
+        large = RoundedCornerShape(16.dp),
+        extraLarge = RoundedCornerShape(24.dp),
+    )
 
 /**
  * Additional shape tokens specific to IdleHarvest UI components.

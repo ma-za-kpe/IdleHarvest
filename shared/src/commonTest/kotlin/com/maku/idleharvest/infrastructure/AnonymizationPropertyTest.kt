@@ -20,7 +20,6 @@ import kotlin.test.assertTrue
  * **Validates: Requirements 8.3**
  */
 class AnonymizationPropertyTest {
-
     private val cryptoProvider = SimpleCryptoProvider()
     private val fixedClock = { 1_000_000L } // fixed "now"
     private val vault = DefaultPrivacyVault(cryptoProvider, clock = fixedClock)
@@ -28,12 +27,13 @@ class AnonymizationPropertyTest {
     @Test
     fun exportFailsWithExpiredConsentToken() = runTest {
         forAll(Arb.enum<DataType>()) { dataType ->
-            val expiredToken = ConsentToken(
-                token = "valid-token",
-                grantedAt = 500_000L,
-                expiresAt = 900_000L, // before "now" (1_000_000)
-                allowedDataTypes = listOf(dataType),
-            )
+            val expiredToken =
+                ConsentToken(
+                    token = "valid-token",
+                    grantedAt = 500_000L,
+                    expiresAt = 900_000L, // before "now" (1_000_000)
+                    allowedDataTypes = listOf(dataType),
+                )
             vault.exportAnonymized(dataType, expiredToken).isFailure
         }
     }
@@ -41,12 +41,13 @@ class AnonymizationPropertyTest {
     @Test
     fun exportFailsWithFutureGrantedConsentToken() = runTest {
         forAll(Arb.enum<DataType>()) { dataType ->
-            val futureToken = ConsentToken(
-                token = "valid-token",
-                grantedAt = 2_000_000L, // after "now" (1_000_000)
-                expiresAt = 3_000_000L,
-                allowedDataTypes = listOf(dataType),
-            )
+            val futureToken =
+                ConsentToken(
+                    token = "valid-token",
+                    grantedAt = 2_000_000L, // after "now" (1_000_000)
+                    expiresAt = 3_000_000L,
+                    allowedDataTypes = listOf(dataType),
+                )
             vault.exportAnonymized(dataType, futureToken).isFailure
         }
     }
@@ -54,12 +55,13 @@ class AnonymizationPropertyTest {
     @Test
     fun exportFailsWithBlankConsentToken() = runTest {
         forAll(Arb.enum<DataType>()) { dataType ->
-            val blankToken = ConsentToken(
-                token = "",
-                grantedAt = 500_000L,
-                expiresAt = 2_000_000L,
-                allowedDataTypes = listOf(dataType),
-            )
+            val blankToken =
+                ConsentToken(
+                    token = "",
+                    grantedAt = 500_000L,
+                    expiresAt = 2_000_000L,
+                    allowedDataTypes = listOf(dataType),
+                )
             vault.exportAnonymized(dataType, blankToken).isFailure
         }
     }
@@ -67,12 +69,13 @@ class AnonymizationPropertyTest {
     @Test
     fun exportFailsWhenDataTypeNotInScope() = runTest {
         // Token allows only RESOURCE_METRICS but we request other data types
-        val token = ConsentToken(
-            token = "valid-consent",
-            grantedAt = 500_000L,
-            expiresAt = 2_000_000L,
-            allowedDataTypes = listOf(DataType.RESOURCE_METRICS),
-        )
+        val token =
+            ConsentToken(
+                token = "valid-consent",
+                grantedAt = 500_000L,
+                expiresAt = 2_000_000L,
+                allowedDataTypes = listOf(DataType.RESOURCE_METRICS),
+            )
         val result = vault.exportAnonymized(DataType.EARNING_SUMMARY, token)
         assertTrue(result.isFailure)
     }
@@ -82,12 +85,13 @@ class AnonymizationPropertyTest {
         // Store some data first with the appropriate key prefix
         vault.store("resource_test", "data".encodeToByteArray())
 
-        val validToken = ConsentToken(
-            token = "valid-consent",
-            grantedAt = 500_000L,
-            expiresAt = 2_000_000L,
-            allowedDataTypes = listOf(DataType.RESOURCE_METRICS),
-        )
+        val validToken =
+            ConsentToken(
+                token = "valid-consent",
+                grantedAt = 500_000L,
+                expiresAt = 2_000_000L,
+                allowedDataTypes = listOf(DataType.RESOURCE_METRICS),
+            )
         val result = vault.exportAnonymized(DataType.RESOURCE_METRICS, validToken)
         assertTrue(result.isSuccess)
     }

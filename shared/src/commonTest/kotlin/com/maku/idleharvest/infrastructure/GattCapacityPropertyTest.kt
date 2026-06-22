@@ -9,7 +9,6 @@ import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * Property 10: GATT Connection Capacity Invariant
@@ -21,7 +20,6 @@ import kotlin.test.assertTrue
  * **Validates: Requirements 4.3**
  */
 class GattCapacityPropertyTest {
-
     /**
      * Simulates the connection capacity logic as implemented in DefaultMeshCoordinator.
      * The coordinator maintains a `connections` map and rejects new connections when
@@ -41,13 +39,13 @@ class GattCapacityPropertyTest {
             if (connections.size >= MAX_GATT_CONNECTIONS) {
                 return Result.failure(
                     MaxConnectionsReachedException(
-                        "Cannot connect: maximum $MAX_GATT_CONNECTIONS simultaneous GATT connections reached."
-                    )
+                        "Cannot connect: maximum $MAX_GATT_CONNECTIONS simultaneous GATT connections reached.",
+                    ),
                 )
             }
             if (connections.containsKey(peerId)) {
                 return Result.failure(
-                    IllegalStateException("Already connected to peer ${peerId.value}")
+                    IllegalStateException("Already connected to peer ${peerId.value}"),
                 )
             }
             val connectionId = "${peerId.value}_${connections.size}"
@@ -66,10 +64,9 @@ class GattCapacityPropertyTest {
      * Generator for a list of guaranteed-unique peer IDs.
      * Uses index-based ID generation to ensure uniqueness without relying on distinctBy.
      */
-    private fun uniquePeerListArb(count: IntRange = 1..15): Arb<List<PeerId>> =
-        Arb.int(count).map { size ->
-            (0 until size).map { i -> PeerId("peer_${i}_${kotlin.random.Random.nextInt()}") }
-        }
+    private fun uniquePeerListArb(count: IntRange = 1..15): Arb<List<PeerId>> = Arb.int(count).map { size ->
+        (0 until size).map { i -> PeerId("peer_${i}_${kotlin.random.Random.nextInt()}") }
+    }
 
     @Test
     fun activeConnectionCountNeverExceedsFive() = runTest {
@@ -104,9 +101,10 @@ class GattCapacityPropertyTest {
         forAll(uniquePeerListArb(6..20)) { peers ->
             val model = GattConnectionModel()
 
-            val results = peers.mapIndexed { index, peer ->
-                index to model.connectPeer(peer)
-            }
+            val results =
+                peers.mapIndexed { index, peer ->
+                    index to model.connectPeer(peer)
+                }
 
             // First 5 should succeed, 6th+ should fail
             val successCount = results.count { it.second.isSuccess }
@@ -159,7 +157,8 @@ class GattCapacityPropertyTest {
             val nowSucceeds = retryResult.isSuccess
 
             // Invariant still holds
-            wasRejected && nowSucceeds &&
+            wasRejected &&
+                nowSucceeds &&
                 model.getActiveConnectionCount() <= MAX_GATT_CONNECTIONS
         }
     }

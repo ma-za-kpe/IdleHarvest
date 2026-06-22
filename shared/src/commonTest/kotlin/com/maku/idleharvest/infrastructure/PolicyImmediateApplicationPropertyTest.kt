@@ -22,12 +22,11 @@ import kotlin.test.Test
  * **Validates: Requirements 6.2**
  */
 class PolicyImmediateApplicationPropertyTest {
-
     @Test
     fun updatedPolicyIsAppliedImmediately() = runTest {
         forAll(
-            Arb.double(1.0..100.0),   // restrictive limit (lower)
-            Arb.double(101.0..500.0)  // transaction amount (above restrictive, below permissive)
+            Arb.double(1.0..100.0), // restrictive limit (lower)
+            Arb.double(101.0..500.0), // transaction amount (above restrictive, below permissive)
         ) { restrictiveLimit, amount ->
             val vault = DefaultPrivacyVault(SimpleCryptoProvider())
             val eventBus = DefaultAgentEventBus()
@@ -45,17 +44,18 @@ class PolicyImmediateApplicationPropertyTest {
                     resourceShareLimits = null,
                     requireBiometricAbove = null,
                     isActive = true,
-                )
+                ),
             )
 
-            val action = AgentAction(
-                agentId = agentId,
-                actionType = "transfer",
-                description = "Test transaction",
-                amountUsdc = amount,
-                resourceImpact = null,
-                timestamp = 1_000_000L,
-            )
+            val action =
+                AgentAction(
+                    agentId = agentId,
+                    actionType = "transfer",
+                    description = "Test transaction",
+                    amountUsdc = amount,
+                    resourceImpact = null,
+                    timestamp = 1_000_000L,
+                )
 
             // First check with permissive policy — should be approved
             val result1 = policyManager.checkAction(agentId, action)
@@ -66,12 +66,12 @@ class PolicyImmediateApplicationPropertyTest {
                     id = "policy1",
                     agentId = agentId,
                     autonomyLevel = AutonomyLevel.FULLY_AUTOMATIC,
-                    maxTransactionSingle = restrictiveLimit, // less than amount (restrictiveLimit ≤ 100 < 101 ≤ amount)
+                    maxTransactionSingle = restrictiveLimit, // ≤ 100 < 101 ≤ amount
                     maxTransactionPerDay = null,
                     resourceShareLimits = null,
                     requireBiometricAbove = null,
                     isActive = true,
-                )
+                ),
             )
 
             // Second check with same action — should now be denied
@@ -84,22 +84,23 @@ class PolicyImmediateApplicationPropertyTest {
     @Test
     fun newPolicyIsAppliedImmediatelyToNewAgent() = runTest {
         forAll(
-            Arb.double(1.0..100.0),   // restrictive limit
-            Arb.double(101.0..500.0)  // transaction amount
+            Arb.double(1.0..100.0), // restrictive limit
+            Arb.double(101.0..500.0), // transaction amount
         ) { restrictiveLimit, amount ->
             val vault = DefaultPrivacyVault(SimpleCryptoProvider())
             val eventBus = DefaultAgentEventBus()
             val policyManager = DefaultPolicyManager(vault, eventBus)
             val agentId = AgentId("new_agent")
 
-            val action = AgentAction(
-                agentId = agentId,
-                actionType = "transfer",
-                description = "Test transaction",
-                amountUsdc = amount,
-                resourceImpact = null,
-                timestamp = 1_000_000L,
-            )
+            val action =
+                AgentAction(
+                    agentId = agentId,
+                    actionType = "transfer",
+                    description = "Test transaction",
+                    amountUsdc = amount,
+                    resourceImpact = null,
+                    timestamp = 1_000_000L,
+                )
 
             // No policy set yet — action should be approved (no policy = no restriction)
             val result1 = policyManager.checkAction(agentId, action)
@@ -115,7 +116,7 @@ class PolicyImmediateApplicationPropertyTest {
                     resourceShareLimits = null,
                     requireBiometricAbove = null,
                     isActive = true,
-                )
+                ),
             )
 
             // After policy creation, same action should now be denied

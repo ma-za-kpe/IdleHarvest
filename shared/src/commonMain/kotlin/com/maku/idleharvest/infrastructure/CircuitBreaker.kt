@@ -40,7 +40,10 @@ class CircuitBreaker(
          * @param openedAt timestamp when the circuit was opened
          * @param backoffMs configured backoff duration in milliseconds
          */
-        data class Open(val openedAt: Long, val backoffMs: Long) : State()
+        data class Open(
+            val openedAt: Long,
+            val backoffMs: Long,
+        ) : State()
 
         /** Circuit is testing — one call is allowed through to probe service health. */
         data object HalfOpen : State()
@@ -69,12 +72,10 @@ class CircuitBreaker(
      * @return [Result.success] with the value if the call succeeds, or [Result.failure]
      *         with the exception if the call fails or the circuit is open.
      */
-    suspend fun <T> execute(block: suspend () -> T): Result<T> {
-        return when (val currentState = _state.value) {
-            is State.Closed -> executeClosed(block)
-            is State.Open -> executeOpen(currentState, block)
-            is State.HalfOpen -> executeHalfOpen(block)
-        }
+    suspend fun <T> execute(block: suspend () -> T): Result<T> = when (val currentState = _state.value) {
+        is State.Closed -> executeClosed(block)
+        is State.Open -> executeOpen(currentState, block)
+        is State.HalfOpen -> executeHalfOpen(block)
     }
 
     /**
@@ -91,21 +92,20 @@ class CircuitBreaker(
     /**
      * Execute in Closed state: track consecutive failures, trip to Open on threshold.
      */
-    private suspend fun <T> executeClosed(block: suspend () -> T): Result<T> {
-        return try {
-            val result = block()
-            consecutiveFailures = 0
-            Result.success(result)
-        } catch (e: Exception) {
-            consecutiveFailures++
-            if (consecutiveFailures >= failureThreshold) {
-                _state.value = State.Open(
+    private suspend fun <T> executeClosed(block: suspend () -> T): Result<T> = try {
+        val result = block()
+        consecutiveFailures = 0
+        Result.success(result)
+    } catch (e: Exception) {
+        consecutiveFailures++
+        if (consecutiveFailures >= failureThreshold) {
+            _state.value =
+                State.Open(
                     openedAt = clock(),
                     backoffMs = backoffPeriodMs,
                 )
-            }
-            Result.failure(e)
         }
+        Result.failure(e)
     }
 
     /**
@@ -123,8 +123,8 @@ class CircuitBreaker(
         } else {
             Result.failure(
                 CircuitBreakerOpenException(
-                    "Circuit breaker is OPEN. Remaining backoff: ${openState.backoffMs - elapsed}ms"
-                )
+                    "Circuit breaker is OPEN. Remaining backoff: ${openState.backoffMs - elapsed}ms",
+                ),
             )
         }
     }
@@ -132,21 +132,20 @@ class CircuitBreaker(
     /**
      * Execute in HalfOpen state: allow one probe call. On success → Closed. On failure → Open.
      */
-    private suspend fun <T> executeHalfOpen(block: suspend () -> T): Result<T> {
-        return try {
-            val result = block()
-            // Probe succeeded — circuit recovers
-            consecutiveFailures = 0
-            _state.value = State.Closed
-            Result.success(result)
-        } catch (e: Exception) {
-            // Probe failed — circuit remains open with fresh backoff timer
-            _state.value = State.Open(
+    private suspend fun <T> executeHalfOpen(block: suspend () -> T): Result<T> = try {
+        val result = block()
+        // Probe succeeded — circuit recovers
+        consecutiveFailures = 0
+        _state.value = State.Closed
+        Result.success(result)
+    } catch (e: Exception) {
+        // Probe failed — circuit remains open with fresh backoff timer
+        _state.value =
+            State.Open(
                 openedAt = clock(),
                 backoffMs = backoffPeriodMs,
             )
-            Result.failure(e)
-        }
+        Result.failure(e)
     }
 
     companion object {
@@ -161,4 +160,6 @@ class CircuitBreaker(
 /**
  * Exception thrown when a call is attempted while the circuit breaker is in the Open state.
  */
-class CircuitBreakerOpenException(message: String) : Exception(message)
+class CircuitBreakerOpenException(
+    message: String,
+) : Exception(message)

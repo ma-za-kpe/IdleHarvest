@@ -23,7 +23,10 @@ interface PolicyManager {
     fun removePolicy(policyId: String)
 
     /** Check whether an agent action is permitted under current policies. */
-    suspend fun checkAction(agentId: AgentId, action: AgentAction): PolicyDecision
+    suspend fun checkAction(
+        agentId: AgentId,
+        action: AgentAction,
+    ): PolicyDecision
 
     /** Get the default conservative policies for first-time users. */
     fun getDefaults(): List<Policy>

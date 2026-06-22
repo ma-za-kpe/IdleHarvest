@@ -3,7 +3,6 @@ package com.maku.idleharvest.ui.components
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -15,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import com.maku.idleharvest.ui.theme.IdleHarvestColors
 import com.maku.idleharvest.ui.theme.IdleHarvestDimens
 import com.maku.idleharvest.ui.theme.IdleHarvestShapeTokens
-import com.maku.idleharvest.ui.theme.IdleHarvestTheme
 
 /**
  * IdleHarvest branded button components.
@@ -78,7 +76,8 @@ fun IHAccentButton(
         modifier = modifier.height(IdleHarvestDimens.ButtonHeight),
         enabled = enabled,
         shape = IdleHarvestShapeTokens.Button,
-        colors = ButtonDefaults.buttonColors(
+        colors =
+        ButtonDefaults.buttonColors(
             containerColor = IdleHarvestColors.AccentGold,
             contentColor = IdleHarvestColors.Navy,
         ),

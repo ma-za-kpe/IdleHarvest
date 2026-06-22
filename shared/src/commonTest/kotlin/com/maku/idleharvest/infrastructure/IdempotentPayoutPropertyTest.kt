@@ -1,8 +1,6 @@
 package com.maku.idleharvest.infrastructure
 
-import com.maku.idleharvest.domain.models.AgentId
 import com.maku.idleharvest.domain.models.AutonomyLevel
-import com.maku.idleharvest.domain.models.EarningEvent
 import com.maku.idleharvest.domain.models.Policy
 import com.maku.idleharvest.generators.earningEvent
 import com.maku.idleharvest.infrastructure.crypto.SimpleCryptoProvider
@@ -11,7 +9,6 @@ import io.kotest.property.arbitrary.int
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
 /**
  * Property 13: Idempotent Payout Guarantee
@@ -23,7 +20,6 @@ import kotlin.test.assertTrue
  * **Validates: Requirements 5.5**
  */
 class IdempotentPayoutPropertyTest {
-
     private val cryptoProvider = SimpleCryptoProvider()
 
     /**
@@ -36,16 +32,17 @@ class IdempotentPayoutPropertyTest {
         val policyManager = DefaultPolicyManager(vault, eventBus)
 
         // Set up a permissive policy for the earning_engine agent
-        val permissivePolicy = Policy(
-            id = "test_permissive_earning",
-            agentId = DefaultEarningEngine.EARNING_ENGINE_ID,
-            autonomyLevel = AutonomyLevel.FULLY_AUTOMATIC,
-            maxTransactionPerDay = 1_000_000.0,
-            maxTransactionSingle = 1_000_000.0,
-            resourceShareLimits = null,
-            requireBiometricAbove = null,
-            isActive = true,
-        )
+        val permissivePolicy =
+            Policy(
+                id = "test_permissive_earning",
+                agentId = DefaultEarningEngine.EARNING_ENGINE_ID,
+                autonomyLevel = AutonomyLevel.FULLY_AUTOMATIC,
+                maxTransactionPerDay = 1_000_000.0,
+                maxTransactionSingle = 1_000_000.0,
+                resourceShareLimits = null,
+                requireBiometricAbove = null,
+                isActive = true,
+            )
         policyManager.setPolicy(permissivePolicy)
 
         return DefaultEarningEngine(
@@ -65,7 +62,8 @@ class IdempotentPayoutPropertyTest {
             val firstResult = engine.initiatePayout(event)
             val secondResult = engine.initiatePayout(event)
 
-            firstResult.isSuccess && secondResult.isFailure &&
+            firstResult.isSuccess &&
+                secondResult.isFailure &&
                 secondResult.exceptionOrNull() is DuplicatePayoutException
         }
     }
@@ -103,8 +101,10 @@ class IdempotentPayoutPropertyTest {
                 val duplicate1 = engine.initiatePayout(event1)
                 val duplicate2 = engine.initiatePayout(event2)
 
-                result1.isSuccess && result2.isSuccess &&
-                    duplicate1.isFailure && duplicate2.isFailure &&
+                result1.isSuccess &&
+                    result2.isSuccess &&
+                    duplicate1.isFailure &&
+                    duplicate2.isFailure &&
                     duplicate1.exceptionOrNull() is DuplicatePayoutException &&
                     duplicate2.exceptionOrNull() is DuplicatePayoutException
             }
@@ -121,9 +121,10 @@ class IdempotentPayoutPropertyTest {
             // Exactly one success
             val successCount = results.count { it.isSuccess }
             // All others are DuplicatePayoutException failures
-            val duplicateFailCount = results.count {
-                it.isFailure && it.exceptionOrNull() is DuplicatePayoutException
-            }
+            val duplicateFailCount =
+                results.count {
+                    it.isFailure && it.exceptionOrNull() is DuplicatePayoutException
+                }
 
             successCount == 1 && duplicateFailCount == attemptCount - 1
         }

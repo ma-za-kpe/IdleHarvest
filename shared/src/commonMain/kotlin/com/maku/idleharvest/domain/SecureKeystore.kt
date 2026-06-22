@@ -18,13 +18,19 @@ expect class SecureKeystore {
     fun generateKeyPair(alias: String): Result<PublicKey>
 
     /** Sign data using the private key for the given alias. Returns the signature bytes. */
-    fun sign(alias: String, data: ByteArray): Result<ByteArray>
+    fun sign(
+        alias: String,
+        data: ByteArray,
+    ): Result<ByteArray>
 
     /**
      * Require biometric authentication before signing.
      * Used for high-value transactions above user-configured thresholds.
      */
-    fun requireBiometric(alias: String, challenge: ByteArray): Result<ByteArray>
+    fun requireBiometric(
+        alias: String,
+        challenge: ByteArray,
+    ): Result<ByteArray>
 
     /** Retrieve the public key for the given alias. */
     fun getPublicKey(alias: String): Result<PublicKey>

@@ -21,7 +21,6 @@ import kotlin.test.Test
  * **Validates: Requirements 9.3**
  */
 class ModelIntegrityPropertyTest {
-
     private val cryptoProvider = SimpleCryptoProvider()
 
     private companion object {
@@ -54,11 +53,12 @@ class ModelIntegrityPropertyTest {
         ) { content, modelId, version ->
             val vault = DefaultPrivacyVault(cryptoProvider)
             val downloader = NoOpModelDownloader()
-            val registry = DefaultModelRegistry(
-                vault = vault,
-                cryptoProvider = cryptoProvider,
-                modelDownloader = downloader,
-            )
+            val registry =
+                DefaultModelRegistry(
+                    vault = vault,
+                    cryptoProvider = cryptoProvider,
+                    modelDownloader = downloader,
+                )
 
             // Compute the expected checksum using the same mechanism as the registry
             val expectedChecksum = computeSha256Hex(content)
@@ -68,14 +68,15 @@ class ModelIntegrityPropertyTest {
             downloader.putFile(filePath, content)
 
             // Create a model file with a matching checksum
-            val modelFile = ModelFile(
-                modelId = modelId,
-                version = version,
-                filePath = filePath,
-                sizeBytes = content.size.toLong(),
-                sha256Checksum = expectedChecksum,
-                downloadedAt = currentTimeMillis(),
-            )
+            val modelFile =
+                ModelFile(
+                    modelId = modelId,
+                    version = version,
+                    filePath = filePath,
+                    sizeBytes = content.size.toLong(),
+                    sha256Checksum = expectedChecksum,
+                    downloadedAt = currentTimeMillis(),
+                )
 
             // Verify integrity should pass
             registry.verifyIntegrity(modelFile)
@@ -98,11 +99,12 @@ class ModelIntegrityPropertyTest {
         ) { content, modelId, version, wrongChecksum ->
             val vault = DefaultPrivacyVault(cryptoProvider)
             val downloader = NoOpModelDownloader()
-            val registry = DefaultModelRegistry(
-                vault = vault,
-                cryptoProvider = cryptoProvider,
-                modelDownloader = downloader,
-            )
+            val registry =
+                DefaultModelRegistry(
+                    vault = vault,
+                    cryptoProvider = cryptoProvider,
+                    modelDownloader = downloader,
+                )
 
             // Compute the real checksum so we can ensure ours differs
             val realChecksum = computeSha256Hex(content)
@@ -117,14 +119,15 @@ class ModelIntegrityPropertyTest {
                 downloader.putFile(filePath, content)
 
                 // Create a model file with a mismatched checksum
-                val modelFile = ModelFile(
-                    modelId = modelId,
-                    version = version,
-                    filePath = filePath,
-                    sizeBytes = content.size.toLong(),
-                    sha256Checksum = wrongChecksum,
-                    downloadedAt = currentTimeMillis(),
-                )
+                val modelFile =
+                    ModelFile(
+                        modelId = modelId,
+                        version = version,
+                        filePath = filePath,
+                        sizeBytes = content.size.toLong(),
+                        sha256Checksum = wrongChecksum,
+                        downloadedAt = currentTimeMillis(),
+                    )
 
                 // Verify integrity should fail
                 !registry.verifyIntegrity(modelFile)
@@ -148,11 +151,12 @@ class ModelIntegrityPropertyTest {
         ) { content, modelId, version, tamperSeed ->
             val vault = DefaultPrivacyVault(cryptoProvider)
             val downloader = NoOpModelDownloader()
-            val registry = DefaultModelRegistry(
-                vault = vault,
-                cryptoProvider = cryptoProvider,
-                modelDownloader = downloader,
-            )
+            val registry =
+                DefaultModelRegistry(
+                    vault = vault,
+                    cryptoProvider = cryptoProvider,
+                    modelDownloader = downloader,
+                )
 
             // Compute the correct checksum from the original content
             val originalChecksum = computeSha256Hex(content)
@@ -167,14 +171,15 @@ class ModelIntegrityPropertyTest {
             downloader.putFile(filePath, tamperedContent)
 
             // Create a model file with the checksum of the ORIGINAL (untampered) content
-            val modelFile = ModelFile(
-                modelId = modelId,
-                version = version,
-                filePath = filePath,
-                sizeBytes = tamperedContent.size.toLong(),
-                sha256Checksum = originalChecksum,
-                downloadedAt = currentTimeMillis(),
-            )
+            val modelFile =
+                ModelFile(
+                    modelId = modelId,
+                    version = version,
+                    filePath = filePath,
+                    sizeBytes = tamperedContent.size.toLong(),
+                    sha256Checksum = originalChecksum,
+                    downloadedAt = currentTimeMillis(),
+                )
 
             // Verify integrity should fail because the file was tampered
             !registry.verifyIntegrity(modelFile)
@@ -196,21 +201,23 @@ class ModelIntegrityPropertyTest {
         ) { modelId, version, checksum ->
             val vault = DefaultPrivacyVault(cryptoProvider)
             val downloader = NoOpModelDownloader()
-            val registry = DefaultModelRegistry(
-                vault = vault,
-                cryptoProvider = cryptoProvider,
-                modelDownloader = downloader,
-            )
+            val registry =
+                DefaultModelRegistry(
+                    vault = vault,
+                    cryptoProvider = cryptoProvider,
+                    modelDownloader = downloader,
+                )
 
             // Do NOT put any file in the downloader → file doesn't exist
-            val modelFile = ModelFile(
-                modelId = modelId,
-                version = version,
-                filePath = "models/$modelId/$version.pte",
-                sizeBytes = 1024L,
-                sha256Checksum = checksum,
-                downloadedAt = currentTimeMillis(),
-            )
+            val modelFile =
+                ModelFile(
+                    modelId = modelId,
+                    version = version,
+                    filePath = "models/$modelId/$version.pte",
+                    sizeBytes = 1024L,
+                    sha256Checksum = checksum,
+                    downloadedAt = currentTimeMillis(),
+                )
 
             // Verify integrity should fail because the file doesn't exist
             !registry.verifyIntegrity(modelFile)

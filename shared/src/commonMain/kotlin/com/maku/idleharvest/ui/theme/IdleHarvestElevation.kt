@@ -9,7 +9,6 @@ import androidx.compose.ui.unit.dp
  * Subtle elevation for light mode, minimal for dark mode (relies on surface tint).
  */
 object IdleHarvestElevation {
-
     /** Flat — no elevation (background, full-bleed sections) */
     val Level0: Dp = 0.dp
 

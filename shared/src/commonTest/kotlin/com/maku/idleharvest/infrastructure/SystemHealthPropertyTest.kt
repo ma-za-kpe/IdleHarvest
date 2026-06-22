@@ -8,7 +8,6 @@ import io.kotest.property.arbitrary.of
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 /**
  * Property 34: System Health Indicator Derivation
@@ -23,7 +22,6 @@ import kotlin.test.assertEquals
  * Validates: Requirements 16.6
  */
 class SystemHealthPropertyTest {
-
     companion object {
         private const val NOW = 10_000_000L
         private const val ONE_HOUR_MS = 60L * 60L * 1000L
@@ -33,18 +31,14 @@ class SystemHealthPropertyTest {
         agentStates: Map<AgentId, AgentState>,
         isOnline: Boolean,
         errorLog: RollingErrorLog,
-    ): SystemHealthIndicator {
-        return SystemHealthIndicator(
-            agentStates = { agentStates },
-            isOnline = { isOnline },
-            errorLog = errorLog,
-            clock = { NOW },
-        )
-    }
+    ): SystemHealthIndicator = SystemHealthIndicator(
+        agentStates = { agentStates },
+        isOnline = { isOnline },
+        errorLog = errorLog,
+        clock = { NOW },
+    )
 
-    private fun createErrorLog(): RollingErrorLog {
-        return RollingErrorLog(maxAgeDays = 7, clock = { NOW })
-    }
+    private fun createErrorLog(): RollingErrorLog = RollingErrorLog(maxAgeDays = 7, clock = { NOW })
 
     private fun addRecentError(
         log: RollingErrorLog,
@@ -53,13 +47,13 @@ class SystemHealthPropertyTest {
     ) {
         log.log(
             ErrorLogEntry(
-                id = "err-${minutesAgo}-${severity.name}",
+                id = "err-$minutesAgo-${severity.name}",
                 agentId = AgentId("test-agent"),
                 severity = severity,
                 message = "Test error: ${severity.name}",
                 timestamp = NOW - (minutesAgo * 60_000L),
                 stackTrace = null,
-            )
+            ),
         )
     }
 
@@ -72,11 +66,12 @@ class SystemHealthPropertyTest {
             val log = createErrorLog()
             val states = (0 until agentCount).associate { AgentId("agent-$it") to state }
 
-            val indicator = createIndicator(
-                agentStates = states,
-                isOnline = true,
-                errorLog = log,
-            )
+            val indicator =
+                createIndicator(
+                    agentStates = states,
+                    isOnline = true,
+                    errorLog = log,
+                )
 
             indicator.computeHealth() == HealthStatus.GREEN
         }
@@ -98,11 +93,12 @@ class SystemHealthPropertyTest {
             // Add one ERROR agent
             states[AgentId("error-agent")] = AgentState.ERROR
 
-            val indicator = createIndicator(
-                agentStates = states,
-                isOnline = true,
-                errorLog = log,
-            )
+            val indicator =
+                createIndicator(
+                    agentStates = states,
+                    isOnline = true,
+                    errorLog = log,
+                )
 
             indicator.computeHealth() == HealthStatus.RED
         }
@@ -123,11 +119,12 @@ class SystemHealthPropertyTest {
             // Add one PAUSED agent
             states[AgentId("paused-agent")] = AgentState.PAUSED
 
-            val indicator = createIndicator(
-                agentStates = states,
-                isOnline = true,
-                errorLog = log,
-            )
+            val indicator =
+                createIndicator(
+                    agentStates = states,
+                    isOnline = true,
+                    errorLog = log,
+                )
 
             indicator.computeHealth() == HealthStatus.YELLOW
         }
@@ -142,11 +139,12 @@ class SystemHealthPropertyTest {
             val log = createErrorLog()
             val states = (0 until agentCount).associate { AgentId("agent-$it") to state }
 
-            val indicator = createIndicator(
-                agentStates = states,
-                isOnline = false, // Offline
-                errorLog = log,  // No errors
-            )
+            val indicator =
+                createIndicator(
+                    agentStates = states,
+                    isOnline = false, // Offline
+                    errorLog = log, // No errors
+                )
 
             indicator.computeHealth() == HealthStatus.YELLOW
         }
@@ -164,11 +162,12 @@ class SystemHealthPropertyTest {
 
             val states = (0 until agentCount).associate { AgentId("agent-$it") to state }
 
-            val indicator = createIndicator(
-                agentStates = states,
-                isOnline = false, // Offline + critical errors = RED
-                errorLog = log,
-            )
+            val indicator =
+                createIndicator(
+                    agentStates = states,
+                    isOnline = false, // Offline + critical errors = RED
+                    errorLog = log,
+                )
 
             indicator.computeHealth() == HealthStatus.RED
         }
@@ -189,16 +188,17 @@ class SystemHealthPropertyTest {
                         message = "Critical failure $i",
                         timestamp = NOW - ((i + 1) * 60_000L), // Within the last hour
                         stackTrace = null,
-                    )
+                    ),
                 )
             }
 
             val states = mapOf(AgentId("agent-0") to AgentState.IDLE)
-            val indicator = createIndicator(
-                agentStates = states,
-                isOnline = true,
-                errorLog = log,
-            )
+            val indicator =
+                createIndicator(
+                    agentStates = states,
+                    isOnline = true,
+                    errorLog = log,
+                )
 
             indicator.computeHealth() == HealthStatus.RED
         }
@@ -221,16 +221,17 @@ class SystemHealthPropertyTest {
                         message = "Non-critical error $i",
                         timestamp = NOW - ((i + 1) * 60_000L),
                         stackTrace = null,
-                    )
+                    ),
                 )
             }
 
             val states = mapOf(AgentId("agent-0") to AgentState.IDLE)
-            val indicator = createIndicator(
-                agentStates = states,
-                isOnline = true,
-                errorLog = log,
-            )
+            val indicator =
+                createIndicator(
+                    agentStates = states,
+                    isOnline = true,
+                    errorLog = log,
+                )
 
             indicator.computeHealth() == HealthStatus.YELLOW
         }
@@ -242,16 +243,18 @@ class SystemHealthPropertyTest {
 
         forAll(onlineArb) { isOnline ->
             val log = createErrorLog()
-            val states = mapOf(
-                AgentId("agent-0") to AgentState.ERROR,
-                AgentId("agent-1") to AgentState.IDLE,
-            )
+            val states =
+                mapOf(
+                    AgentId("agent-0") to AgentState.ERROR,
+                    AgentId("agent-1") to AgentState.IDLE,
+                )
 
-            val indicator = createIndicator(
-                agentStates = states,
-                isOnline = isOnline,
-                errorLog = log,
-            )
+            val indicator =
+                createIndicator(
+                    agentStates = states,
+                    isOnline = isOnline,
+                    errorLog = log,
+                )
 
             // ERROR agent state always results in RED regardless of other conditions
             indicator.computeHealth() == HealthStatus.RED
@@ -262,11 +265,12 @@ class SystemHealthPropertyTest {
     fun emptyAgentStatesWithOnlineAndNoErrorsIsGreen() = runTest {
         forAll(Arb.int(1..10)) { _ ->
             val log = createErrorLog()
-            val indicator = createIndicator(
-                agentStates = emptyMap(),
-                isOnline = true,
-                errorLog = log,
-            )
+            val indicator =
+                createIndicator(
+                    agentStates = emptyMap(),
+                    isOnline = true,
+                    errorLog = log,
+                )
 
             indicator.computeHealth() == HealthStatus.GREEN
         }

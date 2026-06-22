@@ -17,7 +17,6 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
-import kotlin.test.assertEquals
 
 /**
  * Property 6: Privacy Vault Storage Round-Trip
@@ -29,7 +28,6 @@ import kotlin.test.assertEquals
  * **Validates: Requirements 2.4, 3.4, 6.5, 9.1, 12.1**
  */
 class PrivacyVaultPropertyTest {
-
     private val cryptoProvider = SimpleCryptoProvider()
     private val vault = DefaultPrivacyVault(cryptoProvider)
     private val json = Json { ignoreUnknownKeys = true }

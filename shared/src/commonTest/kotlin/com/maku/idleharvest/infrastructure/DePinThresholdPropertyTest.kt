@@ -8,13 +8,9 @@ import com.maku.idleharvest.generators.resourceThreshold
 import com.maku.idleharvest.infrastructure.crypto.SimpleCryptoProvider
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
-import io.kotest.property.arbitrary.map
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
  * Property 7: DePIN Threshold Enforcement
@@ -26,14 +22,14 @@ import kotlin.test.assertTrue
  * **Validates: Requirements 3.2, 3.3**
  */
 class DePinThresholdPropertyTest {
-
-    private val testNetwork = DePinNetwork(
-        id = "test-network-1",
-        name = "TestNet",
-        supportedResources = listOf(ResourceType.BANDWIDTH, ResourceType.STORAGE, ResourceType.COMPUTE),
-        tokenSymbol = "TEST",
-        endpointUrl = "https://testnet.example.com",
-    )
+    private val testNetwork =
+        DePinNetwork(
+            id = "test-network-1",
+            name = "TestNet",
+            supportedResources = listOf(ResourceType.BANDWIDTH, ResourceType.STORAGE, ResourceType.COMPUTE),
+            tokenSymbol = "TEST",
+            endpointUrl = "https://testnet.example.com",
+        )
 
     private fun createTestAgent(): DefaultDePinAgent {
         val vault = DefaultPrivacyVault(SimpleCryptoProvider())

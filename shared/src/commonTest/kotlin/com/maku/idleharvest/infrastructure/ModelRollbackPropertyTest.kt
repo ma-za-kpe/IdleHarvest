@@ -12,9 +12,6 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 /**
  * Property 22: Model Rollback Availability
@@ -26,7 +23,6 @@ import kotlin.test.assertNull
  * **Validates: Requirements 9.5**
  */
 class ModelRollbackPropertyTest {
-
     private val cryptoProvider = SimpleCryptoProvider()
 
     /**
@@ -64,23 +60,22 @@ class ModelRollbackPropertyTest {
         version: String,
         sizeBytes: Long,
         purpose: ModelPurpose = ModelPurpose.USAGE_PREDICTION,
-    ): ModelMetadata {
-        return ModelMetadata(
-            id = id,
-            version = version,
-            purpose = purpose,
-            sizeBytes = sizeBytes,
-            quantization = QuantizationLevel.INT8,
-            targetHardware = HardwareProfile(
-                architecture = "arm64-v8a",
-                minCores = 4,
-                minRamGb = 2f,
-                supportedBackends = listOf(InferenceBackend.XNNPACK),
-            ),
-            sha256Checksum = computeExpectedChecksum(sizeBytes),
-            isStable = false,
-        )
-    }
+    ): ModelMetadata = ModelMetadata(
+        id = id,
+        version = version,
+        purpose = purpose,
+        sizeBytes = sizeBytes,
+        quantization = QuantizationLevel.INT8,
+        targetHardware =
+        HardwareProfile(
+            architecture = "arm64-v8a",
+            minCores = 4,
+            minRamGb = 2f,
+            supportedBackends = listOf(InferenceBackend.XNNPACK),
+        ),
+        sha256Checksum = computeExpectedChecksum(sizeBytes),
+        isStable = false,
+    )
 
     /**
      * Property: After downloading a second version of a model, the previous version

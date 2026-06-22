@@ -8,9 +8,7 @@ import io.kotest.property.arbitrary.long
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
-import kotlin.test.assertEquals
 import kotlin.test.assertIs
-import kotlin.test.assertTrue
 
 /**
  * Property 30: Circuit Breaker State Machine
@@ -24,7 +22,6 @@ import kotlin.test.assertTrue
  * Validates: Requirements 16.1
  */
 class CircuitBreakerPropertyTest {
-
     @Test
     fun transitionsToOpenAfterExactlyFiveConsecutiveFailures() = runTest {
         forAll(Arb.int(1..10)) { _ ->
@@ -49,11 +46,12 @@ class CircuitBreakerPropertyTest {
     @Test
     fun rejectsCallsWhileOpen() = runTest {
         var currentTime = 0L
-        val cb = CircuitBreaker(
-            failureThreshold = 5,
-            backoffPeriodMs = 60_000L,
-            clock = { currentTime },
-        )
+        val cb =
+            CircuitBreaker(
+                failureThreshold = 5,
+                backoffPeriodMs = 60_000L,
+                clock = { currentTime },
+            )
 
         // Trip the circuit
         repeat(5) {
@@ -73,11 +71,12 @@ class CircuitBreakerPropertyTest {
     fun transitionsToHalfOpenAfterBackoffPeriod() = runTest {
         forAll(Arb.long(60_000L..120_000L)) { backoffElapsed ->
             var currentTime = 0L
-            val cb = CircuitBreaker(
-                failureThreshold = 5,
-                backoffPeriodMs = 60_000L,
-                clock = { currentTime },
-            )
+            val cb =
+                CircuitBreaker(
+                    failureThreshold = 5,
+                    backoffPeriodMs = 60_000L,
+                    clock = { currentTime },
+                )
 
             // Trip the circuit
             repeat(5) {
@@ -100,11 +99,12 @@ class CircuitBreakerPropertyTest {
     fun halfOpenSuccessReturnsToClosed() = runTest {
         forAll(Arb.int(1..10)) { _ ->
             var currentTime = 0L
-            val cb = CircuitBreaker(
-                failureThreshold = 5,
-                backoffPeriodMs = 60_000L,
-                clock = { currentTime },
-            )
+            val cb =
+                CircuitBreaker(
+                    failureThreshold = 5,
+                    backoffPeriodMs = 60_000L,
+                    clock = { currentTime },
+                )
 
             // Trip the circuit
             repeat(5) {
@@ -125,11 +125,12 @@ class CircuitBreakerPropertyTest {
     fun halfOpenFailureReturnsToOpen() = runTest {
         forAll(Arb.int(1..10)) { _ ->
             var currentTime = 0L
-            val cb = CircuitBreaker(
-                failureThreshold = 5,
-                backoffPeriodMs = 60_000L,
-                clock = { currentTime },
-            )
+            val cb =
+                CircuitBreaker(
+                    failureThreshold = 5,
+                    backoffPeriodMs = 60_000L,
+                    clock = { currentTime },
+                )
 
             // Trip the circuit
             repeat(5) {
@@ -193,11 +194,12 @@ class CircuitBreakerPropertyTest {
     fun arbitrarySequenceMaintainsCorrectState() = runTest {
         forAll(Arb.list(Arb.boolean(), 1..20)) { callResults ->
             var currentTime = 0L
-            val cb = CircuitBreaker(
-                failureThreshold = 5,
-                backoffPeriodMs = 60_000L,
-                clock = { currentTime },
-            )
+            val cb =
+                CircuitBreaker(
+                    failureThreshold = 5,
+                    backoffPeriodMs = 60_000L,
+                    clock = { currentTime },
+                )
 
             var consecutiveFailures = 0
             var isOpen = false

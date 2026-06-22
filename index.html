@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IdleHarvest</title>
+  <style>html,body{height:100%;margin:0}#root{height:100%}</style>
+  <script type="importmap">
+  {
+    "imports": {
+      "@js-joda/core": "/web/vendor/js-joda.esm.js"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    (async () => {
+      try {
+        await import('/IdleHarvest-shared.mjs');
+      } catch (e) {
+        const msg = (e && (e.stack || e.toString())) || 'Unknown error';
+        document.body.innerHTML = `<pre style="white-space:pre-wrap;color:#c00;padding:16px;">${msg}</pre>`;
+        console.error(e);
+      }
+    })();
+  </script>
+</body>
+</html>

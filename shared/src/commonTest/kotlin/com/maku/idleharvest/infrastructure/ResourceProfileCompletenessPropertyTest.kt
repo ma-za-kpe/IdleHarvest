@@ -9,17 +9,13 @@ import com.maku.idleharvest.domain.models.ThermalState
 import com.maku.idleharvest.generators.resourceProfile
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.boolean
-import io.kotest.property.arbitrary.enum
 import io.kotest.property.arbitrary.float
 import io.kotest.property.arbitrary.int
-import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.long
-import io.kotest.property.arbitrary.orNull
 import io.kotest.property.forAll
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 import kotlin.reflect.KClass
 import kotlin.test.Test
@@ -38,7 +34,6 @@ import kotlin.test.assertTrue
  * **Validates: Requirements 1.1, 1.3**
  */
 class ResourceProfileCompletenessPropertyTest {
-
     // --- Fake implementations for testing ---
 
     /**
@@ -58,7 +53,9 @@ class ResourceProfileCompletenessPropertyTest {
 
     private class FakeAgentEventBus : AgentEventBus {
         private val flow = MutableSharedFlow<AgentEvent>()
+
         override fun <T : AgentEvent> publish(event: T) { /* no-op for testing */ }
+
         @Suppress("UNCHECKED_CAST")
         override fun <T : AgentEvent> subscribe(eventType: KClass<T>): Flow<T> = flow as Flow<T>
     }
@@ -100,12 +97,10 @@ class ResourceProfileCompletenessPropertyTest {
             )
         }
 
-        private inline fun <T> scanSafely(block: () -> T): T? {
-            return try {
-                block()
-            } catch (_: Exception) {
-                null
-            }
+        private inline fun <T> scanSafely(block: () -> T): T? = try {
+            block()
+        } catch (_: Exception) {
+            null
         }
     }
 
@@ -116,16 +111,16 @@ class ResourceProfileCompletenessPropertyTest {
         forAll(Arb.resourceProfile()) { profile ->
             // All numeric fields should be accessible and within valid ranges
             profile.availableBandwidthMbps >= 0f &&
-            profile.freeStorageMb >= 0L &&
-            profile.idleComputePercent in 0..100 &&
-            profile.batteryLevel in -1..100 &&
-            profile.timestamp >= 0L &&
-            // dataBundles is never null (always a list, possibly empty)
-            profile.dataBundles.all { bundle ->
-                bundle.remainingMb >= 0 && bundle.totalMb > 0
-            } &&
-            // thermalState is always defined
-            ThermalState.entries.contains(profile.thermalState)
+                profile.freeStorageMb >= 0L &&
+                profile.idleComputePercent in 0..100 &&
+                profile.batteryLevel in -1..100 &&
+                profile.timestamp >= 0L &&
+                // dataBundles is never null (always a list, possibly empty)
+                profile.dataBundles.all { bundle ->
+                    bundle.remainingMb >= 0 && bundle.totalMb > 0
+                } &&
+                // thermalState is always defined
+                ThermalState.entries.contains(profile.thermalState)
         }
     }
 
@@ -166,34 +161,37 @@ class ResourceProfileCompletenessPropertyTest {
             Arb.int(0..100),
             Arb.int(0..100),
         ) { bandwidth, storage, idleCompute, battery ->
-            val scanner = FakeScannableResourceScanner(
-                airtimeResult = Result.success(
-                    AirtimeBalance("Safaricom", 1000L, "KES", null)
-                ),
-                dataBundlesResult = Result.success(
-                    listOf(DataBundle("Safaricom", 500L, 1000L, 9999999999L, "daily"))
-                ),
-                bandwidthResult = Result.success(bandwidth),
-                freeStorageResult = Result.success(storage),
-                idleComputeResult = Result.success(idleCompute),
-                batteryLevelResult = Result.success(battery),
-                isChargingResult = Result.success(true),
-                thermalStateResult = Result.success(ThermalState.WARM),
-            )
+            val scanner =
+                FakeScannableResourceScanner(
+                    airtimeResult =
+                    Result.success(
+                        AirtimeBalance("Safaricom", 1000L, "KES", null),
+                    ),
+                    dataBundlesResult =
+                    Result.success(
+                        listOf(DataBundle("Safaricom", 500L, 1000L, 9999999999L, "daily")),
+                    ),
+                    bandwidthResult = Result.success(bandwidth),
+                    freeStorageResult = Result.success(storage),
+                    idleComputeResult = Result.success(idleCompute),
+                    batteryLevelResult = Result.success(battery),
+                    isChargingResult = Result.success(true),
+                    thermalStateResult = Result.success(ThermalState.WARM),
+                )
 
             val monitor = TestableResourceMonitor(scanner, this@runTest, FakeAgentEventBus())
             val profile = monitor.performScan()
 
             // All fields populated with actual values
             profile.airtimeBalance != null &&
-            profile.dataBundles.isNotEmpty() &&
-            profile.availableBandwidthMbps == bandwidth &&
-            profile.freeStorageMb == storage &&
-            profile.idleComputePercent == idleCompute &&
-            profile.batteryLevel == battery &&
-            profile.isCharging &&
-            profile.thermalState == ThermalState.WARM &&
-            profile.timestamp > 0L
+                profile.dataBundles.isNotEmpty() &&
+                profile.availableBandwidthMbps == bandwidth &&
+                profile.freeStorageMb == storage &&
+                profile.idleComputePercent == idleCompute &&
+                profile.batteryLevel == battery &&
+                profile.isCharging &&
+                profile.thermalState == ThermalState.WARM &&
+                profile.timestamp > 0L
         }
     }
 
@@ -201,16 +199,17 @@ class ResourceProfileCompletenessPropertyTest {
     fun performScanProducesCompleteProfileWhenAllMetricsFail() = runTest {
         // Simulate every single metric failing — the profile should still be complete
         // with default/null markers for each field
-        val scanner = FakeScannableResourceScanner(
-            airtimeResult = Result.failure(RuntimeException("SIM not available")),
-            dataBundlesResult = Result.failure(RuntimeException("Network error")),
-            bandwidthResult = Result.failure(RuntimeException("No connectivity")),
-            freeStorageResult = Result.failure(RuntimeException("Storage API unavailable")),
-            idleComputeResult = Result.failure(RuntimeException("CPU info denied")),
-            batteryLevelResult = Result.failure(RuntimeException("Battery manager null")),
-            isChargingResult = Result.failure(RuntimeException("Charging state unknown")),
-            thermalStateResult = Result.failure(RuntimeException("Thermal sensor error")),
-        )
+        val scanner =
+            FakeScannableResourceScanner(
+                airtimeResult = Result.failure(RuntimeException("SIM not available")),
+                dataBundlesResult = Result.failure(RuntimeException("Network error")),
+                bandwidthResult = Result.failure(RuntimeException("No connectivity")),
+                freeStorageResult = Result.failure(RuntimeException("Storage API unavailable")),
+                idleComputeResult = Result.failure(RuntimeException("CPU info denied")),
+                batteryLevelResult = Result.failure(RuntimeException("Battery manager null")),
+                isChargingResult = Result.failure(RuntimeException("Charging state unknown")),
+                thermalStateResult = Result.failure(RuntimeException("Thermal sensor error")),
+            )
 
         val monitor = TestableResourceMonitor(scanner, this, FakeAgentEventBus())
         val profile = monitor.performScan()
@@ -234,29 +233,43 @@ class ResourceProfileCompletenessPropertyTest {
 
     @Test
     fun performScanProducesCompleteProfileWithPartialFailures() = runTest {
-        forAll(Arb.boolean(), Arb.boolean(), Arb.boolean(), Arb.boolean()) { airtimeFails, bundleFails, bandwidthFails, storageFails ->
-            val scanner = FakeScannableResourceScanner(
-                airtimeResult = if (airtimeFails)
-                    Result.failure(RuntimeException("fail"))
-                else
-                    Result.success(AirtimeBalance("MTN", 500L, "NGN", null)),
-                dataBundlesResult = if (bundleFails)
-                    Result.failure(RuntimeException("fail"))
-                else
-                    Result.success(listOf(DataBundle("MTN", 200L, 1000L, 99999999L, "weekly"))),
-                bandwidthResult = if (bandwidthFails)
-                    Result.failure(RuntimeException("fail"))
-                else
-                    Result.success(25.5f),
-                freeStorageResult = if (storageFails)
-                    Result.failure(RuntimeException("fail"))
-                else
-                    Result.success(4096L),
-                idleComputeResult = Result.success(45),
-                batteryLevelResult = Result.success(80),
-                isChargingResult = Result.success(false),
-                thermalStateResult = Result.success(ThermalState.HOT),
-            )
+        forAll(
+            Arb.boolean(),
+            Arb.boolean(),
+            Arb.boolean(),
+            Arb.boolean(),
+        ) { airtimeFails, bundleFails, bandwidthFails, storageFails ->
+            val scanner =
+                FakeScannableResourceScanner(
+                    airtimeResult =
+                    if (airtimeFails) {
+                        Result.failure(RuntimeException("fail"))
+                    } else {
+                        Result.success(AirtimeBalance("MTN", 500L, "NGN", null))
+                    },
+                    dataBundlesResult =
+                    if (bundleFails) {
+                        Result.failure(RuntimeException("fail"))
+                    } else {
+                        Result.success(listOf(DataBundle("MTN", 200L, 1000L, 99999999L, "weekly")))
+                    },
+                    bandwidthResult =
+                    if (bandwidthFails) {
+                        Result.failure(RuntimeException("fail"))
+                    } else {
+                        Result.success(25.5f)
+                    },
+                    freeStorageResult =
+                    if (storageFails) {
+                        Result.failure(RuntimeException("fail"))
+                    } else {
+                        Result.success(4096L)
+                    },
+                    idleComputeResult = Result.success(45),
+                    batteryLevelResult = Result.success(80),
+                    isChargingResult = Result.success(false),
+                    thermalStateResult = Result.success(ThermalState.HOT),
+                )
 
             val monitor = TestableResourceMonitor(scanner, this@runTest, FakeAgentEventBus())
             val profile = monitor.performScan()
@@ -265,7 +278,13 @@ class ResourceProfileCompletenessPropertyTest {
             // - airtimeBalance is either a value or null (explicit marker)
             // - dataBundles is either a list or empty list (never null)
             // - numeric fields always have a defined value (actual or default)
-            val airtimeComplete = if (airtimeFails) profile.airtimeBalance == null else profile.airtimeBalance != null
+            val airtimeComplete =
+                if (airtimeFails) {
+                    profile.airtimeBalance == null
+                } else {
+                    profile.airtimeBalance !=
+                        null
+                }
             val bundlesComplete = profile.dataBundles != null // always non-null list
             val bandwidthComplete = profile.availableBandwidthMbps >= 0f
             val storageComplete = profile.freeStorageMb >= 0L
@@ -274,9 +293,14 @@ class ResourceProfileCompletenessPropertyTest {
             val thermalComplete = ThermalState.entries.contains(profile.thermalState)
             val timestampComplete = profile.timestamp > 0L
 
-            airtimeComplete && bundlesComplete && bandwidthComplete &&
-            storageComplete && computeComplete && batteryComplete &&
-            thermalComplete && timestampComplete
+            airtimeComplete &&
+                bundlesComplete &&
+                bandwidthComplete &&
+                storageComplete &&
+                computeComplete &&
+                batteryComplete &&
+                thermalComplete &&
+                timestampComplete
         }
     }
 }
