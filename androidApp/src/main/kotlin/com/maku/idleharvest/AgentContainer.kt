@@ -16,7 +16,7 @@ import com.maku.idleharvest.infrastructure.DefaultPolicyManager
 import com.maku.idleharvest.infrastructure.DefaultPrivacyVault
 import com.maku.idleharvest.infrastructure.DefaultResourceMonitor
 import com.maku.idleharvest.infrastructure.PlatformResourceScanner
-import com.maku.idleharvest.infrastructure.crypto.SimpleCryptoProvider
+import com.maku.idleharvest.infrastructure.crypto.createPlatformCryptoProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -37,11 +37,13 @@ class AgentContainer(
 ) {
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
-    private val cryptoProvider = SimpleCryptoProvider()
+    // Real AES-256-GCM + HMAC-SHA256 backed by the platform crypto library
+    // (javax.crypto on Android). Replaces the insecure XOR test provider.
+    private val cryptoProvider = createPlatformCryptoProvider()
     private val vault = DefaultPrivacyVault(cryptoProvider)
     private val eventBus = DefaultAgentEventBus()
     private val complianceEngine = DefaultComplianceEngine(vault)
-    private val policyManager = DefaultPolicyManager(vault, eventBus)
+    val policyManager = DefaultPolicyManager(vault, eventBus) // Exposed for onboarding policy application (was private)
 
     private val scanner = PlatformResourceScanner(context)
     val resourceMonitor = DefaultResourceMonitor(scanner, appScope, eventBus)

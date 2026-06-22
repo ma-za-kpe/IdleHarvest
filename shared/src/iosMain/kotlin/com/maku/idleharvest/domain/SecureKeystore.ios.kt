@@ -3,44 +3,32 @@ package com.maku.idleharvest.domain
 import com.maku.idleharvest.domain.models.PublicKey
 
 /**
- * iOS implementation of SecureKeystore using Security framework and Secure Enclave.
- * Private keys are generated and stored within the Secure Enclave where available.
+ * iOS SecureKeystore.
  *
- * TODO: Implement with SecKeyCreateRandomKey and kSecAttrTokenIDSecureEnclave
+ * IdleHarvest now delegates signing and identity to the user's connected wallet
+ * (see domain/auth: WalletConnector + AuthManager) rather than managing its own keys.
+ * On iOS this keystore is therefore intentionally inert and reports unavailability,
+ * directing callers to the wallet-based signing path. (Android retains a real
+ * hardware-backed keystore for its legacy on-device signing use case.)
  */
+private const val WALLET_DELEGATED = "Signing is delegated to the connected wallet on iOS; SecureKeystore is unused."
+
 actual class SecureKeystore {
-    actual fun generateKeyPair(alias: String): Result<PublicKey> {
-        // TODO: Implement using Security framework + Secure Enclave
-        return Result.failure(NotImplementedError("iOS Keychain implementation pending"))
-    }
+    actual fun generateKeyPair(alias: String): Result<PublicKey> = Result.failure(UnsupportedOperationException(WALLET_DELEGATED))
 
     actual fun sign(
         alias: String,
         data: ByteArray,
-    ): Result<ByteArray> {
-        // TODO: Implement signing via SecKeyCreateSignature
-        return Result.failure(NotImplementedError("iOS Keychain implementation pending"))
-    }
+    ): Result<ByteArray> = Result.failure(UnsupportedOperationException(WALLET_DELEGATED))
 
     actual fun requireBiometric(
         alias: String,
         challenge: ByteArray,
-    ): Result<ByteArray> {
-        // TODO: Implement with LAContext + biometryType
-        return Result.failure(NotImplementedError("iOS Keychain implementation pending"))
-    }
+    ): Result<ByteArray> = Result.failure(UnsupportedOperationException(WALLET_DELEGATED))
 
-    actual fun getPublicKey(alias: String): Result<PublicKey> {
-        // TODO: Retrieve public key from Keychain
-        return Result.failure(NotImplementedError("iOS Keychain implementation pending"))
-    }
+    actual fun getPublicKey(alias: String): Result<PublicKey> = Result.failure(UnsupportedOperationException(WALLET_DELEGATED))
 
-    actual fun isKeyInSecureHardware(alias: String): Boolean {
-        // TODO: Check if Secure Enclave is available
-        return false
-    }
+    actual fun isKeyInSecureHardware(alias: String): Boolean = false
 
-    actual fun lockSigningOperations(durationMs: Long) {
-        // TODO: Implement cooldown timer for signing operations
-    }
+    actual fun lockSigningOperations(durationMs: Long) = Unit
 }

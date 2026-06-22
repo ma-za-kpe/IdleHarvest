@@ -4,6 +4,7 @@
   <CurrentIssues>
     <ID>MagicNumber:ResourceMonitorService.kt$ResourceMonitorService$1.5</ID>
     <ID>MagicNumber:ResourceMonitorService.kt$ResourceMonitorService$3.0</ID>
+    <ID>MaxLineLength:MainActivity.kt$MainActivity$val g = if (completedState.guardrails.skipped) com.maku.idleharvest.ui.onboarding.SafeOnboardingDefaults else completedState.guardrails</ID>
     <ID>TopLevelPropertyNaming:MainActivity.kt$private const val KEY_ONBOARDING_DONE = "onboarding_complete"</ID>
     <ID>TopLevelPropertyNaming:MainActivity.kt$private const val PREFS_NAME = "idle_harvest_prefs"</ID>
   </CurrentIssues>

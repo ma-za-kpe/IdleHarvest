@@ -3,26 +3,6 @@
   <ManuallySuppressedIssues></ManuallySuppressedIssues>
   <CurrentIssues>
     <ID>CyclomaticComplexMethod:DefaultComplianceEngine.kt$DefaultComplianceEngine$override suspend fun checkTransaction(transaction: TransactionRequest): ComplianceDecision</ID>
-    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBCentralManager.cancelPeripheralConnection</ID>
-    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBCentralManager.connect with CBPeripheralDelegate.</ID>
-    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBCentralManager.scanForPeripherals with</ID>
-    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBCentralManager.stopScan</ID>
-    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBPeripheralManager.startAdvertising with</ID>
-    <ID>ForbiddenComment:BleAdapter.ios.kt$BleAdapter$// TODO: Implement using CBPeripheralManager.stopAdvertising</ID>
-    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via FileManager.attributesOfFileSystem</ID>
-    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via NWPathMonitor / Network framework</ID>
-    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via ProcessInfo.thermalState</ID>
-    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via UIDevice.current.batteryLevel</ID>
-    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via UIDevice.current.batteryState</ID>
-    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via carrier API or user input</ID>
-    <ID>ForbiddenComment:PlatformResourceScanner.ios.kt$PlatformResourceScanner$// TODO: Implement via host_statistics / mach_host_self</ID>
-    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$* iOS implementation of SecureKeystore using Security framework and Secure Enclave. * Private keys are generated and stored within the Secure Enclave where available. * * TODO: Implement with SecKeyCreateRandomKey and kSecAttrTokenIDSecureEnclave</ID>
-    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Check if Secure Enclave is available</ID>
-    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Implement cooldown timer for signing operations</ID>
-    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Implement signing via SecKeyCreateSignature</ID>
-    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Implement using Security framework + Secure Enclave</ID>
-    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Implement with LAContext + biometryType</ID>
-    <ID>ForbiddenComment:SecureKeystore.ios.kt$SecureKeystore$// TODO: Retrieve public key from Keychain</ID>
     <ID>LongMethod:AgentOrchestrator.kt$AgentOrchestrator$private fun wireEventSubscriptions()</ID>
     <ID>LongMethod:DefaultAirtimeAgent.kt$DefaultAirtimeAgent$private suspend fun executeSingleAttempt( client: VtuPlatformClient, action: MonetizationAction, ): TransactionResult</ID>
     <ID>LongMethod:DefaultComplianceEngine.kt$DefaultComplianceEngine$override suspend fun checkTransaction(transaction: TransactionRequest): ComplianceDecision</ID>
@@ -30,8 +10,10 @@
     <ID>LongMethod:GuardrailsScreen.kt$@Composable fun GuardrailsScreen( guardrails: GuardrailsState, onGuardrailsUpdated: (GuardrailsState) -&gt; Unit, onNext: () -&gt; Unit, onSkip: () -&gt; Unit, onBack: () -&gt; Unit, )</ID>
     <ID>LongMethod:OnboardingFlow.kt$@Composable fun OnboardingFlow(onComplete: (OnboardingState) -&gt; Unit)</ID>
     <ID>LongMethod:PermissionsScreen.kt$@Composable fun PermissionsScreen( permissions: PermissionsState, onPermissionsUpdated: (PermissionsState) -&gt; Unit, onNext: () -&gt; Unit, onSkip: () -&gt; Unit, )</ID>
+    <ID>LongMethod:Sha256.kt$@Suppress("MagicNumber") internal fun sha256(message: ByteArray): ByteArray</ID>
     <ID>LongMethod:WalletSetupScreen.kt$@Composable fun WalletSetupScreen( wallet: WalletSetupState, onWalletUpdated: (WalletSetupState) -&gt; Unit, onNext: () -&gt; Unit, onSkip: () -&gt; Unit, onBack: () -&gt; Unit, )</ID>
-    <ID>LongMethod:WebDashboard.kt$@Composable private fun FeaturesSection()</ID>
+    <ID>LongMethod:WebDashboard.kt$@Composable private fun FeaturesSection(compact: Boolean)</ID>
+    <ID>LongMethod:WebDashboard.kt$@Composable private fun LandingHero(compact: Boolean, onOpenUrl: (String) -&gt; Unit)</ID>
     <ID>LongParameterList:AgentOrchestrator.kt$AgentOrchestrator$( private val resourceMonitor: ResourceMonitor, private val airtimeAgent: AirtimeAgent, private val depinAgent: DePinAgent, private val meshCoordinator: MeshCoordinator, private val earningEngine: EarningEngine, private val eventBus: DefaultAgentEventBus, private val scope: CoroutineScope, )</ID>
     <ID>LongParameterList:DefaultAirtimeAgent.kt$DefaultAirtimeAgent$( private val policyManager: PolicyManager, private val complianceEngine: ComplianceEngine, private val vault: PrivacyVault, private val eventBus: AgentEventBus, private val inferenceEngine: InferenceEngine, private val vtuClient: VtuPlatformClient? = null, private val clock: () -&gt; Long = { currentTimeMillis() }, )</ID>
     <ID>LongParameterList:DefaultEarningEngine.kt$DefaultEarningEngine$( private val policyManager: PolicyManager, private val vault: PrivacyVault, private val eventBus: AgentEventBus, private val secureKeystore: SecureKeystore? = null, private val payoutRail: CirclePayoutRail? = null, private val walletAddress: WalletAddress = WalletAddress("default_wallet"), private val biometricThreshold: Double = DEFAULT_BIOMETRIC_THRESHOLD, private val clock: () -&gt; Long = { currentTimeMillis() }, )</ID>
@@ -77,39 +59,52 @@
     <ID>MagicNumber:PlatformResourceScanner.android.kt$PlatformResourceScanner$100</ID>
     <ID>MagicNumber:PlatformResourceScanner.android.kt$PlatformResourceScanner$1000f</ID>
     <ID>MagicNumber:PlatformResourceScanner.android.kt$PlatformResourceScanner$1024L</ID>
+    <ID>MagicNumber:PlatformResourceScanner.ios.kt$PlatformResourceScanner$100</ID>
+    <ID>MagicNumber:PlatformResourceScanner.ios.kt$PlatformResourceScanner$1024L</ID>
     <ID>MagicNumber:RollingErrorLog.kt$RollingErrorLog$5</ID>
     <ID>MagicNumber:RollingErrorLog.kt$RollingErrorLog$50</ID>
     <ID>MagicNumber:SecureKeystore.android.kt$SecureKeystore$10</ID>
     <ID>MagicNumber:SecureKeystore.android.kt$SecureKeystore$12</ID>
     <ID>MagicNumber:SecureKeystore.android.kt$SecureKeystore$24</ID>
+    <ID>MagicNumber:Sha256.kt$32</ID>
     <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$0xFF</ID>
     <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$13</ID>
     <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$17</ID>
     <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$31</ID>
     <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$37</ID>
     <ID>MagicNumber:SimpleCryptoProvider.kt$SimpleCryptoProvider$5</ID>
+    <ID>MagicNumber:WebDashboard.kt$12</ID>
+    <ID>MagicNumber:WebDashboard.kt$4</ID>
+    <ID>MagicNumber:WebDashboard.kt$6</ID>
     <ID>MatchingDeclarationName:AgentEventModels.kt$AgentEvent</ID>
-    <ID>MatchingDeclarationName:BleAdapter.ios.kt$BleAdapter</ID>
     <ID>MatchingDeclarationName:HealthIndicator.kt$HealthStatus</ID>
     <ID>MatchingDeclarationName:Platform.android.kt$AndroidPlatform : Platform</ID>
     <ID>MatchingDeclarationName:Platform.ios.kt$IOSPlatform : Platform</ID>
+    <ID>MatchingDeclarationName:PlatformCryptoProvider.android.kt$AndroidAesGcmCryptoProvider : CryptoProvider</ID>
     <ID>MatchingDeclarationName:PlatformResourceScanner.android.kt$PlatformResourceScanner</ID>
     <ID>MatchingDeclarationName:PlatformResourceScanner.ios.kt$PlatformResourceScanner</ID>
     <ID>MatchingDeclarationName:SecureKeystore.android.kt$SecureKeystore</ID>
-    <ID>MatchingDeclarationName:SecureKeystore.ios.kt$SecureKeystore</ID>
     <ID>MatchingDeclarationName:SecurityModels.kt$PublicKey</ID>
+    <ID>MaxLineLength:BleAdapter.ios.kt$IosBleConnection$override suspend fun receive(): ByteArray</ID>
+    <ID>MaxLineLength:BleAdapter.ios.kt$IosBleConnection$override suspend fun send(data: ByteArray): Result&lt;Unit&gt;</ID>
     <ID>MaxLineLength:DefaultAgentEventBus.kt$DefaultAgentEventBus$override</ID>
     <ID>MaxLineLength:DefaultComplianceEngine.kt$DefaultComplianceEngine$private</ID>
     <ID>MaxLineLength:DefaultComplianceEngine.kt$DefaultComplianceEngine$reason = "Daily total ${dailyTotal + transaction.amount} exceeds limit of ${rules.dailyTransactionLimit}"</ID>
     <ID>MaxLineLength:DefaultComplianceEngine.kt$DefaultComplianceEngine$reason = "Monthly total ${monthlyTotal + transaction.amount} exceeds limit of ${rules.monthlyTransactionLimit}"</ID>
     <ID>MaxLineLength:SecureKeystore.android.kt$SecureKeystore$"Signing operations are locked. Cooldown expires in ${lockedUntil - System.currentTimeMillis()}ms"</ID>
+    <ID>MaxLineLength:SecureKeystore.ios.kt$SecureKeystore$actual fun generateKeyPair(alias: String): Result&lt;PublicKey&gt;</ID>
+    <ID>MaxLineLength:SecureKeystore.ios.kt$SecureKeystore$actual fun getPublicKey(alias: String): Result&lt;PublicKey&gt;</ID>
+    <ID>MaxLineLength:WalletConnector.android.kt$AndroidWalletConnector$override suspend fun signMessage(session: WalletSession, message: String): WalletSignature</ID>
+    <ID>MaxLineLength:WalletConnector.ios.kt$IosWalletConnector$override suspend fun signMessage(session: WalletSession, message: String): WalletSignature</ID>
     <ID>MaxLineLength:WebDashboard.kt$Text(text = description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)</ID>
     <ID>MaxLineLength:WebDashboard.kt$Text(text = subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)</ID>
     <ID>MaxLineLength:WebDashboard.kt$Text(text = title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)</ID>
-    <ID>MaxLineLength:WebDashboard.kt$description = "All AI reasoning stays on-device. Nothing leaves without your explicit consent. Hardware-backed wallet keys."</ID>
+    <ID>MaxLineLength:WebDashboard.kt$description</ID>
     <ID>MaxLineLength:WebDashboard.kt$description = "Connects nearby devices via Bluetooth to pool resources and unlock larger earning opportunities."</ID>
-    <ID>MaxLineLength:WebDashboard.kt$description = "ExecuTorch models run locally with KleidiAI acceleration. No cloud dependency, no privacy loss."</ID>
-    <ID>MaxLineLength:WebDashboard.kt$description = "You define the limits. Set transaction caps, autonomy levels, and biometric thresholds. Agents never exceed your rules."</ID>
+    <ID>MaxLineLength:WebDashboard.kt$private fun metricSub(signedIn: AuthState.SignedIn?): String</ID>
+    <ID>MaxLineLength:WebDashboard.kt$private fun shortenAddress(address: String): String</ID>
+    <ID>MaxLineLength:WebDashboard.kt${ m -&gt; DashboardMetric("Active Agents", if (signedIn != null) "0" else "——", metricSub(signedIn), m) }</ID>
+    <ID>MaxLineLength:WebDashboard.kt${ m -&gt; DashboardMetric("System Health", if (signedIn != null) "Green" else "——", metricSub(signedIn), m) }</ID>
     <ID>ReturnCount:BleAdapter.android.kt$AndroidBleConnection$override suspend fun send(data: ByteArray): Result&lt;Unit&gt;</ID>
     <ID>ReturnCount:DefaultComplianceEngine.kt$DefaultComplianceEngine$override suspend fun checkTransaction(transaction: TransactionRequest): ComplianceDecision</ID>
     <ID>ReturnCount:DefaultEarningEngine.kt$DefaultEarningEngine$override suspend fun initiatePayout(event: EarningEvent): Result&lt;PayoutReceipt&gt;</ID>
@@ -121,7 +116,10 @@
     <ID>SwallowedException:SecureKeystore.android.kt$SecureKeystore$e: Exception</ID>
     <ID>TooManyFunctions:DefaultMeshCoordinator.kt$DefaultMeshCoordinator : MeshCoordinator</ID>
     <ID>TooManyFunctions:WebDashboard.kt$com.maku.idleharvest.ui.web.WebDashboard.kt</ID>
+    <ID>TopLevelPropertyNaming:BleAdapter.ios.kt$/** * IdleHarvest BLE service UUID — must match the Android adapter so the two platforms * discover each other. (Direct GATT + advertising only; no mesh flooding — Req 4.7.) */ private const val IDLE_HARVEST_SERVICE_UUID = "0000FEED-0000-1000-8000-00805F9B34FB"</ID>
     <ID>TopLevelPropertyNaming:MeshCoordinator.kt$/** Maximum number of simultaneous GATT peer connections allowed. */ const val MAX_GATT_CONNECTIONS = 5</ID>
+    <ID>TopLevelPropertyNaming:SecureKeystore.ios.kt$/** * iOS SecureKeystore. * * IdleHarvest now delegates signing and identity to the user's connected wallet * (see domain/auth: WalletConnector + AuthManager) rather than managing its own keys. * On iOS this keystore is therefore intentionally inert and reports unavailability, * directing callers to the wallet-based signing path. (Android retains a real * hardware-backed keystore for its legacy on-device signing use case.) */ private const val WALLET_DELEGATED = "Signing is delegated to the connected wallet on iOS; SecureKeystore is unused."</ID>
+    <ID>TopLevelPropertyNaming:WebDashboard.kt$/** Firebase App Distribution tester link for Android beta APK access. */ private const val ANDROID_BETA_LINK = "https://appdistribution.firebase.dev/i/e65c460a68b20fc4"</ID>
     <ID>TopLevelPropertyNaming:WebDashboard.kt$private const val GITHUB_URL = "https://github.com/ma-za-kpe/IdleHarvest"</ID>
     <ID>UnusedParameter:DefaultEarningEngine.kt$DefaultEarningEngine$reason: String</ID>
     <ID>UnusedPrivateProperty:AgentOrchestrator.kt$AgentOrchestrator$private val airtimeAgent: AirtimeAgent</ID>

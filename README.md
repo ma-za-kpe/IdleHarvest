@@ -30,7 +30,7 @@
 | Platform | How to access |
 |----------|--------------|
 | **Web** | Visit [idleharvest-86163.web.app](https://idleharvest-86163.web.app) — no install needed |
-| **Android (Beta APK)** | Email **makpalyy@gmail.com** with subject `IdleHarvest Beta Request` and your device model. We'll send you the APK directly. |
+| **Android (Beta APK)** | [Get beta via Firebase App Distribution](https://appdistribution.firebase.dev/i/e65c460a68b20fc4) |
 
 > Beta builds require Android 7.0+ (API 24) on any Arm64 device.
 

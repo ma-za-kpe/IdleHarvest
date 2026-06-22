@@ -3,6 +3,7 @@ package com.maku.idleharvest.ui.web
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,7 +25,10 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,43 +36,117 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.maku.idleharvest.domain.auth.AuthManager
+import com.maku.idleharvest.domain.auth.AuthState
+import com.maku.idleharvest.domain.auth.WalletChain
+import com.maku.idleharvest.domain.auth.createWalletConnector
 import com.maku.idleharvest.ui.theme.IdleHarvestBrand
 import com.maku.idleharvest.ui.theme.IdleHarvestDimens
 import com.maku.idleharvest.ui.theme.IdleHarvestTheme
+import kotlinx.coroutines.launch
+
+/**
+ * Viewport width below which the layout collapses multi-column rows into a
+ * single stacked column. Mirrors the common Material "compact" window-size
+ * class breakpoint (600dp).
+ */
+private val CompactBreakpoint: Dp = 600.dp
+
+/**
+ * Lays out [items] as a horizontal [Row] (each item weighted equally) on wide
+ * viewports and as a vertical [Column] (each item full width) on compact ones.
+ * This is the core responsive primitive for the landing page: each item receives
+ * a [Modifier] that is `weight(1f)` in row mode and `fillMaxWidth()` when stacked.
+ */
+@Composable
+private fun ResponsiveRow(
+    compact: Boolean,
+    spacing: Dp,
+    items: List<@Composable (itemModifier: Modifier) -> Unit>,
+    modifier: Modifier = Modifier,
+) {
+    if (compact) {
+        Column(
+            modifier = modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(spacing),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            items.forEach { item -> item(Modifier.fillMaxWidth()) }
+        }
+    } else {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(spacing),
+        ) {
+            items.forEach { item -> item(Modifier.weight(1f)) }
+        }
+    }
+}
 
 /** Root entry point for the Kotlin/WASM web app. */
 @Composable
 fun WebApp(onOpenUrl: (String) -> Unit = {}) {
     IdleHarvestTheme {
-        WebDashboard(onOpenUrl = onOpenUrl)
+        val scope = rememberCoroutineScope()
+        // Wallet-based auth wired to the live browser wallet providers.
+        val authManager = remember {
+            AuthManager(
+                connector = createWalletConnector(),
+                nonceProvider = { generateWebNonce() },
+            )
+        }
+        val authState by authManager.state.collectAsState()
+        WebDashboard(
+            onOpenUrl = onOpenUrl,
+            authState = authState,
+            onSignIn = { chain -> scope.launch { authManager.signIn(chain) } },
+            onSignOut = { scope.launch { authManager.signOut() } },
+        )
     }
 }
 
 @Composable
-fun WebDashboard(onOpenUrl: (String) -> Unit = {}) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .verticalScroll(rememberScrollState()),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        LandingHero(onOpenUrl = onOpenUrl)
-        FeaturesSection()
-        ImpactStatsSection()
-        EarningsDashboardSection()
-        FooterSection(onOpenUrl = onOpenUrl)
+fun WebDashboard(
+    onOpenUrl: (String) -> Unit = {},
+    authState: AuthState = AuthState.SignedOut,
+    onSignIn: (WalletChain) -> Unit = {},
+    onSignOut: () -> Unit = {},
+) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val compact = maxWidth < CompactBreakpoint
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            LandingHero(compact = compact, onOpenUrl = onOpenUrl)
+            FeaturesSection(compact = compact)
+            ImpactStatsSection(compact = compact)
+            EarningsDashboardSection(
+                compact = compact,
+                authState = authState,
+                onSignIn = onSignIn,
+                onSignOut = onSignOut,
+            )
+            FooterSection(onOpenUrl = onOpenUrl)
+        }
     }
 }
 
 @Composable
-private fun LandingHero(onOpenUrl: (String) -> Unit) {
+private fun LandingHero(compact: Boolean, onOpenUrl: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.primary)
-            .padding(vertical = 64.dp, horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+            .padding(
+                vertical = if (compact) IdleHarvestDimens.SpaceXXXL else 64.dp,
+                horizontal = IdleHarvestDimens.ScreenPaddingHorizontal,
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Column(
@@ -84,7 +162,11 @@ private fun LandingHero(onOpenUrl: (String) -> Unit) {
             Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
             Text(
                 text = IdleHarvestBrand.APP_TAGLINE,
-                style = MaterialTheme.typography.headlineMedium,
+                style = if (compact) {
+                    MaterialTheme.typography.headlineSmall
+                } else {
+                    MaterialTheme.typography.headlineMedium
+                },
                 color = MaterialTheme.colorScheme.onPrimary,
                 textAlign = TextAlign.Center,
             )
@@ -96,28 +178,43 @@ private fun LandingHero(onOpenUrl: (String) -> Unit) {
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(IdleHarvestDimens.SpaceXXL))
-            Row(horizontalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceLG)) {
-                Button(onClick = {}) {
-                    Text("Download for Android")
-                }
-                OutlinedButton(onClick = { onOpenUrl(GITHUB_URL) }) {
-                    val icon = rememberGitHubMark()
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                    )
-                    Spacer(Modifier.width(IdleHarvestDimens.SpaceXS))
-                    Text("View on GitHub")
-                }
-            }
+            ResponsiveRow(
+                compact = compact,
+                spacing = if (compact) IdleHarvestDimens.SpaceMD else IdleHarvestDimens.SpaceLG,
+                items = listOf(
+                    { itemModifier ->
+                        Button(onClick = { onOpenUrl(ANDROID_BETA_LINK) }, modifier = itemModifier) {
+                            Text("Get Android Beta")
+                        }
+                    },
+                    { itemModifier ->
+                        OutlinedButton(onClick = { onOpenUrl(GITHUB_URL) }, modifier = itemModifier) {
+                            val icon = rememberGitHubMark()
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.onPrimary,
+                            )
+                            Spacer(Modifier.width(IdleHarvestDimens.SpaceXS))
+                            Text("View on GitHub")
+                        }
+                    },
+                ),
+            )
+            Text(
+                text = "Android beta via Firebase App Distribution — instant tester access",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = IdleHarvestDimens.SpaceSM),
+            )
         }
     }
 }
 
 @Composable
-private fun FeaturesSection() {
+private fun FeaturesSection(compact: Boolean) {
     Column(
         modifier = Modifier
             .widthIn(max = 960.dp)
@@ -132,55 +229,72 @@ private fun FeaturesSection() {
             textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceLG),
-        ) {
-            FeatureCard(
-                modifier = Modifier.weight(1f),
-                icon = rememberPhoneAndroidIcon(),
-                title = "Airtime Agent",
-                description = "Automatically sells or transfers expiring airtime and data bundles. " +
-                    "You earn USDC instead of losing value.",
-            )
-            FeatureCard(
-                modifier = Modifier.weight(1f),
-                icon = rememberLanguageIcon(),
-                title = "DePIN Agent",
-                description = "Shares idle bandwidth and compute to decentralized networks. " +
-                    "Earn passive crypto income without manual work.",
-            )
-            FeatureCard(
-                modifier = Modifier.weight(1f),
-                icon = rememberBluetoothIcon(),
-                title = "Mesh Coordinator",
-                description = "Connects nearby devices via Bluetooth to pool resources and unlock larger earning opportunities.",
-            )
-        }
+        ResponsiveRow(
+            compact = compact,
+            spacing = IdleHarvestDimens.SpaceLG,
+            items = listOf(
+                { m ->
+                    FeatureCard(
+                        modifier = m,
+                        icon = rememberPhoneAndroidIcon(),
+                        title = "Airtime Agent",
+                        description = "Automatically sells or transfers expiring airtime and data bundles. " +
+                            "You earn USDC instead of losing value.",
+                    )
+                },
+                { m ->
+                    FeatureCard(
+                        modifier = m,
+                        icon = rememberLanguageIcon(),
+                        title = "DePIN Agent",
+                        description = "Shares idle bandwidth and compute to decentralized networks. " +
+                            "Earn passive crypto income without manual work.",
+                    )
+                },
+                { m ->
+                    FeatureCard(
+                        modifier = m,
+                        icon = rememberBluetoothIcon(),
+                        title = "Mesh Coordinator",
+                        description = "Connects nearby devices via Bluetooth to pool resources and unlock larger earning opportunities.",
+                    )
+                },
+            ),
+        )
         Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceLG),
-        ) {
-            FeatureCard(
-                modifier = Modifier.weight(1f),
-                icon = rememberLockIcon(),
-                title = "Privacy First",
-                description = "All AI reasoning stays on-device. Nothing leaves without your explicit consent. Hardware-backed wallet keys.",
-            )
-            FeatureCard(
-                modifier = Modifier.weight(1f),
-                icon = rememberMemoryIcon(),
-                title = "On-Device AI",
-                description = "ExecuTorch models run locally with KleidiAI acceleration. No cloud dependency, no privacy loss.",
-            )
-            FeatureCard(
-                modifier = Modifier.weight(1f),
-                icon = rememberTuneIcon(),
-                title = "Your Guardrails",
-                description = "You define the limits. Set transaction caps, autonomy levels, and biometric thresholds. Agents never exceed your rules.",
-            )
-        }
+        ResponsiveRow(
+            compact = compact,
+            spacing = IdleHarvestDimens.SpaceLG,
+            items = listOf(
+                { m ->
+                    FeatureCard(
+                        modifier = m,
+                        icon = rememberLockIcon(),
+                        title = "Privacy First",
+                        description = "All AI reasoning stays on-device. Nothing leaves without your explicit consent. " +
+                            "Hardware-backed wallet keys.",
+                    )
+                },
+                { m ->
+                    FeatureCard(
+                        modifier = m,
+                        icon = rememberMemoryIcon(),
+                        title = "On-Device AI",
+                        description = "ExecuTorch models run locally with KleidiAI acceleration. " +
+                            "No cloud dependency, no privacy loss.",
+                    )
+                },
+                { m ->
+                    FeatureCard(
+                        modifier = m,
+                        icon = rememberTuneIcon(),
+                        title = "Your Guardrails",
+                        description = "You define the limits. Set transaction caps, autonomy levels, and biometric thresholds. " +
+                            "Agents never exceed your rules.",
+                    )
+                },
+            ),
+        )
     }
 }
 
@@ -206,7 +320,7 @@ private fun FeatureCard(modifier: Modifier = Modifier, icon: ImageVector, title:
 }
 
 @Composable
-private fun ImpactStatsSection() {
+private fun ImpactStatsSection(compact: Boolean) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -225,22 +339,40 @@ private fun ImpactStatsSection() {
                 textAlign = TextAlign.Center,
             )
             Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-            ) {
-                StatItem("<100ms", "Inference latency\n(Arm optimized)")
-                StatItem("<10MB", "Model size\n(quantized)")
-                StatItem("<5%/hr", "Battery impact\n(all agents active)")
-                StatItem("4 languages", "EN · FR · SW · HA")
+            if (compact) {
+                // On phones, lay the four stats out as a 2×2 grid so the values
+                // stay legible instead of being squeezed into four tiny columns.
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceXL),
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        StatItem("<100ms", "Inference latency\n(Arm optimized)", Modifier.weight(1f))
+                        StatItem("<10MB", "Model size\n(quantized)", Modifier.weight(1f))
+                    }
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
+                        StatItem("<5%/hr", "Battery impact\n(all agents active)", Modifier.weight(1f))
+                        StatItem("4 languages", "EN · FR · SW · HA", Modifier.weight(1f))
+                    }
+                }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    StatItem("<100ms", "Inference latency\n(Arm optimized)")
+                    StatItem("<10MB", "Model size\n(quantized)")
+                    StatItem("<5%/hr", "Battery impact\n(all agents active)")
+                    StatItem("4 languages", "EN · FR · SW · HA")
+                }
             }
         }
     }
 }
 
 @Composable
-private fun StatItem(value: String, label: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun StatItem(value: String, label: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(
             text = value,
             style = MaterialTheme.typography.headlineSmall,
@@ -258,7 +390,13 @@ private fun StatItem(value: String, label: String) {
 }
 
 @Composable
-private fun EarningsDashboardSection() {
+private fun EarningsDashboardSection(
+    compact: Boolean,
+    authState: AuthState,
+    onSignIn: (WalletChain) -> Unit,
+    onSignOut: () -> Unit,
+) {
+    val signedIn = authState as? AuthState.SignedIn
     Column(
         modifier = Modifier
             .widthIn(max = 960.dp)
@@ -274,8 +412,13 @@ private fun EarningsDashboardSection() {
         )
         Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
         Text(
-            text = "Sign in to see your live earnings, active agents, and transaction history. " +
-                "End-to-end encrypted — nothing stored on our servers.",
+            text = if (signedIn != null) {
+                "Connected as ${shortenAddress(signedIn.session.address.value)} via ${signedIn.session.walletName}. " +
+                    "Your vault key is derived from your wallet — nothing stored on our servers."
+            } else {
+                "Connect your wallet to see your live earnings, active agents, and transaction history. " +
+                    "End-to-end encrypted — nothing stored on our servers."
+            },
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -284,29 +427,98 @@ private fun EarningsDashboardSection() {
 
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(IdleHarvestDimens.CardPadding)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    DashboardMetric("Total Earnings", "—— USDC", "Sign in to view")
-                    DashboardMetric("Active Agents", "——", "Sign in to view")
-                    DashboardMetric("System Health", "——", "Sign in to view")
-                }
+                val placeholder = if (signedIn != null) "0.00" else "——"
+                ResponsiveRow(
+                    compact = compact,
+                    spacing = if (compact) IdleHarvestDimens.SpaceXL else IdleHarvestDimens.SpaceLG,
+                    items = listOf(
+                        { m -> DashboardMetric("Total Earnings", "$placeholder USDC", metricSub(signedIn), m) },
+                        { m -> DashboardMetric("Active Agents", if (signedIn != null) "0" else "——", metricSub(signedIn), m) },
+                        { m -> DashboardMetric("System Health", if (signedIn != null) "Green" else "——", metricSub(signedIn), m) },
+                    ),
+                )
                 Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
-                Button(
-                    onClick = {},
-                    modifier = Modifier.fillMaxWidth().height(IdleHarvestDimens.ButtonHeight),
-                ) {
-                    Text("Sign In to View Dashboard")
-                }
+                AuthControls(
+                    compact = compact,
+                    authState = authState,
+                    onSignIn = onSignIn,
+                    onSignOut = onSignOut,
+                )
+            }
+        }
+    }
+}
+
+private fun metricSub(signedIn: AuthState.SignedIn?): String = if (signedIn != null) "Live" else "Connect wallet to view"
+
+private fun shortenAddress(address: String): String = if (address.length > 12) "${address.take(6)}…${address.takeLast(4)}" else address
+
+/**
+ * Wallet sign-in controls reflecting the live [AuthState]. Offers EVM (MetaMask) and
+ * Solana (Phantom) connect buttons, a busy state while authenticating, an error
+ * message on failure, and a disconnect action once signed in.
+ */
+@Composable
+private fun AuthControls(
+    compact: Boolean,
+    authState: AuthState,
+    onSignIn: (WalletChain) -> Unit,
+    onSignOut: () -> Unit,
+) {
+    when (authState) {
+        is AuthState.SignedIn -> {
+            OutlinedButton(
+                onClick = onSignOut,
+                modifier = Modifier.fillMaxWidth().height(IdleHarvestDimens.ButtonHeight),
+            ) {
+                Text("Disconnect Wallet")
+            }
+        }
+        AuthState.Authenticating -> {
+            Button(
+                onClick = {},
+                enabled = false,
+                modifier = Modifier.fillMaxWidth().height(IdleHarvestDimens.ButtonHeight),
+            ) {
+                Text("Check your wallet…")
+            }
+        }
+        else -> {
+            ResponsiveRow(
+                compact = compact,
+                spacing = IdleHarvestDimens.SpaceMD,
+                items = listOf(
+                    { m ->
+                        Button(
+                            onClick = { onSignIn(WalletChain.EVM) },
+                            modifier = m.height(IdleHarvestDimens.ButtonHeight),
+                        ) { Text("Connect MetaMask") }
+                    },
+                    { m ->
+                        OutlinedButton(
+                            onClick = { onSignIn(WalletChain.SOLANA) },
+                            modifier = m.height(IdleHarvestDimens.ButtonHeight),
+                        ) { Text("Connect Phantom") }
+                    },
+                ),
+            )
+            if (authState is AuthState.Failed) {
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+                Text(
+                    text = authState.reason,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth(),
+                )
             }
         }
     }
 }
 
 @Composable
-private fun DashboardMetric(title: String, value: String, subtitle: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+private fun DashboardMetric(title: String, value: String, subtitle: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
         Text(text = title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         Spacer(Modifier.height(IdleHarvestDimens.SpaceXS))
         Text(text = value, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.primary)
@@ -315,6 +527,22 @@ private fun DashboardMetric(title: String, value: String, subtitle: String) {
 }
 
 private const val GITHUB_URL = "https://github.com/ma-za-kpe/IdleHarvest"
+
+/** Firebase App Distribution tester link for Android beta APK access. */
+private const val ANDROID_BETA_LINK = "https://appdistribution.firebase.dev/i/e65c460a68b20fc4"
+
+/** Monotonic counter seeding login-challenge nonces (no platform clock needed in commonMain). */
+private var webNonceCounter = 0
+
+/**
+ * Produce a fresh nonce for each login challenge. Uniqueness per session is sufficient
+ * here: the signature proves wallet ownership; the nonce only prevents trivially
+ * replaying an identical challenge within the session.
+ */
+private fun generateWebNonce(): String {
+    webNonceCounter += 1
+    return "ih-$webNonceCounter-${IdleHarvestBrand.APP_NAME.hashCode()}"
+}
 
 @Composable
 private fun rememberGitHubMark(): ImageVector = remember {

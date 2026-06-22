@@ -2,8 +2,12 @@ package com.maku.idleharvest.infrastructure.crypto
 
 /**
  * Abstraction for cryptographic operations.
- * Platform-specific implementations (androidMain/iosMain) provide real AES-256-GCM.
- * A simple reversible implementation is provided in commonMain for testing.
+ *
+ * Production code should obtain an instance via [createPlatformCryptoProvider], which
+ * returns a real AES-256-GCM + HMAC-SHA256 implementation backed by the platform's
+ * native crypto library (Android: javax.crypto; iOS: CryptoKit/CommonCrypto; Web:
+ * SubtleCrypto). The XOR-based [SimpleCryptoProvider] in commonMain is for tests only
+ * and is NOT cryptographically secure.
  */
 interface CryptoProvider {
     /**
@@ -53,3 +57,11 @@ class CryptoException(
     message: String,
     cause: Throwable? = null,
 ) : Exception(message, cause)
+
+/**
+ * Create the platform-backed [CryptoProvider] for production use.
+ *
+ * Each platform provides a real AES-256-GCM (with a random 12-byte IV prepended to the
+ * ciphertext) and HMAC-SHA256 implementation. Callers must supply 32-byte keys.
+ */
+expect fun createPlatformCryptoProvider(): CryptoProvider
