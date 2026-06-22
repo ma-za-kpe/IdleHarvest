@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- IdleHarvest Dark Mode Overrides -->
+    <color name="status_bar_color">#FF0B1120</color>
+    <color name="navigation_bar_color">#FF121B2E</color>
+</resources>

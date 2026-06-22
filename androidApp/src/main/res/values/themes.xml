@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base IdleHarvest Theme (Light) -->
+    <style name="Theme.IdleHarvest" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:statusBarColor">@color/ih_navy</item>
+        <item name="android:navigationBarColor">@color/ih_light_bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:windowBackground">@color/ih_light_bg</item>
+    </style>
+
+    <!-- Splash Screen Theme -->
+    <style name="Theme.IdleHarvest.Splash" parent="Theme.IdleHarvest">
+        <item name="android:windowBackground">@color/ih_primary_green</item>
+        <item name="android:statusBarColor">@color/ih_primary_green</item>
+    </style>
+</resources>

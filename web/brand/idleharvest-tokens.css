@@ -1,0 +1,107 @@
+/**
+ * IdleHarvest Design Tokens — CSS Custom Properties
+ *
+ * Use these tokens for the Kotlin/WASM web landing page and any
+ * supplementary HTML/CSS content (marketing pages, email templates).
+ *
+ * Style: Bold & Symbolic
+ * Tone: Modern, trustworthy, empowering, vibrant Africa-friendly energy
+ */
+
+:root {
+    /* ─── Primary Brand ─────────────────────────────────────────── */
+    --ih-primary-green: #0A7C6B;
+    --ih-primary-green-light: #3DA896;
+    --ih-primary-green-dark: #065A4E;
+
+    --ih-accent-gold: #FFB300;
+    --ih-accent-gold-light: #FFCC4D;
+    --ih-accent-gold-dark: #CC8F00;
+
+    --ih-navy: #0F1C3A;
+    --ih-navy-light: #1A2E5A;
+    --ih-navy-dark: #080F20;
+
+    /* ─── Light Mode ────────────────────────────────────────────── */
+    --ih-bg-light: #F8F9FA;
+    --ih-surface-light: #FFFFFF;
+    --ih-surface-variant-light: #F0F2F5;
+    --ih-text-primary-light: #0F1C3A;
+    --ih-text-secondary-light: #4B5563;
+    --ih-text-tertiary-light: #9CA3AF;
+    --ih-divider-light: #E5E7EB;
+
+    /* ─── Dark Mode ─────────────────────────────────────────────── */
+    --ih-bg-dark: #0B1120;
+    --ih-surface-dark: #121B2E;
+    --ih-surface-variant-dark: #1A2742;
+    --ih-text-primary-dark: #F8F9FA;
+    --ih-text-secondary-dark: #D1D5DB;
+    --ih-text-tertiary-dark: #6B7280;
+    --ih-divider-dark: #1F2937;
+
+    /* ─── Semantic ──────────────────────────────────────────────── */
+    --ih-success: #10B981;
+    --ih-warning: #F59E0B;
+    --ih-error: #EF4444;
+    --ih-info: #3B82F6;
+
+    /* ─── Shadows ───────────────────────────────────────────────── */
+    --ih-shadow-sm: 0 1px 2px rgba(15, 28, 58, 0.06);
+    --ih-shadow-md: 0 4px 6px rgba(15, 28, 58, 0.08);
+    --ih-shadow-lg: 0 10px 15px rgba(15, 28, 58, 0.1);
+    --ih-shadow-xl: 0 20px 25px rgba(15, 28, 58, 0.12);
+
+    /* ─── Typography ────────────────────────────────────────────── */
+    --ih-font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --ih-font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --ih-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+
+    /* ─── Spacing (4dp grid) ────────────────────────────────────── */
+    --ih-space-xxs: 2px;
+    --ih-space-xs: 4px;
+    --ih-space-sm: 8px;
+    --ih-space-md: 12px;
+    --ih-space-lg: 16px;
+    --ih-space-xl: 24px;
+    --ih-space-xxl: 32px;
+    --ih-space-xxxl: 48px;
+
+    /* ─── Border Radius ─────────────────────────────────────────── */
+    --ih-radius-xs: 4px;
+    --ih-radius-sm: 8px;
+    --ih-radius-md: 12px;
+    --ih-radius-lg: 16px;
+    --ih-radius-xl: 24px;
+    --ih-radius-full: 9999px;
+
+    /* ─── Transitions ───────────────────────────────────────────── */
+    --ih-transition-fast: 150ms ease;
+    --ih-transition-normal: 250ms ease;
+    --ih-transition-slow: 350ms ease;
+}
+
+/* ─── Dark Mode Overrides ───────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --ih-bg: var(--ih-bg-dark);
+        --ih-surface: var(--ih-surface-dark);
+        --ih-surface-variant: var(--ih-surface-variant-dark);
+        --ih-text-primary: var(--ih-text-primary-dark);
+        --ih-text-secondary: var(--ih-text-secondary-dark);
+        --ih-text-tertiary: var(--ih-text-tertiary-dark);
+        --ih-divider: var(--ih-divider-dark);
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --ih-bg: var(--ih-bg-light);
+        --ih-surface: var(--ih-surface-light);
+        --ih-surface-variant: var(--ih-surface-variant-light);
+        --ih-text-primary: var(--ih-text-primary-light);
+        --ih-text-secondary: var(--ih-text-secondary-light);
+        --ih-text-tertiary: var(--ih-text-tertiary-light);
+        --ih-divider: var(--ih-divider-light);
+    }
+}
