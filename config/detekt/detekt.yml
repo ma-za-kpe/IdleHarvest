@@ -1,0 +1,61 @@
+build:
+  maxIssues: 0
+  excludeCorrectable: false
+
+complexity:
+  LongMethod:
+    threshold: 60
+  LongParameterList:
+    functionThreshold: 6
+    constructorThreshold: 7
+  CyclomaticComplexMethod:
+    threshold: 15
+  TooManyFunctions:
+    thresholdInFiles: 15
+    thresholdInClasses: 15
+    thresholdInInterfaces: 15
+    thresholdInObjects: 15
+    thresholdInEnums: 15
+
+style:
+  MagicNumber:
+    active: true
+    excludePropertyDeclaration: true
+    excludeCompanionObjectPropertyDeclaration: true
+    excludeAnnotation: true
+    excludeEnums: true
+  WildcardImport:
+    active: true
+    excludeImports:
+      - "java.util.*"
+      - "kotlinx.android.synthetic.*"
+  MaxLineLength:
+    maxLineLength: 120
+    excludePackageStatements: true
+    excludeImportStatements: true
+    excludeCommentStatements: true
+  ReturnCount:
+    max: 3
+
+naming:
+  FunctionNaming:
+    functionPattern: "[a-zA-Z][a-zA-Z0-9]*"
+  TopLevelPropertyNaming:
+    constantPattern: "[A-Z][A-Za-z0-9]*"
+    propertyPattern: "[A-Za-z][A-Za-z0-9]*"
+
+exceptions:
+  TooGenericExceptionCaught:
+    active: true
+    exceptionNames:
+      - "ArrayIndexOutOfBoundsException"
+      - "Error"
+      - "IllegalMonitorStateException"
+      - "NullPointerException"
+      - "IndexOutOfBoundsException"
+      - "RuntimeException"
+      - "Throwable"
+
+performance:
+  SpreadOperator:
+    active: true

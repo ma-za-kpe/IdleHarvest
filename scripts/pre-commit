@@ -1,0 +1,52 @@
+#!/bin/sh
+# IdleHarvest Pre-Commit Hook
+# Runs the full validation pipeline before allowing a commit.
+# Checks: Spotless formatting, Detekt static analysis, lint, and unit tests.
+
+echo "🔍 Running IdleHarvest Validation Pipeline..."
+echo "================================================"
+
+# Run Spotless check (code formatting)
+echo "📐 Checking code formatting (Spotless)..."
+./gradlew spotlessCheck --no-daemon --quiet
+SPOTLESS_EXIT=$?
+if [ $SPOTLESS_EXIT -ne 0 ]; then
+    echo "❌ Spotless formatting check failed."
+    echo "   Run './gradlew spotlessApply' to fix formatting."
+    exit 1
+fi
+echo "✅ Spotless passed."
+
+# Run Detekt (static analysis)
+echo "🔬 Running static analysis (Detekt)..."
+./gradlew detekt --no-daemon --quiet
+DETEKT_EXIT=$?
+if [ $DETEKT_EXIT -ne 0 ]; then
+    echo "❌ Detekt static analysis failed. Fix issues before committing."
+    exit 1
+fi
+echo "✅ Detekt passed."
+
+# Run Android lint
+echo "🧹 Running Android lint..."
+./gradlew :androidApp:lintDebug --no-daemon --quiet
+LINT_EXIT=$?
+if [ $LINT_EXIT -ne 0 ]; then
+    echo "❌ Android lint failed. Fix lint issues before committing."
+    exit 1
+fi
+echo "✅ Lint passed."
+
+# Run unit tests
+echo "🧪 Running unit tests..."
+./gradlew :shared:allTests --no-daemon --quiet
+TEST_EXIT=$?
+if [ $TEST_EXIT -ne 0 ]; then
+    echo "❌ Unit tests failed. Fix tests before committing."
+    exit 1
+fi
+echo "✅ Tests passed."
+
+echo "================================================"
+echo "✅ All validation checks passed. Committing..."
+exit 0
