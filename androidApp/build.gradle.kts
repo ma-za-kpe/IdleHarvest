@@ -35,6 +35,9 @@ android {
         libs.versions.android.compileSdk
             .get()
             .toInt()
+    buildFeatures {
+        buildConfig = true
+    }
 
     defaultConfig {
         applicationId = "com.maku.idleharvest"
@@ -46,8 +49,9 @@ android {
             libs.versions.android.targetSdk
                 .get()
                 .toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.1"
+        buildConfigField("String", "MODEL_ARTIFACT_BASE_URL", "\"https://idleharvest-86163.web.app/models\"")
     }
     packaging {
         resources {
@@ -103,10 +107,22 @@ tasks.register("buildBetaApk") {
         val appId = "1:447391948140:android:6e5cc46727f7ea821fa749"
         val releaseNotes = "Deployed via Gradle buildBetaApk task on ${System.currentTimeMillis()}. From senior audit run. (Debug-signed for beta)"
         println("Running Firebase App Distribution from Gradle task...")
-        val cmd = "firebase appdistribution:distribute '${destFile.absolutePath}' --app '$appId' --release-notes '$releaseNotes'"
+        val firebaseExecutable =
+            if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
+                "firebase.cmd"
+            } else {
+                "firebase"
+            }
         val process =
-            ProcessBuilder("/bin/zsh", "-c", cmd)
-                .redirectErrorStream(true)
+            ProcessBuilder(
+                firebaseExecutable,
+                "appdistribution:distribute",
+                destFile.absolutePath,
+                "--app",
+                appId,
+                "--release-notes",
+                releaseNotes,
+            ).redirectErrorStream(true)
                 .start()
         process.inputStream.bufferedReader().use { reader ->
             reader.lines().forEach { println(it) }

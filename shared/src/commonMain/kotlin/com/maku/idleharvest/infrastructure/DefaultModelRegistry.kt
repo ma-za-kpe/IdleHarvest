@@ -31,12 +31,13 @@ class DefaultModelRegistry(
     private val cryptoProvider: CryptoProvider,
     private val connectivityProvider: ConnectivityProvider = DefaultConnectivityProvider(),
     private val modelDownloader: ModelDownloader = NoOpModelDownloader(),
+    initialModels: List<ModelMetadata> = emptyList(),
     private val clock: () -> Long = { currentTimeMillis() },
 ) : ModelRegistry {
     private val json = Json { ignoreUnknownKeys = true }
     private val mutex = Mutex()
 
-    private val _availableModels = MutableStateFlow<List<ModelMetadata>>(emptyList())
+    private val _availableModels = MutableStateFlow(initialModels)
     override val availableModels: StateFlow<List<ModelMetadata>> = _availableModels.asStateFlow()
 
     /** Track active model per purpose. */
@@ -91,6 +92,7 @@ class DefaultModelRegistry(
         }
     }
 
+    @Suppress("LongMethod", "UseCheckOrError")
     override suspend fun downloadModel(modelId: String): Result<ModelFile> = runCatching {
         val metadata =
             findMetadata(modelId)
@@ -125,13 +127,31 @@ class DefaultModelRegistry(
                 },
             )
 
+        val fileContent =
+            modelDownloader.readFileContent(modelFileData.filePath)
+                ?: error("Downloaded file missing for $modelId: ${modelFileData.filePath}")
+        val computedHash = computeSha256Hex(fileContent)
+        val expectedChecksum = metadata.sha256Checksum.trim()
+
+        if (expectedChecksum.isNotEmpty() && computedHash != expectedChecksum) {
+            mutex.withLock {
+                downloadProgress.remove(modelId)
+            }
+            vault.delete("$DOWNLOAD_PROGRESS_PREFIX$modelId")
+            throw IntegrityVerificationException(
+                "Model integrity verification failed for $modelId: SHA-256 mismatch",
+            )
+        }
+
+        val resolvedChecksum = expectedChecksum.ifEmpty { computedHash }
+
         val modelFile =
             ModelFile(
                 modelId = modelId,
                 version = metadata.version,
                 filePath = modelFileData.filePath,
-                sizeBytes = modelFileData.sizeBytes,
-                sha256Checksum = metadata.sha256Checksum,
+                sizeBytes = fileContent.size.toLong(),
+                sha256Checksum = resolvedChecksum,
                 downloadedAt = clock(),
             )
 

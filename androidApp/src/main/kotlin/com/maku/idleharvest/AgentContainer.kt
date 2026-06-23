@@ -2,7 +2,13 @@ package com.maku.idleharvest
 
 import android.content.Context
 import com.maku.idleharvest.domain.SecureKeystore
+import com.maku.idleharvest.domain.models.HardwareProfile
+import com.maku.idleharvest.domain.models.InferenceBackend
+import com.maku.idleharvest.domain.models.ModelMetadata
+import com.maku.idleharvest.domain.models.ModelPurpose
+import com.maku.idleharvest.domain.models.QuantizationLevel
 import com.maku.idleharvest.infrastructure.AgentOrchestrator
+import com.maku.idleharvest.infrastructure.AndroidModelDownloader
 import com.maku.idleharvest.infrastructure.BleAdapter
 import com.maku.idleharvest.infrastructure.DefaultAgentEventBus
 import com.maku.idleharvest.infrastructure.DefaultAirtimeAgent
@@ -49,13 +55,44 @@ class AgentContainer(
     val resourceMonitor = DefaultResourceMonitor(scanner, appScope, eventBus)
 
     private val bleAdapter = BleAdapter(context)
-    private val meshCoordinator = DefaultMeshCoordinator(bleAdapter, cryptoProvider, eventBus, appScope)
+    val meshCoordinator = DefaultMeshCoordinator(bleAdapter, cryptoProvider, eventBus, appScope)
 
-    private val modelRegistry = DefaultModelRegistry(vault, cryptoProvider)
+    private val modelDownloader = AndroidModelDownloader(context)
+    private val initialModels =
+        listOf(
+            ModelMetadata(
+                id = "idleharvest_model",
+                version = "1.0.0",
+                purpose = ModelPurpose.RESOURCE_OPTIMIZATION,
+                sizeBytes = 8_000_000L,
+                quantization = QuantizationLevel.INT8,
+                targetHardware =
+                HardwareProfile(
+                    architecture = "arm64-v8a",
+                    minCores = 4,
+                    minRamGb = 4f,
+                    supportedBackends =
+                    listOf(
+                        InferenceBackend.KLEIDIAI,
+                        InferenceBackend.XNNPACK,
+                        InferenceBackend.CPU_BASELINE,
+                    ),
+                ),
+                sha256Checksum = "",
+                isStable = true,
+            ),
+        )
+    private val modelRegistry =
+        DefaultModelRegistry(
+            vault,
+            cryptoProvider,
+            modelDownloader = modelDownloader,
+            initialModels = initialModels,
+        )
     private val inferenceEngine = DefaultInferenceEngine(modelRegistry)
 
-    private val airtimeAgent = DefaultAirtimeAgent(policyManager, complianceEngine, vault, eventBus, inferenceEngine)
-    private val depinAgent = DefaultDePinAgent(vault, eventBus, policyManager)
+    val airtimeAgent = DefaultAirtimeAgent(policyManager, complianceEngine, vault, eventBus, inferenceEngine)
+    val depinAgent = DefaultDePinAgent(vault, eventBus, policyManager)
     private val secureKeystore = SecureKeystore()
     val earningEngine = DefaultEarningEngine(policyManager, vault, eventBus, secureKeystore)
 

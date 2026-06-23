@@ -156,6 +156,82 @@ cd IdleHarvest
    ./scripts/install-hooks.sh
    ```
 
+## Vast.ai Training
+
+Use Vast.ai to fine-tune and export your own on-device model artifacts.
+
+### Access the instance
+
+```bash
+# List your active instances
+vastai show instances
+
+# Inspect a specific instance and grab the SSH host/port
+vastai show instance <INSTANCE_ID> --raw
+
+# Connect over SSH using the host and port from the instance output
+ssh -o BatchMode=yes -p <SSH_PORT> root@<SSH_HOST>
+```
+
+If `vastai` is not on your PATH, the same CLI is usually available as:
+
+```bash
+python -m vastai show instances
+python -m vastai show instance <INSTANCE_ID> --raw
+```
+
+### Train and export
+
+```bash
+git clone https://github.com/ma-za-kpe/IdleHarvest.git
+cd IdleHarvest
+bash ml/vastai_setup.sh
+
+# Or run the steps manually:
+python3 ml/generate_dataset.py --rows 10000 --out ml/data
+python3 ml/train.py --data ml/data/device_usage.jsonl --base_model TinyLlama/TinyLlama-1.1B-Chat-v1.0 --output_dir ml/output/lora_merged --epochs 3 --batch_size 8
+python3 ml/export_to_executorch.py --model_dir ml/output/lora_merged --out ml/output/idleharvest_model.pte --quantize int8
+```
+
+### Verify the training output
+
+```bash
+# Training is complete when the log ends with "Training complete."
+tail -n 50 ml/output/train.log
+
+# Confirm the merged checkpoint exists and is non-empty
+du -sh ml/output/lora_merged
+
+# Confirm the exported ExecuTorch artifact exists
+ls -lh ml/output/idleharvest_model.pte
+```
+
+The exported model file is written on the Vast.ai instance at:
+
+```bash
+~/IdleHarvest/ml/output/idleharvest_model.pte
+```
+
+After export, copy it down to your machine and into the app resources if you want to ship it with the app:
+
+```bash
+scp -P <SSH_PORT> root@<SSH_HOST>:~/IdleHarvest/ml/output/idleharvest_model.pte .
+cp idleharvest_model.pte shared/src/commonMain/composeResources/files/
+```
+
+## TODO / Roadmap
+
+The next demo loop should make the full ecosystem visible from training to buyer settlement.
+
+- [ ] Re-run Vast.ai export until `ml/output/idleharvest_model.pte` is produced and archived.
+- [ ] Confirm the exported model can be downloaded from a real artifact endpoint instead of a no-op registry.
+- [ ] Add a minimal buyer backend using Ktor or Firebase that simulates demand, orders, and settlement callbacks.
+- [ ] Share common models and business rules between the Android app and backend with Kotlin Multiplatform.
+- [ ] Extend the web landing page with a buyer-side panel or route so the demo shows both sides of the loop.
+- [ ] Add fake payout and buyer transaction data for demo mode so the ecosystem can be shown without real third-party keys.
+- [ ] Keep the beta APK task Windows-safe and runnable from this repo on any developer machine.
+- [ ] Add backend integration tests for buyer/order/settlement flows.
+
 ## Building
 
 ### Android

@@ -25,6 +25,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -80,6 +81,11 @@ fun WebApp(onOpenUrl: (String) -> Unit = {}) {
         val scope = rememberCoroutineScope()
         val authManager = remember { AuthManager(connector = createAuthConnector()) }
         val authState by authManager.state.collectAsState()
+
+        // Restore session on page reload — Firebase onAuthStateChanged buffers the
+        // user in window._pendingAuthUser before WASM finishes loading.
+        LaunchedEffect(Unit) { authManager.restoreSession() }
+
         WebDashboard(
             onOpenUrl = onOpenUrl,
             authState = authState,
@@ -108,6 +114,7 @@ fun WebDashboard(
             LandingHero(compact = compact, onOpenUrl = onOpenUrl)
             FeaturesSection(compact = compact)
             ImpactStatsSection(compact = compact)
+            BuyerLoopSection(compact = compact)
             EarningsDashboardSection(
                 compact = compact,
                 authState = authState,
@@ -366,6 +373,90 @@ private fun StatItem(value: String, label: String, modifier: Modifier = Modifier
             textAlign = TextAlign.Center,
         )
     }
+}
+
+@Composable
+private fun BuyerLoopSection(compact: Boolean) {
+    Column(
+        modifier = Modifier
+            .widthIn(max = 960.dp)
+            .fillMaxWidth()
+            .padding(
+                vertical = IdleHarvestDimens.SpaceXXL,
+                horizontal = IdleHarvestDimens.ScreenPaddingHorizontal,
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Buyer Side Loop",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
+        )
+        BuyerLoopIntro()
+        Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
+        ResponsiveRow(
+            compact = compact,
+            spacing = IdleHarvestDimens.SpaceLG,
+            items = listOf(
+                { m ->
+                    BuyerLoopCard(
+                        m,
+                        rememberTuneIcon(),
+                        "Mock Buyer API",
+                        "Planned Ktor or Firebase service that simulates buyer demand, " +
+                            "orders, and settlement callbacks.",
+                    )
+                },
+                { m ->
+                    BuyerLoopCard(
+                        m,
+                        rememberMemoryIcon(),
+                        "Artifact Flow",
+                        "Published `.pte` artifacts will map to model IDs and versions " +
+                            "so training and serving stay aligned.",
+                    )
+                },
+                { m ->
+                    BuyerLoopCard(
+                        m,
+                        rememberLockIcon(),
+                        "Closed Ecosystem",
+                        "Buyer events can feed dashboard metrics, model updates, and " +
+                            "payout simulation in one controlled demo path.",
+                    )
+                },
+            ),
+        )
+    }
+}
+
+@Composable
+private fun BuyerLoopIntro() {
+    Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+    Text(
+        text =
+        "A simple buyer backend closes the demo loop: demand arrives, the app fulfills it, " +
+            "and the dashboard can show settlement feedback without relying on real production integrations.",
+        style = MaterialTheme.typography.bodyLarge,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+private fun BuyerLoopCard(
+    modifier: Modifier,
+    icon: ImageVector,
+    title: String,
+    description: String,
+) {
+    FeatureCard(
+        modifier = modifier,
+        icon = icon,
+        title = title,
+        description = description,
+    )
 }
 
 @Composable

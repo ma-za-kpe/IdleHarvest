@@ -1,0 +1,424 @@
+@file:Suppress("TooManyFunctions", "MaxLineLength", "MagicNumber", "ImplicitDefaultLocale")
+
+package com.maku.idleharvest.ui.dashboard
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import com.maku.idleharvest.domain.models.EarningEvent
+import com.maku.idleharvest.domain.models.EarningSource
+import com.maku.idleharvest.domain.models.MeshState
+import com.maku.idleharvest.infrastructure.HealthStatus
+import com.maku.idleharvest.ui.theme.IdleHarvestBrand
+import com.maku.idleharvest.ui.theme.IdleHarvestDimens
+import com.maku.idleharvest.ui.theme.IdleHarvestTheme
+import kotlin.math.round
+
+private val ColorActive = Color(0xFF22C55E)
+private val ColorInactive = Color(0xFF94A3B8)
+private val ColorWarn = Color(0xFFF59E0B)
+private val ColorError = Color(0xFFEF4444)
+private val DotSizeLarge = 12.dp
+private val DotSizeSmall = 8.dp
+private val SpaceXXS = 4.dp
+
+@Composable
+fun AgentDashboardScreen(dashboardState: AgentDashboardState = AgentDashboardState.demo()) {
+    IdleHarvestTheme {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .safeContentPadding()
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            DashboardHeader(headline = dashboardState.headline)
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
+            EarningsSummaryCard(summary = dashboardState.earningsSummary)
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
+            SectionLabel("Active Agents (${dashboardState.activeAgentCount}/${dashboardState.totalAgentCount})")
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            dashboardState.agents.forEach { agent ->
+                AgentCard(agent)
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            }
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
+            SectionLabel("System Health")
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            SystemHealthCard(dashboardState)
+            if (dashboardState.activePeers.isNotEmpty()) {
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
+                SectionLabel("Connected Peers")
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+                PeerRosterCard(dashboardState.activePeers)
+            }
+            if (dashboardState.recentTransactions.isNotEmpty()) {
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
+                SectionLabel("Recent Transactions")
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+                RecentTransactionsCard(dashboardState.recentTransactions)
+            }
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceXXL))
+        }
+    }
+}
+
+@Composable
+private fun DashboardHeader(headline: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primary)
+            .padding(
+                vertical = IdleHarvestDimens.SpaceLG,
+                horizontal = IdleHarvestDimens.ScreenPaddingHorizontal,
+            ),
+    ) {
+        Column {
+            Text(
+                text = IdleHarvestBrand.APP_NAME,
+                style = IdleHarvestBrand.LogoTextStyle,
+                color = MaterialTheme.colorScheme.onPrimary,
+            )
+            Text(
+                text = headline,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun EarningsSummaryCard(summary: com.maku.idleharvest.domain.models.EarningsSummary) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        elevation = CardDefaults.cardElevation(defaultElevation = IdleHarvestDimens.CardElevation),
+    ) {
+        Column(modifier = Modifier.padding(IdleHarvestDimens.CardPadding)) {
+            Text(
+                text = "Total Earnings",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Spacer(Modifier.height(SpaceXXS))
+            Text(
+                text = "${formatMoney(summary.totalEarnedUsdc)} USDC",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            ResponsiveRow(
+                compact = true,
+                spacing = IdleHarvestDimens.SpaceSM,
+                items = listOf(
+                    { modifier ->
+                        SummaryMetric("Last 24h", "${formatMoney(summary.last24hUsdc)} USDC", modifier)
+                    },
+                    { modifier ->
+                        SummaryMetric("Last 7d", "${formatMoney(summary.last7dUsdc)} USDC", modifier)
+                    },
+                ),
+            )
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            summary.bySource.entries.sortedByDescending { it.value }.forEach { (source, amount) ->
+                Text(
+                    text = "${sourceLabel(source)}: ${formatMoney(amount)} USDC",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+    )
+}
+
+@Composable
+private fun AgentCard(agent: DashboardAgentStatus) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        elevation = CardDefaults.cardElevation(defaultElevation = IdleHarvestDimens.CardElevation),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(IdleHarvestDimens.CardPadding),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(DotSizeLarge)
+                    .clip(CircleShape)
+                    .background(agentColor(agent.state)),
+            )
+            Spacer(Modifier.width(IdleHarvestDimens.SpaceSM))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = agent.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    text = agent.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Text(
+                text = agent.statusLabel,
+                style = MaterialTheme.typography.labelSmall,
+                color = agentColor(agent.state),
+                textAlign = TextAlign.End,
+            )
+        }
+    }
+}
+
+@Composable
+private fun ResponsiveRow(
+    compact: Boolean,
+    spacing: androidx.compose.ui.unit.Dp,
+    items: List<@Composable (itemModifier: Modifier) -> Unit>,
+    modifier: Modifier = Modifier,
+) {
+    if (compact) {
+        Column(
+            modifier = modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(spacing),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            items.forEach { item -> item(Modifier.fillMaxWidth()) }
+        }
+    } else {
+        Row(
+            modifier = modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(spacing),
+        ) {
+            items.forEach { item -> item(Modifier.weight(1f)) }
+        }
+    }
+}
+
+@Composable
+private fun SystemHealthCard(dashboardState: AgentDashboardState) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        elevation = CardDefaults.cardElevation(defaultElevation = IdleHarvestDimens.CardElevation),
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(IdleHarvestDimens.CardPadding),
+            verticalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceSM),
+        ) {
+            ResponsiveRow(
+                compact = true,
+                spacing = IdleHarvestDimens.SpaceSM,
+                items = listOf(
+                    { modifier -> HealthMetric("Overall", dashboardState.healthStatus.name, dashboardState.healthStatus != HealthStatus.RED, modifier) },
+                    { modifier -> HealthMetric("Battery", batteryLabel(dashboardState.resourceProfile.batteryLevel, dashboardState.resourceProfile.isCharging), batteryHealthy(dashboardState.resourceProfile.batteryLevel, dashboardState.resourceProfile.isCharging), modifier) },
+                    { modifier -> HealthMetric("Thermal", dashboardState.resourceProfile.thermalState.name, dashboardState.resourceProfile.thermalState != com.maku.idleharvest.domain.models.ThermalState.CRITICAL, modifier) },
+                ),
+            )
+            ResponsiveRow(
+                compact = true,
+                spacing = IdleHarvestDimens.SpaceSM,
+                items = listOf(
+                    { modifier -> HealthMetric("Mesh", meshLabel(dashboardState.meshState), dashboardState.meshState != MeshState.ERROR, modifier) },
+                    { modifier -> HealthMetric("Peers", "${dashboardState.activePeers.size} connected", dashboardState.activePeers.isNotEmpty() || dashboardState.meshState != MeshState.CONNECTED, modifier) },
+                ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun HealthMetric(label: String, value: String, ok: Boolean, modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(
+            modifier = Modifier
+                .size(DotSizeSmall)
+                .clip(CircleShape)
+                .background(if (ok) ColorActive else ColorWarn),
+        )
+        Spacer(Modifier.height(SpaceXXS))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
+private fun PeerRosterCard(peers: List<com.maku.idleharvest.domain.models.Peer>) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        elevation = CardDefaults.cardElevation(defaultElevation = IdleHarvestDimens.CardElevation),
+    ) {
+        Column(modifier = Modifier.padding(IdleHarvestDimens.CardPadding), verticalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceSM)) {
+            peers.take(3).forEach { peer ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(peer.displayName, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            text = "${peer.connectionState.name}  ${peer.signalStrength} dBm",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(
+                        text = peer.id.value,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RecentTransactionsCard(events: List<EarningEvent>) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        elevation = CardDefaults.cardElevation(defaultElevation = IdleHarvestDimens.CardElevation),
+    ) {
+        Column(modifier = Modifier.padding(IdleHarvestDimens.CardPadding), verticalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceSM)) {
+            events.take(3).forEach { event ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(sourceLabel(event.source), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
+                        Text(
+                            text = event.agentId.value,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                    Text(
+                        text = "${formatMoney(event.amountUsdc)} USDC",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SummaryMetric(title: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(IdleHarvestDimens.SpaceXS))
+        Text(text = value, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+    }
+}
+
+private fun agentColor(state: com.maku.idleharvest.domain.models.AgentState): Color = when (state) {
+    com.maku.idleharvest.domain.models.AgentState.IDLE -> ColorInactive
+    com.maku.idleharvest.domain.models.AgentState.EVALUATING -> ColorWarn
+    com.maku.idleharvest.domain.models.AgentState.EXECUTING -> ColorActive
+    com.maku.idleharvest.domain.models.AgentState.PAUSED -> ColorWarn
+    com.maku.idleharvest.domain.models.AgentState.ERROR -> ColorError
+}
+
+private fun sourceLabel(source: EarningSource): String = when (source) {
+    EarningSource.AIRTIME_SALE -> "Airtime sale"
+    EarningSource.DEPIN_REWARD -> "DePIN reward"
+    EarningSource.MESH_SERVICE -> "Mesh service"
+    EarningSource.NANOPAYMENT -> "Nanopayment"
+}
+
+private fun meshLabel(state: MeshState): String = when (state) {
+    MeshState.IDLE -> "Idle"
+    MeshState.SCANNING -> "Scanning"
+    MeshState.CONNECTED -> "Connected"
+    MeshState.ERROR -> "Error"
+}
+
+private fun batteryLabel(level: Int, charging: Boolean): String = when {
+    level < 0 -> "Unknown"
+    charging -> "$level% charging"
+    else -> "$level%"
+}
+
+private fun batteryHealthy(level: Int, charging: Boolean): Boolean = charging || level > 20
+
+private fun formatMoney(value: Double): String {
+    val scaled = round(value * 100.0).toLong()
+    val whole = scaled / 100
+    val fraction = kotlin.math.abs(scaled % 100)
+    return buildString {
+        append(whole)
+        append('.')
+        if (fraction < 10) {
+            append('0')
+        }
+        append(fraction)
+    }
+}

@@ -6,6 +6,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -13,6 +14,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.tooling.preview.Preview
 import com.maku.idleharvest.service.ResourceMonitorService
 import com.maku.idleharvest.service.ResourceMonitorWorker
+import com.maku.idleharvest.ui.dashboard.AgentDashboardState
 import com.maku.idleharvest.ui.onboarding.OnboardingFlow
 import com.maku.idleharvest.ui.onboarding.OnboardingState
 import com.maku.idleharvest.ui.onboarding.SafeOnboardingDefaults
@@ -43,6 +45,7 @@ class MainActivity : ComponentActivity() {
         setContent {
             IdleHarvestTheme {
                 MainScreen(
+                    agents = agents,
                     initialOnboardingDone = onboardingDone,
                     onOnboardingComplete = { completedState ->
                         prefs.edit().putBoolean(KEY_ONBOARDING_DONE, true).apply()
@@ -75,6 +78,7 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 private fun MainScreen(
+    agents: AgentContainer,
     initialOnboardingDone: Boolean,
     onOnboardingComplete: (OnboardingState) -> Unit,
 ) {
@@ -88,8 +92,30 @@ private fun MainScreen(
             },
         )
     } else {
-        App()
+        LiveApp(agents)
     }
+}
+
+@Composable
+private fun LiveApp(agents: AgentContainer) {
+    val resourceProfile by agents.resourceMonitor.resourceProfile.collectAsState()
+    val airtimeState by agents.airtimeAgent.state.collectAsState()
+    val depinState by agents.depinAgent.state.collectAsState()
+    val meshState by agents.meshCoordinator.meshState.collectAsState()
+    val activePeers by agents.meshCoordinator.activePeers.collectAsState()
+    val earningHistory by agents.earningEngine.earningHistory.collectAsState()
+
+    App(
+        dashboardState =
+        AgentDashboardState.fromRuntime(
+            resourceProfile = resourceProfile,
+            airtimeState = airtimeState,
+            depinState = depinState,
+            meshState = meshState,
+            activePeers = activePeers,
+            earningHistory = earningHistory,
+        ),
+    )
 }
 
 @Preview
