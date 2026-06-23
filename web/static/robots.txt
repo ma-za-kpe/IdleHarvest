@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://idleharvest-86163.web.app/sitemap.xml

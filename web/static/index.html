@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>IdleHarvest — Your idle assets, working for you</title>
+  <meta name="description" content="IdleHarvest turns your idle Android device into a passive income engine. On-device AI agents sell expiring airtime, share bandwidth to DePIN networks, and coordinate mesh earning — all with your explicit consent." />
+  <link rel="canonical" href="https://idleharvest-86163.web.app/" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://idleharvest-86163.web.app/" />
+  <meta property="og:title" content="IdleHarvest — Your idle assets, working for you" />
+  <meta property="og:description" content="On-device AI agents turn expiring airtime and idle bandwidth into USDC. Privacy-first, Arm-optimized, open source." />
+  <meta property="og:image" content="https://idleharvest-86163.web.app/favicon.svg" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="IdleHarvest" />
+  <meta name="twitter:description" content="On-device AI agents turn expiring airtime and idle bandwidth into USDC." />
+
+  <!-- Firebase — initialised before shared.js so Kotlin/WASM can call window.firebase_* -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
+
+    const firebaseConfig = window.__FIREBASE_CONFIG__ ?? {
+      apiKey: "",
+      authDomain: "idleharvest-86163.firebaseapp.com",
+      projectId: "idleharvest-86163",
+      storageBucket: "idleharvest-86163.firebasestorage.app",
+      messagingSenderId: "447391948140",
+      appId: "1:447391948140:web:0d6077bec10bad7c1fa749",
+      measurementId: "G-ETVH110SLR"
+    };
+
+    const app = initializeApp(firebaseConfig);
+
+    const analytics = getAnalytics(app);
+    logEvent(analytics, 'page_view', { page_title: 'IdleHarvest Landing' });
+
+    // Expose Firebase Auth helpers so Kotlin/WASM @JsFun bindings can reach them
+    window._firebaseApp = app;
+    window.firebase_getAuth = getAuth;
+    window.firebase_signInWithPopup = signInWithPopup;
+    window.firebase_GoogleAuthProvider = GoogleAuthProvider;
+    window.firebase_signOut = signOut;
+    window.firebase_logEvent = (name, params) => logEvent(analytics, name, params);
+  </script>
+
+  <style>html,body{height:100%;margin:0;background:#0f0f23}</style>
+</head>
+<body>
+  <script type="module" src="/shared.js"></script>
+</body>
+</html>

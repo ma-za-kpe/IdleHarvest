@@ -40,26 +40,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.maku.idleharvest.domain.auth.AuthManager
 import com.maku.idleharvest.domain.auth.AuthState
-import com.maku.idleharvest.domain.auth.WalletChain
-import com.maku.idleharvest.domain.auth.createWalletConnector
+import com.maku.idleharvest.domain.auth.createAuthConnector
 import com.maku.idleharvest.ui.theme.IdleHarvestBrand
 import com.maku.idleharvest.ui.theme.IdleHarvestDimens
 import com.maku.idleharvest.ui.theme.IdleHarvestTheme
 import kotlinx.coroutines.launch
 
-/**
- * Viewport width below which the layout collapses multi-column rows into a
- * single stacked column. Mirrors the common Material "compact" window-size
- * class breakpoint (600dp).
- */
 private val CompactBreakpoint: Dp = 600.dp
 
-/**
- * Lays out [items] as a horizontal [Row] (each item weighted equally) on wide
- * viewports and as a vertical [Column] (each item full width) on compact ones.
- * This is the core responsive primitive for the landing page: each item receives
- * a [Modifier] that is `weight(1f)` in row mode and `fillMaxWidth()` when stacked.
- */
 @Composable
 private fun ResponsiveRow(
     compact: Boolean,
@@ -90,18 +78,12 @@ private fun ResponsiveRow(
 fun WebApp(onOpenUrl: (String) -> Unit = {}) {
     IdleHarvestTheme {
         val scope = rememberCoroutineScope()
-        // Wallet-based auth wired to the live browser wallet providers.
-        val authManager = remember {
-            AuthManager(
-                connector = createWalletConnector(),
-                nonceProvider = { generateWebNonce() },
-            )
-        }
+        val authManager = remember { AuthManager(connector = createAuthConnector()) }
         val authState by authManager.state.collectAsState()
         WebDashboard(
             onOpenUrl = onOpenUrl,
             authState = authState,
-            onSignIn = { chain -> scope.launch { authManager.signIn(chain) } },
+            onSignIn = { scope.launch { authManager.signIn() } },
             onSignOut = { scope.launch { authManager.signOut() } },
         )
     }
@@ -111,7 +93,7 @@ fun WebApp(onOpenUrl: (String) -> Unit = {}) {
 fun WebDashboard(
     onOpenUrl: (String) -> Unit = {},
     authState: AuthState = AuthState.SignedOut,
-    onSignIn: (WalletChain) -> Unit = {},
+    onSignIn: () -> Unit = {},
     onSignOut: () -> Unit = {},
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -189,9 +171,8 @@ private fun LandingHero(compact: Boolean, onOpenUrl: (String) -> Unit) {
                     },
                     { itemModifier ->
                         OutlinedButton(onClick = { onOpenUrl(GITHUB_URL) }, modifier = itemModifier) {
-                            val icon = rememberGitHubMark()
                             Icon(
-                                imageVector = icon,
+                                imageVector = rememberGitHubMark(),
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
                                 tint = MaterialTheme.colorScheme.onPrimary,
@@ -340,8 +321,6 @@ private fun ImpactStatsSection(compact: Boolean) {
             )
             Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
             if (compact) {
-                // On phones, lay the four stats out as a 2×2 grid so the values
-                // stay legible instead of being squeezed into four tiny columns.
                 Column(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceXL),
@@ -393,7 +372,7 @@ private fun StatItem(value: String, label: String, modifier: Modifier = Modifier
 private fun EarningsDashboardSection(
     compact: Boolean,
     authState: AuthState,
-    onSignIn: (WalletChain) -> Unit,
+    onSignIn: () -> Unit,
     onSignOut: () -> Unit,
 ) {
     val signedIn = authState as? AuthState.SignedIn
@@ -413,10 +392,10 @@ private fun EarningsDashboardSection(
         Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
         Text(
             text = if (signedIn != null) {
-                "Connected as ${shortenAddress(signedIn.session.address.value)} via ${signedIn.session.walletName}. " +
-                    "Your vault key is derived from your wallet — nothing stored on our servers."
+                "Signed in as ${signedIn.displayName} (${signedIn.email}). " +
+                    "Your data is encrypted end-to-end — nothing stored in plaintext."
             } else {
-                "Connect your wallet to see your live earnings, active agents, and transaction history. " +
+                "Sign in with Google to see your live earnings, active agents, and transaction history. " +
                     "End-to-end encrypted — nothing stored on our servers."
             },
             style = MaterialTheme.typography.bodyLarge,
@@ -428,41 +407,27 @@ private fun EarningsDashboardSection(
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(IdleHarvestDimens.CardPadding)) {
                 val placeholder = if (signedIn != null) "0.00" else "——"
+                val sub = if (signedIn != null) "Live" else "Sign in to view"
                 ResponsiveRow(
                     compact = compact,
                     spacing = if (compact) IdleHarvestDimens.SpaceXL else IdleHarvestDimens.SpaceLG,
                     items = listOf(
-                        { m -> DashboardMetric("Total Earnings", "$placeholder USDC", metricSub(signedIn), m) },
-                        { m -> DashboardMetric("Active Agents", if (signedIn != null) "0" else "——", metricSub(signedIn), m) },
-                        { m -> DashboardMetric("System Health", if (signedIn != null) "Green" else "——", metricSub(signedIn), m) },
+                        { m -> DashboardMetric("Total Earnings", "$placeholder USDC", sub, m) },
+                        { m -> DashboardMetric("Active Agents", if (signedIn != null) "0" else "——", sub, m) },
+                        { m -> DashboardMetric("System Health", if (signedIn != null) "Green" else "——", sub, m) },
                     ),
                 )
                 Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
-                AuthControls(
-                    compact = compact,
-                    authState = authState,
-                    onSignIn = onSignIn,
-                    onSignOut = onSignOut,
-                )
+                AuthControls(authState = authState, onSignIn = onSignIn, onSignOut = onSignOut)
             }
         }
     }
 }
 
-private fun metricSub(signedIn: AuthState.SignedIn?): String = if (signedIn != null) "Live" else "Connect wallet to view"
-
-private fun shortenAddress(address: String): String = if (address.length > 12) "${address.take(6)}…${address.takeLast(4)}" else address
-
-/**
- * Wallet sign-in controls reflecting the live [AuthState]. Offers EVM (MetaMask) and
- * Solana (Phantom) connect buttons, a busy state while authenticating, an error
- * message on failure, and a disconnect action once signed in.
- */
 @Composable
 private fun AuthControls(
-    compact: Boolean,
     authState: AuthState,
-    onSignIn: (WalletChain) -> Unit,
+    onSignIn: () -> Unit,
     onSignOut: () -> Unit,
 ) {
     when (authState) {
@@ -471,38 +436,32 @@ private fun AuthControls(
                 onClick = onSignOut,
                 modifier = Modifier.fillMaxWidth().height(IdleHarvestDimens.ButtonHeight),
             ) {
-                Text("Disconnect Wallet")
+                Text("Sign Out")
             }
         }
-        AuthState.Authenticating -> {
+        AuthState.SigningIn -> {
             Button(
                 onClick = {},
                 enabled = false,
                 modifier = Modifier.fillMaxWidth().height(IdleHarvestDimens.ButtonHeight),
             ) {
-                Text("Check your wallet…")
+                Text("Signing in…")
             }
         }
-        else -> {
-            ResponsiveRow(
-                compact = compact,
-                spacing = IdleHarvestDimens.SpaceMD,
-                items = listOf(
-                    { m ->
-                        Button(
-                            onClick = { onSignIn(WalletChain.EVM) },
-                            modifier = m.height(IdleHarvestDimens.ButtonHeight),
-                        ) { Text("Connect MetaMask") }
-                    },
-                    { m ->
-                        OutlinedButton(
-                            onClick = { onSignIn(WalletChain.SOLANA) },
-                            modifier = m.height(IdleHarvestDimens.ButtonHeight),
-                        ) { Text("Connect Phantom") }
-                    },
-                ),
-            )
-            if (authState is AuthState.Failed) {
+        is AuthState.Failed -> {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Button(
+                    onClick = onSignIn,
+                    modifier = Modifier.fillMaxWidth().height(IdleHarvestDimens.ButtonHeight),
+                ) {
+                    Icon(
+                        imageVector = rememberGoogleIcon(),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(Modifier.width(IdleHarvestDimens.SpaceXS))
+                    Text("Sign in with Google")
+                }
                 Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
                 Text(
                     text = authState.reason,
@@ -511,6 +470,20 @@ private fun AuthControls(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth(),
                 )
+            }
+        }
+        AuthState.SignedOut -> {
+            Button(
+                onClick = onSignIn,
+                modifier = Modifier.fillMaxWidth().height(IdleHarvestDimens.ButtonHeight),
+            ) {
+                Icon(
+                    imageVector = rememberGoogleIcon(),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Spacer(Modifier.width(IdleHarvestDimens.SpaceXS))
+                Text("Sign in with Google")
             }
         }
     }
@@ -527,21 +500,16 @@ private fun DashboardMetric(title: String, value: String, subtitle: String, modi
 }
 
 private const val GITHUB_URL = "https://github.com/ma-za-kpe/IdleHarvest"
-
-/** Firebase App Distribution tester link for Android beta APK access. */
 private const val ANDROID_BETA_LINK = "https://appdistribution.firebase.dev/i/e65c460a68b20fc4"
 
-/** Monotonic counter seeding login-challenge nonces (no platform clock needed in commonMain). */
-private var webNonceCounter = 0
-
-/**
- * Produce a fresh nonce for each login challenge. Uniqueness per session is sufficient
- * here: the signature proves wallet ownership; the nonce only prevents trivially
- * replaying an identical challenge within the session.
- */
-private fun generateWebNonce(): String {
-    webNonceCounter += 1
-    return "ih-$webNonceCounter-${IdleHarvestBrand.APP_NAME.hashCode()}"
+@Composable
+private fun rememberGoogleIcon(): ImageVector = remember {
+    buildIcon(
+        "Google",
+        "M21.805 10.023H12v3.955h5.625c-.54 2.745-2.93 4.477-5.625 4.477-3.315 0-6-2.685-6-6s2.685-6 6-6" +
+            "c1.485 0 2.835.555 3.87 1.455l2.94-2.94C17.115 3.63 14.655 2.5 12 2.5c-5.25 0-9.5 4.25-9.5 9.5s4.25 9.5 9.5 9.5" +
+            "c5.25 0 9-3.75 9-9.5 0-.645-.06-1.27-.195-1.977z",
+    )
 }
 
 @Composable
@@ -668,9 +636,8 @@ private fun FooterSection(onOpenUrl: (String) -> Unit) {
             )
             Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
             TextButton(onClick = { onOpenUrl(GITHUB_URL) }) {
-                val icon = rememberGitHubMark()
                 Icon(
-                    imageVector = icon,
+                    imageVector = rememberGitHubMark(),
                     contentDescription = "GitHub repository",
                     modifier = Modifier.size(20.dp),
                     tint = MaterialTheme.colorScheme.inverseOnSurface,
