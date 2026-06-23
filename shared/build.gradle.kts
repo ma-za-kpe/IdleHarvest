@@ -35,6 +35,13 @@ kotlin {
         iosArm64(),
         iosSimulatorArm64(),
     ).forEach { iosTarget ->
+        iosTarget.compilations.configureEach {
+            compileTaskProvider.configure {
+                compilerOptions {
+                    freeCompilerArgs.add("-Xbinary=iosDeploymentTarget=14.0")
+                }
+            }
+        }
         iosTarget.binaries.framework {
             baseName = "Shared"
             isStatic = true
@@ -45,6 +52,8 @@ kotlin {
         browser()
         binaries.executable()
     }
+
+    jvm()
 
     androidLibrary {
         namespace = "com.maku.idleharvest.shared"
@@ -90,6 +99,8 @@ kotlin {
             implementation(libs.kotest.assertions.core)
             implementation(libs.kotlinx.coroutines.test)
         }
+        val jvmMain by getting
+        val jvmTest by getting
         val androidHostTest by getting {
             dependencies {
                 implementation(libs.kotest.runner.junit5)

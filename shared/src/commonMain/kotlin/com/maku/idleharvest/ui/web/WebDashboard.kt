@@ -76,7 +76,10 @@ private fun ResponsiveRow(
 
 /** Root entry point for the Kotlin/WASM web app. */
 @Composable
-fun WebApp(onOpenUrl: (String) -> Unit = {}) {
+fun WebApp(
+    route: WebRoute = WebRoute.Landing,
+    onOpenUrl: (String) -> Unit = {},
+) {
     IdleHarvestTheme {
         val scope = rememberCoroutineScope()
         val authManager = remember { AuthManager(connector = createAuthConnector()) }
@@ -86,12 +89,20 @@ fun WebApp(onOpenUrl: (String) -> Unit = {}) {
         // user in window._pendingAuthUser before WASM finishes loading.
         LaunchedEffect(Unit) { authManager.restoreSession() }
 
-        WebDashboard(
-            onOpenUrl = onOpenUrl,
-            authState = authState,
-            onSignIn = { scope.launch { authManager.signIn() } },
-            onSignOut = { scope.launch { authManager.signOut() } },
-        )
+        when (route) {
+            WebRoute.Landing ->
+                WebDashboard(
+                    onOpenUrl = onOpenUrl,
+                    authState = authState,
+                    onSignIn = { scope.launch { authManager.signIn() } },
+                    onSignOut = { scope.launch { authManager.signOut() } },
+                )
+            WebRoute.Buyer ->
+                BuyerPortalScreen(
+                    onBack = { onOpenUrl("/") },
+                    onOpenUrl = onOpenUrl,
+                )
+        }
     }
 }
 
@@ -186,6 +197,11 @@ private fun LandingHero(compact: Boolean, onOpenUrl: (String) -> Unit) {
                             )
                             Spacer(Modifier.width(IdleHarvestDimens.SpaceXS))
                             Text("View on GitHub")
+                        }
+                    },
+                    { itemModifier ->
+                        OutlinedButton(onClick = { onOpenUrl("/buyer") }, modifier = itemModifier) {
+                            Text("Open Buyer Portal")
                         }
                     },
                 ),

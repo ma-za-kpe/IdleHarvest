@@ -11,7 +11,6 @@ import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.map
-import io.kotest.property.arbitrary.uuid
 import io.kotest.property.forAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -133,7 +132,9 @@ class PeerRosterPropertyTest {
     }
 
     /** Generator for a unique peer ID. */
-    private fun arbPeerId(): Arb<PeerId> = Arb.uuid().map { PeerId(it.toString()) }
+    private fun arbPeerId(): Arb<PeerId> = arbitrary { rs ->
+        PeerId(buildString { repeat(16) { append("0123456789abcdef"[rs.random.nextInt(16)]) } })
+    }
 
     /** Generator for a sequence of peer events with a bounded pool of peer IDs. */
     private fun arbPeerEventSequence(): Arb<List<PeerEvent>> = arbitrary {

@@ -38,13 +38,30 @@ import io.kotest.property.arbitrary.map
 import io.kotest.property.arbitrary.of
 import io.kotest.property.arbitrary.orNull
 import io.kotest.property.arbitrary.string
-import io.kotest.property.arbitrary.uuid
 
 /**
  * Custom Arb generators for IdleHarvest domain types.
  *
  * These generators produce realistic, constrained random instances for property-based testing.
  */
+
+// KMP-safe UUID v4 string generator (replaces Arb.uuid() which uses java.util.UUID)
+private fun arbUuidString(): Arb<String> = arbitrary { rs ->
+    val hex = "0123456789abcdef"
+    buildString {
+        repeat(8) { append(hex[rs.random.nextInt(16)]) }
+        append('-')
+        repeat(4) { append(hex[rs.random.nextInt(16)]) }
+        append('-')
+        append('4')
+        repeat(3) { append(hex[rs.random.nextInt(16)]) }
+        append('-')
+        append("89ab"[rs.random.nextInt(4)])
+        repeat(3) { append(hex[rs.random.nextInt(16)]) }
+        append('-')
+        repeat(12) { append(hex[rs.random.nextInt(16)]) }
+    }
+}
 
 // Reference timestamp for generating realistic time values (approx mid-2024 epoch millis)
 private const val REFERENCE_NOW_MS = 1_719_792_000_000L // 2024-07-01 00:00:00 UTC
@@ -187,7 +204,7 @@ fun Arb.Companion.resourceProfile(): Arb<ResourceProfile> = arbitrary {
 fun Arb.Companion.airtimeBundle(): Arb<AirtimeBundle> = arbitrary {
     val purchasedAt = Arb.long(REFERENCE_NOW_MS - THIRTY_DAYS_MS..REFERENCE_NOW_MS).bind()
     AirtimeBundle(
-        id = Arb.uuid().map { it.toString() }.bind(),
+        id = arbUuidString().bind(),
         carrier = carrierArb.bind(),
         type = Arb.enum<AirtimeBundleType>().bind(),
         amountUnits = Arb.long(100L..50_000L).bind(),
@@ -205,7 +222,7 @@ fun Arb.Companion.airtimeBundle(): Arb<AirtimeBundle> = arbitrary {
 /** Generates random Policy instances. */
 fun Arb.Companion.policy(): Arb<Policy> = arbitrary {
     Policy(
-        id = Arb.uuid().map { it.toString() }.bind(),
+        id = arbUuidString().bind(),
         agentId = agentIdArb.bind(),
         autonomyLevel = Arb.enum<AutonomyLevel>().bind(),
         maxTransactionPerDay = Arb.double(1.0..10_000.0).orNull(0.3).bind(),
@@ -228,7 +245,7 @@ fun Arb.Companion.resourceThreshold(): Arb<ResourceThreshold> = arbitrary {
 /** Generates random AirtimeTransaction instances. */
 fun Arb.Companion.airtimeTransaction(): Arb<AirtimeTransaction> = arbitrary {
     AirtimeTransaction(
-        id = Arb.uuid().map { it.toString() }.bind(),
+        id = arbUuidString().bind(),
         type = Arb.enum<TransactionType>().bind(),
         amount = Arb.long(1L..50_000L).bind(),
         currency = currencyArb.bind(),
@@ -236,7 +253,7 @@ fun Arb.Companion.airtimeTransaction(): Arb<AirtimeTransaction> = arbitrary {
         platform = platformArb.bind(),
         outcome = Arb.enum<TransactionOutcome>().bind(),
         timestamp = Arb.long(0L..REFERENCE_NOW_MS).bind(),
-        complianceCheckId = Arb.uuid().map { it.toString() }.bind(),
+        complianceCheckId = arbUuidString().bind(),
     )
 }
 
@@ -260,7 +277,7 @@ fun Arb.Companion.benchmarkReport(): Arb<BenchmarkReport> = arbitrary {
     val latencyMax = Arb.long(latencyMin + 10..latencyMin + 200).bind()
     val latencyMean = (latencyMin + latencyMax) / 2.0
     BenchmarkReport(
-        modelId = Arb.uuid().map { it.toString() }.bind(),
+        modelId = arbUuidString().bind(),
         backend = Arb.enum<InferenceBackend>().bind(),
         iterationCount = 100,
         latencyMinMs = latencyMin,
@@ -286,7 +303,7 @@ fun Arb.Companion.deviceMetadata(): Arb<DeviceMetadata> = arbitrary {
 /** Generates random Peer instances. */
 fun Arb.Companion.peer(): Arb<Peer> = arbitrary {
     Peer(
-        id = PeerId(Arb.uuid().map { it.toString() }.bind()),
+        id = PeerId(arbUuidString().bind()),
         displayName =
         Arb
             .of(
@@ -306,7 +323,7 @@ fun Arb.Companion.peer(): Arb<Peer> = arbitrary {
 /** Generates random EarningEvent instances. */
 fun Arb.Companion.earningEvent(): Arb<EarningEvent> = arbitrary {
     EarningEvent(
-        id = Arb.uuid().map { it.toString() }.bind(),
+        id = arbUuidString().bind(),
         source = Arb.enum<EarningSource>().bind(),
         amountUsdc = Arb.double(0.001..100.0).bind(),
         amountLocal = Arb.double(1.0..50_000.0).orNull(0.3).bind(),
@@ -319,7 +336,7 @@ fun Arb.Companion.earningEvent(): Arb<EarningEvent> = arbitrary {
 /** Generates random CryptographicProof instances. */
 fun Arb.Companion.cryptographicProof(): Arb<CryptographicProof> = arbitrary {
     CryptographicProof(
-        sessionId = Arb.uuid().map { it.toString() }.bind(),
+        sessionId = arbUuidString().bind(),
         proofData = Arb.string(32..64).bind(),
         signature = Arb.string(64..128).bind(),
         timestamp = Arb.long(0L..REFERENCE_NOW_MS).bind(),
@@ -330,10 +347,10 @@ fun Arb.Companion.cryptographicProof(): Arb<CryptographicProof> = arbitrary {
 fun Arb.Companion.dePinContribution(): Arb<DePinContribution> = arbitrary {
     val startedAt = Arb.long(0L..REFERENCE_NOW_MS - ONE_HOUR_MS).bind()
     DePinContribution(
-        networkId = Arb.uuid().map { it.toString() }.bind(),
+        networkId = arbUuidString().bind(),
         networkName = Arb.of("Grass", "Titan Network", "Filecoin", "Arweave", "Helium").bind(),
         resourceType = Arb.enum<ResourceType>().bind(),
-        sessionId = Arb.uuid().map { it.toString() }.bind(),
+        sessionId = arbUuidString().bind(),
         startedAt = startedAt,
         endedAt = Arb.long(startedAt..REFERENCE_NOW_MS).orNull(0.3).bind(),
         earnedTokens = Arb.double(0.0001..10.0).bind(),

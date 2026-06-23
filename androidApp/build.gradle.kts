@@ -51,7 +51,7 @@ android {
                 .toInt()
         versionCode = 2
         versionName = "1.1"
-        buildConfigField("String", "MODEL_ARTIFACT_BASE_URL", "\"https://idleharvest-86163.web.app/models\"")
+        buildConfigField("String", "MODEL_ARTIFACT_BASE_URL", "\"http://127.0.0.1:8080/api/models\"")
     }
     packaging {
         resources {

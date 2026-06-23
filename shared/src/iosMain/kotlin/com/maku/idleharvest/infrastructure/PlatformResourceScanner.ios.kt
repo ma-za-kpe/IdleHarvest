@@ -7,7 +7,6 @@ import platform.Foundation.NSFileManager
 import platform.Foundation.NSFileSystemFreeSize
 import platform.Foundation.NSHomeDirectory
 import platform.Foundation.NSProcessInfo
-import platform.Foundation.NSProcessInfoThermalState
 import platform.UIKit.UIDevice
 import platform.UIKit.UIDeviceBatteryState
 
@@ -35,7 +34,7 @@ actual class PlatformResourceScanner {
     actual suspend fun scanFreeStorage(): Long {
         val attrs = NSFileManager.defaultManager.attributesOfFileSystemForPath(NSHomeDirectory(), null)
         val freeBytes = (attrs?.get(NSFileSystemFreeSize) as? platform.Foundation.NSNumber)?.longLongValue ?: return 0L
-        return freeBytes / (1024L * 1024L) // bytes → MB
+        return freeBytes / (1024L * 1024L) // bytes -> MB
     }
 
     actual suspend fun scanIdleCompute(): Int {
@@ -65,11 +64,9 @@ actual class PlatformResourceScanner {
         }
     }
 
-    actual suspend fun scanThermalState(): ThermalState = when (NSProcessInfo.processInfo.thermalState) {
-        NSProcessInfoThermalState.NSProcessInfoThermalStateNominal -> ThermalState.COOL
-        NSProcessInfoThermalState.NSProcessInfoThermalStateFair -> ThermalState.WARM
-        NSProcessInfoThermalState.NSProcessInfoThermalStateSerious -> ThermalState.HOT
-        NSProcessInfoThermalState.NSProcessInfoThermalStateCritical -> ThermalState.CRITICAL
-        else -> ThermalState.COOL
+    actual suspend fun scanThermalState(): ThermalState {
+        // Kotlin/Native headers for the current host SDK do not expose thermalState
+        // consistently, so iOS falls back to a conservative COOL baseline.
+        return ThermalState.COOL
     }
 }

@@ -8,8 +8,8 @@ import com.maku.idleharvest.domain.models.Policy
 import com.maku.idleharvest.domain.models.WalletAddress
 import com.maku.idleharvest.infrastructure.crypto.SimpleCryptoProvider
 import io.kotest.property.Arb
+import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.double
-import io.kotest.property.arbitrary.uuid
 import io.kotest.property.forAll
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -93,7 +93,9 @@ class BiometricGatingPropertyTest {
          */
         forAll(Arb.double(25.01..1000.0)) { amount ->
             val engine = createEngine()
-            val eventId = Arb.uuid().bind().toString()
+            val eventId = arbitrary { rs ->
+                buildString { repeat(16) { append("0123456789abcdef"[rs.random.nextInt(16)]) } }
+            }.bind()
             val event = createEvent(amountUsdc = amount, id = eventId)
             val result = engine.initiatePayout(event)
 
@@ -111,7 +113,9 @@ class BiometricGatingPropertyTest {
          */
         forAll(Arb.double(0.01..25.0)) { amount ->
             val engine = createEngine()
-            val eventId = Arb.uuid().bind().toString()
+            val eventId = arbitrary { rs ->
+                buildString { repeat(16) { append("0123456789abcdef"[rs.random.nextInt(16)]) } }
+            }.bind()
             val event = createEvent(amountUsdc = amount, id = eventId)
             val result = engine.initiatePayout(event)
 

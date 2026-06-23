@@ -17,6 +17,12 @@ class AuthManager(private val connector: AuthConnector) {
         }
     }
 
+    suspend fun restoreSession() {
+        if (_state.value !is AuthState.SignedOut) return
+        val existing = connector.getExistingSession()
+        if (existing != null) _state.value = existing
+    }
+
     suspend fun signOut() {
         try {
             connector.signOut()

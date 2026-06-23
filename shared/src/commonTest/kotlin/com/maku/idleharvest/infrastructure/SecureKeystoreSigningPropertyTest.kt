@@ -65,7 +65,7 @@ class SecureKeystoreSigningPropertyTest {
                     privateKey
                         .map { (it.toInt() xor 0xFF).toByte() }
                         .toByteArray()
-                        .joinToString("") { "%02x".format(it) },
+                        .joinToString("") { (it.toInt() and 0xFF).toString(16).padStart(2, '0') },
                     algorithm = "HMAC-SHA256-FAKE",
                     isInSecureHardware = true,
                 )

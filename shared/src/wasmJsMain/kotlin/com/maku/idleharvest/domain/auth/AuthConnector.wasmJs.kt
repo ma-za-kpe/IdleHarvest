@@ -56,10 +56,10 @@ private external fun getAuth(app: JsAny?): JsAny?
 }
 """,
 )
-private external fun jsSignInWithPopup(auth: JsAny?): JsAny /* Promise<UserCredential> */
+private external fun jsSignInWithPopup(auth: JsAny?): JsAny
 
 @JsFun("(auth) => auth && window.firebase_signOut ? window.firebase_signOut(auth) : Promise.resolve()")
-private external fun jsSignOut(auth: JsAny?): JsAny /* Promise<void> */
+private external fun jsSignOut(auth: JsAny?): JsAny
 
 @JsFun("(cred) => cred && cred.user ? cred.user : null")
 private external fun getUserFromCredential(cred: JsAny?): FirebaseUser?
@@ -76,9 +76,36 @@ private external fun getEmail(user: FirebaseUser): String
 @JsFun("(user) => user ? (user.photoURL || null) : null")
 private external fun getPhotoUrl(user: FirebaseUser): String?
 
+// ── Session restoration (page reload) ────────────────────────────────────────
+
+@JsFun("() => window._getPendingAuthUser ? window._getPendingAuthUser() : null")
+private external fun getPendingAuthUser(): FirebaseUser?
+
+// ── Firestore helpers ─────────────────────────────────────────────────────────
+
+@JsFun(
+    """
+(userId, displayName, email, photoUrl) => {
+    if (!window.firebase_saveUserDoc) return Promise.resolve();
+    return window.firebase_saveUserDoc(userId, displayName, email, photoUrl);
+}
+""",
+)
+private external fun jsSaveUserDoc(userId: String, displayName: String, email: String, photoUrl: String): JsAny
+
 // ── Actual implementation ─────────────────────────────────────────────────────
 
 actual fun createAuthConnector(): AuthConnector = object : AuthConnector {
+
+    override suspend fun getExistingSession(): AuthState.SignedIn? {
+        val user = getPendingAuthUser() ?: return null
+        return AuthState.SignedIn(
+            userId = getUid(user),
+            displayName = getDisplayName(user).ifEmpty { "User" },
+            email = getEmail(user),
+            photoUrl = getPhotoUrl(user),
+        )
+    }
 
     override suspend fun signIn(): AuthState.SignedIn {
         val app = getFirebaseApp()
@@ -86,12 +113,15 @@ actual fun createAuthConnector(): AuthConnector = object : AuthConnector {
         val cred = awaitJs(jsSignInWithPopup(auth))
         val user = getUserFromCredential(cred)
             ?: throw IllegalStateException("No user returned from Google Sign-In")
-        return AuthState.SignedIn(
+        val state = AuthState.SignedIn(
             userId = getUid(user),
             displayName = getDisplayName(user).ifEmpty { "User" },
             email = getEmail(user),
             photoUrl = getPhotoUrl(user),
         )
+        // Persist user doc in Firestore (merge so existing data is kept)
+        awaitJs(jsSaveUserDoc(state.userId, state.displayName, state.email, state.photoUrl ?: ""))
+        return state
     }
 
     override suspend fun signOut() {

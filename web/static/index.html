@@ -20,12 +20,17 @@
   <meta name="twitter:title" content="IdleHarvest" />
   <meta name="twitter:description" content="On-device AI agents turn expiring airtime and idle bandwidth into USDC." />
 
-  <!-- Firebase — initialised before shared.js so Kotlin/WASM can call window.firebase_* -->
+  <!-- Firebase — initialised before shared.js so Kotlin/WASM @JsFun bindings work -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
-    import { getAnalytics, logEvent } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
+      from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+    import { getFirestore, doc, setDoc, getDoc, serverTimestamp }
+      from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { getAnalytics, logEvent }
+      from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js';
 
+    // Firebase config is injected at deploy time. Keep secrets out of the repo.
     const firebaseConfig = window.__FIREBASE_CONFIG__ ?? {
       apiKey: "",
       authDomain: "idleharvest-86163.firebaseapp.com",
@@ -38,16 +43,54 @@
 
     const app = initializeApp(firebaseConfig);
 
+    const auth      = getAuth(app);
+    const db        = getFirestore(app);
     const analytics = getAnalytics(app);
+
     logEvent(analytics, 'page_view', { page_title: 'IdleHarvest Landing' });
 
-    // Expose Firebase Auth helpers so Kotlin/WASM @JsFun bindings can reach them
-    window._firebaseApp = app;
-    window.firebase_getAuth = getAuth;
-    window.firebase_signInWithPopup = signInWithPopup;
+    // ── Expose Firebase helpers to Kotlin/WASM @JsFun bindings ───────────────
+    window._firebaseApp               = app;
+    window.firebase_getAuth           = getAuth;
+    window.firebase_signInWithPopup   = signInWithPopup;
     window.firebase_GoogleAuthProvider = GoogleAuthProvider;
-    window.firebase_signOut = signOut;
-    window.firebase_logEvent = (name, params) => logEvent(analytics, name, params);
+    window.firebase_signOut           = signOut;
+    window.firebase_logEvent          = (name, params) => logEvent(analytics, name, params);
+
+    // ── Firestore helpers exposed to Kotlin/WASM ─────────────────────────────
+    window.firebase_saveUserDoc = async (userId, displayName, email, photoUrl) => {
+      await setDoc(doc(db, 'users', userId), {
+        displayName,
+        email,
+        photoUrl: photoUrl || null,
+        updatedAt: serverTimestamp(),
+      }, { merge: true });
+    };
+
+    window.firebase_getUserDoc = async (userId) => {
+      const snap = await getDoc(doc(db, 'users', userId));
+      return snap.exists() ? JSON.stringify(snap.data()) : null;
+    };
+
+    // Buffer the current Firebase user so Kotlin/WASM can pull it after WASM init.
+    // Also call _onAuthStateRestored if Kotlin registered the callback first.
+    let _pendingAuthUser = null;
+    window._getPendingAuthUser = () => _pendingAuthUser;
+
+    onAuthStateChanged(auth, (user) => {
+      _pendingAuthUser = user || null;
+      if (user && window._onAuthStateRestored) {
+        window._onAuthStateRestored(
+          user.uid,
+          user.displayName || '',
+          user.email || '',
+          user.photoURL || ''
+        );
+      }
+      if (!user && window._onAuthStateSignedOut) {
+        window._onAuthStateSignedOut();
+      }
+    });
   </script>
 
   <style>html,body{height:100%;margin:0;background:#0f0f23}</style>

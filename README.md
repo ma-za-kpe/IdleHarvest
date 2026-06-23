@@ -173,11 +173,17 @@ vastai show instance <INSTANCE_ID> --raw
 ssh -o BatchMode=yes -p <SSH_PORT> root@<SSH_HOST>
 ```
 
-If `vastai` is not on your PATH, the same CLI is usually available as:
+If `vastai` is not on your PATH, use the Python module form:
 
 ```bash
 python -m vastai show instances
 python -m vastai show instance <INSTANCE_ID> --raw
+```
+
+If the module is missing, install it first:
+
+```bash
+python -m pip install vastai
 ```
 
 ### Train and export
@@ -196,7 +202,8 @@ python3 ml/export_to_executorch.py --model_dir ml/output/lora_merged --out ml/ou
 ### Verify the training output
 
 ```bash
-# Training is complete when the log ends with "Training complete."
+# Training is complete when the log contains "Training complete."
+grep -n "Training complete" ml/output/train.log
 tail -n 50 ml/output/train.log
 
 # Confirm the merged checkpoint exists and is non-empty
@@ -212,12 +219,54 @@ The exported model file is written on the Vast.ai instance at:
 ~/IdleHarvest/ml/output/idleharvest_model.pte
 ```
 
+The quickest way to prove the training finished is to verify all of these:
+
+```bash
+grep -n "Training complete" ml/output/train.log
+ls -lh ml/output/idleharvest_model.pte
+du -sh ml/output/lora_merged
+```
+
 After export, copy it down to your machine and into the app resources if you want to ship it with the app:
 
 ```bash
 scp -P <SSH_PORT> root@<SSH_HOST>:~/IdleHarvest/ml/output/idleharvest_model.pte .
 cp idleharvest_model.pte shared/src/commonMain/composeResources/files/
 ```
+
+## Buyer Backend
+
+IdleHarvest now includes a tiny Ktor backend that simulates the buyer side of the ecosystem.
+
+### Run locally
+
+```bash
+./gradlew buyerBackend:run
+```
+
+The backend listens on `http://127.0.0.1:8080` and exposes:
+
+- `GET /health`
+- `GET /api/buyer/summary`
+- `POST /api/buyer/orders`
+- `GET /api/models`
+- `GET /api/models/idleharvest_model`
+- `GET /api/models/idleharvest_model.pte`
+
+### Android device demo
+
+If you are running the app on a USB-connected Android device, forward the backend port first:
+
+```bash
+adb reverse tcp:8080 tcp:8080
+```
+
+Then the app can download the model artifact from `http://127.0.0.1:8080/api/models/idleharvest_model.pte`.
+
+### Buyer route
+
+- Open the landing page and click `Open Buyer Portal`.
+- Or navigate directly to `/buyer`.
 
 ## TODO / Roadmap
 
