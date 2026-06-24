@@ -58,6 +58,7 @@ fun AgentDashboardScreen(dashboardState: AgentDashboardState = AgentDashboardSta
         val selectedAgent =
             dashboardState.agents.firstOrNull { it.name == selectedAgentName }
                 ?: dashboardState.agents.firstOrNull()
+        val sellNudge = dashboardState.computeSellNudge()
 
         Column(
             modifier = Modifier
@@ -70,6 +71,10 @@ fun AgentDashboardScreen(dashboardState: AgentDashboardState = AgentDashboardSta
             DashboardHeader(headline = dashboardState.headline)
             Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
             EarningsSummaryCard(summary = dashboardState.earningsSummary)
+            sellNudge?.let {
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+                SellOpportunityCard(nudge = it)
+            }
             Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
             SectionLabel("Active Agents (${dashboardState.activeAgentCount}/${dashboardState.totalAgentCount})")
             Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
@@ -241,6 +246,7 @@ private fun AgentInspectorCard(
     dashboardState: AgentDashboardState,
     agent: DashboardAgentStatus,
 ) {
+    val sellNudge = dashboardState.computeSellNudge()
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -261,6 +267,19 @@ private fun AgentInspectorCard(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            if (agent.name == "Airtime Agent") {
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceXS))
+                sellNudge?.let {
+                    SellOpportunityCard(nudge = it)
+                } ?: SellOpportunityCard(
+                    nudge =
+                    SellNudge(
+                        title = "No sell opportunity yet",
+                        body = "The Airtime Agent is still waiting for a bundle close enough to expiry to recommend a sale.",
+                        severityLabel = "Hold",
+                    ),
+                )
+            }
             ResponsiveRow(
                 compact = true,
                 spacing = IdleHarvestDimens.SpaceSM,
@@ -277,6 +296,43 @@ private fun AgentInspectorCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SellOpportunityCard(nudge: SellNudge, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors =
+        CardDefaults.cardColors(
+            containerColor =
+            if (nudge.severityLabel == "Sell now") {
+                MaterialTheme.colorScheme.tertiaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
+        ),
+    ) {
+        Column(
+            modifier = Modifier.padding(IdleHarvestDimens.CardPadding),
+            verticalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceXS),
+        ) {
+            Text(
+                text = nudge.severityLabel,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = nudge.title,
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                text = nudge.body,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
@@ -301,6 +357,46 @@ private fun agentPreviewCopy(agent: DashboardAgentStatus): String = when (agent.
         "${agent.name} is paused by guardrails or device conditions and will resume when the policy engine allows it."
     com.maku.idleharvest.domain.models.AgentState.ERROR ->
         "${agent.name} hit a runtime issue and needs attention before it can continue earning."
+}
+
+private data class SellNudge(
+    val title: String,
+    val body: String,
+    val severityLabel: String,
+)
+
+private fun AgentDashboardState.computeSellNudge(): SellNudge? {
+    val now = resourceProfile.timestamp
+    val expiryWindowMs = 72L * 60L * 60L * 1000L
+
+    val airtimeExpiry = resourceProfile.airtimeBalance?.expiryTimestamp
+    val airtimeHoursLeft =
+        airtimeExpiry
+            ?.let { ((it - now) / (60L * 60L * 1000L)).coerceAtLeast(0L) }
+
+    val closestBundle =
+        resourceProfile.dataBundles
+            .minByOrNull { it.expiryTimestamp }
+    val bundleHoursLeft =
+        closestBundle
+            ?.let { ((it.expiryTimestamp - now) / (60L * 60L * 1000L)).coerceAtLeast(0L) }
+
+    val shouldSellAirtime = airtimeExpiry != null && airtimeExpiry - now in 0..expiryWindowMs
+    val shouldSellBundle = closestBundle != null && closestBundle.expiryTimestamp - now in 0..expiryWindowMs
+
+    return when {
+        shouldSellAirtime -> SellNudge(
+            title = "Airtime looks eligible to sell",
+            body = "Your airtime expires in about ${airtimeHoursLeft ?: 0}h. The Airtime Agent can nudge you to sell before value decays.",
+            severityLabel = "Sell now",
+        )
+        shouldSellBundle -> SellNudge(
+            title = "Data bundle looks eligible to sell",
+            body = "Your next bundle expires in about ${bundleHoursLeft ?: 0}h. The Airtime Agent can suggest a sale or transfer while it still has value.",
+            severityLabel = "Sell now",
+        )
+        else -> null
+    }
 }
 
 @Composable

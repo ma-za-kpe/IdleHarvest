@@ -134,6 +134,7 @@ Use the app as a guided demo rather than a hidden background service. The main s
 - Open the buyer portal from the landing page.
 - Run the Ktor buyer backend locally if you want the full demo loop.
 - Download the trained `.pte` artifact through the backend route to show that the model asset is real and served end to end.
+- The hosted web app also exposes the buyer portal at `/buyer` through Firebase Hosting, so judges can open the buyer side without a local backend.
 
 ## Architecture
 
@@ -395,6 +396,7 @@ IdleHarvest keeps source code and build artifacts separate on purpose:
 - When you publish a tester build, use the Gradle distribution task so testers always receive a clearly versioned APK from Firebase App Distribution.
 - The distribution task targets the `internal-testers` group by default and can also take an explicit tester list via `-PappDistributionTesters=you@example.com` or `APP_DISTRIBUTION_TESTERS=you@example.com` if you need to force delivery to a specific account.
 - Firebase App Distribution sends testers an onboarding email when a build is shared with them; if a tester does not receive the APK, confirm the exact email is in the tester group, check spam, and make sure the tester accepted the invite for the same Google account.
+- The Android dashboard now surfaces a sell-eligibility nudge when the Airtime Agent sees an expiring bundle or airtime balance, so judges do not have to guess why the app wants to sell.
 
 Current app version metadata lives in [`androidApp/build.gradle.kts`](/C:/Users/nampa/AndroidStudioProjects/IdleHarvest/androidApp/build.gradle.kts). The beta output is named from the app version so releases are traceable during judging and bug triage.
 
