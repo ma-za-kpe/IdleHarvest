@@ -121,6 +121,8 @@ tasks.register("buildBetaApk") {
                 destFile.absolutePath,
                 "--app",
                 appId,
+                "--groups",
+                "internal-testers",
                 "--release-notes",
                 releaseNotes,
             ).redirectErrorStream(true)
