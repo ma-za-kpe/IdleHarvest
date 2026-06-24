@@ -109,6 +109,8 @@ Use the app as a guided demo rather than a hidden background service. The main s
 
 - Show the Airtime Agent on the dashboard.
 - Explain that it watches prepaid airtime and data bundles for expiry or low-usage conditions.
+- Use the phone balance probe to call `TelephonyManager.sendUssdRequest(...)` through the Android app and read a live balance from the device instead of a hardcoded demo value.
+- If the probe returns a valid balance, the manual sale button becomes available so the user can trigger a sale from the same screen.
 - When the policy engine allows it, the agent can trigger a sale or transfer before the value expires.
 
 ### 5. Demonstrate DePIN sharing
@@ -132,9 +134,11 @@ Use the app as a guided demo rather than a hidden background service. The main s
 ### 8. Use the buyer loop
 
 - Open the buyer portal from the landing page.
+- The landing page card opens the hosted `/buyer` route directly, so judges can see the buyer side without navigating away from the web demo.
 - Run the Ktor buyer backend locally if you want the full demo loop.
 - Download the trained `.pte` artifact through the backend route to show that the model asset is real and served end to end.
 - The hosted web app also exposes the buyer portal at `/buyer` through Firebase Hosting, so judges can open the buyer side without a local backend.
+- The dashboard cards now include info icons and helper copy so it is obvious why each agent is active, when it can earn, and when the app is only notifying instead of acting.
 
 ## Architecture
 
@@ -352,6 +356,22 @@ IdleHarvest now includes a tiny Ktor backend that simulates the buyer side of th
 ./gradlew buyerBackend:run
 ```
 
+Keep that terminal open while you are testing. The service binds to `http://127.0.0.1:8080`, so it only exists while the machine running it is powered on and the process is alive.
+
+If you shut down the computer, you must start it again before hitting:
+
+```text
+http://127.0.0.1:8080/health
+http://127.0.0.1:8080/api/buyer/summary
+```
+
+Recommended startup order for a full local demo:
+
+1. Start the buyer backend with `./gradlew buyerBackend:run`
+2. In a second terminal, start the Android app or connect the device
+3. If the phone app needs the backend over USB, run `adb reverse tcp:8080 tcp:8080`
+4. Open the landing page or the app and verify the buyer route
+
 The backend listens on `http://127.0.0.1:8080` and exposes:
 
 - `GET /health`
@@ -392,11 +412,14 @@ IdleHarvest keeps source code and build artifacts separate on purpose:
 - The trained ExecuTorch `.pte` file is generated locally and served through the backend or release storage.
 - The `.pte` artifact is intentionally not committed to git.
 - The app and backend code that regenerate or download the artifact are versioned in source control.
+- The Android container preloads `idleharvest_model` on startup so the downloaded `.pte` becomes part of the runtime inference path instead of sitting unused on disk.
 - APK tester builds are versioned through Gradle using `versionCode` and `versionName`, with the beta package name and file name derived from those values.
 - When you publish a tester build, use the Gradle distribution task so testers always receive a clearly versioned APK from Firebase App Distribution.
 - The distribution task targets the `internal-testers` group by default and can also take an explicit tester list via `-PappDistributionTesters=you@example.com` or `APP_DISTRIBUTION_TESTERS=you@example.com` if you need to force delivery to a specific account.
 - Firebase App Distribution sends testers an onboarding email when a build is shared with them; if a tester does not receive the APK, confirm the exact email is in the tester group, check spam, and make sure the tester accepted the invite for the same Google account.
 - The Android dashboard now surfaces a sell-eligibility nudge when the Airtime Agent sees an expiring bundle or airtime balance, so judges do not have to guess why the app wants to sell.
+- Trigger-driven notifications now fire for bundle expiry, earnings, policy blocks, and nearby mesh peers so the user sees earning opportunities as events instead of hidden background state.
+- The phone balance probe now uses the device as the source of truth; if the phone does not return a value, the UI shows unavailable instead of inventing one.
 
 Current app version metadata lives in [`androidApp/build.gradle.kts`](/C:/Users/nampa/AndroidStudioProjects/IdleHarvest/androidApp/build.gradle.kts). The beta output is named from the app version so releases are traceable during judging and bug triage.
 
@@ -413,6 +436,8 @@ The next demo loop should make the full ecosystem visible from training to buyer
 - [x] Keep the beta APK task Windows-safe and runnable from this repo on any developer machine.
 - [x] Add backend integration tests for the buyer artifact/download flow.
 - [ ] Add backend integration tests for buyer/order/settlement flows.
+- [x] Wire the Android phone balance probe to USSD instead of demo airtime values.
+- [x] Document the training, export, backend, and artifact download flow in the repo.
 
 ## Building
 

@@ -44,30 +44,14 @@ actual class PlatformResourceScanner(
     }
 
     actual suspend fun scanAirtimeBalance(): AirtimeBalance? {
-        // Filled gap for demo / testing: return a sample expiring airtime balance.
-        // In production, replace with USSD/carrier API or user-provided via UI/VTU.
-        // This allows AirtimeAgent to detect bundles within 72h and recommend monetization.
-        val now = System.currentTimeMillis()
-        return AirtimeBalance(
-            carrier = "DemoCarrier",
-            amountUnits = 2500L,
-            currency = "NGN",
-            expiryTimestamp = now + (48 * 3600_000L), // expires in ~48h -> triggers agent
-        )
+        // Android does not expose carrier airtime directly.
+        // Return null until a real phone/carrier/USSD/VTU integration is provided.
+        return null
     }
 
     actual suspend fun scanDataBundles(): List<DataBundle> {
-        // Filled gap: sample data bundle that is expiring soon.
-        val now = System.currentTimeMillis()
-        return listOf(
-            DataBundle(
-                carrier = "DemoCarrier",
-                remainingMb = 1200L,
-                totalMb = 2000L,
-                expiryTimestamp = now + (36 * 3600_000L),
-                bundleType = "DATA",
-            ),
-        )
+        // No generic Android API exposes live bundle quotas across carriers.
+        return emptyList()
     }
 
     actual suspend fun scanBandwidth(): Float {

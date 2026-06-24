@@ -1,3 +1,5 @@
+@file:Suppress("MagicNumber", "MaxLineLength", "TooManyFunctions", "ReturnCount")
+
 package com.maku.idleharvest.infrastructure
 
 import com.maku.idleharvest.domain.interfaces.AgentEventBus
@@ -16,6 +18,7 @@ import com.maku.idleharvest.domain.models.AgentState
 import com.maku.idleharvest.domain.models.AirtimeBundle
 import com.maku.idleharvest.domain.models.AirtimeTransaction
 import com.maku.idleharvest.domain.models.ComplianceDecision
+import com.maku.idleharvest.domain.models.InferenceInput
 import com.maku.idleharvest.domain.models.MonetizationAction
 import com.maku.idleharvest.domain.models.MonetizationRecommendation
 import com.maku.idleharvest.domain.models.PolicyDecision
@@ -70,15 +73,14 @@ class DefaultAirtimeAgent(
         _state.value = AgentState.EVALUATING
         try {
             val now = clock()
-            val hoursToExpiry = (bundle.expiryTimestamp - now) / HOUR_MS
+            val hoursToExpiry = bundle.expiryTimestamp?.let { (it - now) / HOUR_MS } ?: EXPIRY_WINDOW_HOURS
 
             // If expiry is beyond 72 hours, no action needed
             if (hoursToExpiry > EXPIRY_WINDOW_HOURS) {
                 return MonetizationRecommendation.Hold
             }
 
-            // Generate recommendation based on amount and conditions
-            return generateRecommendation(bundle)
+            return generateRecommendation(bundle, hoursToExpiry)
         } finally {
             _state.value = AgentState.IDLE
         }
@@ -137,17 +139,30 @@ class DefaultAirtimeAgent(
      * Uses InferenceEngine for smarter recommendations when available,
      * falling back to heuristic-based logic.
      */
-    private fun generateRecommendation(bundle: AirtimeBundle): MonetizationRecommendation {
-        // Heuristic-based recommendation:
-        // Sell if amount exceeds threshold and a platform is available
-        return if (bundle.amountUnits > MINIMUM_SELL_THRESHOLD) {
-            MonetizationRecommendation.Sell(
-                amount = bundle.amountUnits,
-                platform = selectPlatform(),
-                confidence = calculateConfidence(bundle),
-            )
-        } else {
-            MonetizationRecommendation.Hold
+    private suspend fun generateRecommendation(
+        bundle: AirtimeBundle,
+        hoursToExpiry: Long,
+    ): MonetizationRecommendation {
+        val inferenceInput = buildInferenceInput(bundle, hoursToExpiry)
+        val inferenceOutput = inferenceEngine.runInference(inferenceInput).getOrNull()
+        val urgencyScore = inferenceOutput?.predictions?.firstOrNull() ?: calculateConfidence(bundle)
+        val confidence = inferenceOutput?.confidence ?: calculateConfidence(bundle)
+
+        return when {
+            bundle.amountUnits > MINIMUM_SELL_THRESHOLD && urgencyScore >= 0.65f -> {
+                MonetizationRecommendation.Sell(
+                    amount = bundle.amountUnits,
+                    platform = selectPlatform(),
+                    confidence = confidence,
+                )
+            }
+            urgencyScore >= 0.35f -> {
+                MonetizationRecommendation.Transfer(
+                    recipient = "auto-transfer",
+                    amount = bundle.amountUnits,
+                )
+            }
+            else -> MonetizationRecommendation.Hold
         }
     }
 
@@ -163,13 +178,37 @@ class DefaultAirtimeAgent(
      */
     private fun calculateConfidence(bundle: AirtimeBundle): Float {
         val now = clock()
-        val hoursToExpiry = (bundle.expiryTimestamp - now).toFloat() / HOUR_MS.toFloat()
+        val hoursToExpiry =
+            bundle.expiryTimestamp
+                ?.let { (it - now).toFloat() / HOUR_MS.toFloat() }
+                ?: EXPIRY_WINDOW_HOURS.toFloat()
         return when {
             hoursToExpiry <= 24f -> 0.95f
             hoursToExpiry <= 48f -> 0.85f
             else -> 0.75f
         }
     }
+
+    private fun buildInferenceInput(
+        bundle: AirtimeBundle,
+        hoursToExpiry: Long,
+    ): InferenceInput = InferenceInput(
+        modelId = DEFAULT_MODEL_ID,
+        tensorData =
+        listOf(
+            bundle.amountUnits.toFloat(),
+            hoursToExpiry.toFloat(),
+            bundle.remainingMb?.toFloat() ?: bundle.amountUnits.toFloat(),
+            calculateConfidence(bundle),
+        ),
+        shape = listOf(1, 4),
+        metadata =
+        mapOf(
+            "carrier" to bundle.carrier,
+            "bundle_type" to bundle.type.name,
+            "currency" to bundle.currency,
+        ),
+    )
 
     /**
      * Execute a monetization action with retry logic.
@@ -223,8 +262,8 @@ class DefaultAirtimeAgent(
                 SellRequest(
                     bundleId = action.bundleId,
                     amount = rec.amount,
-                    currency = "NGN",
-                    carrier = "default",
+                    currency = action.currency ?: "NGN",
+                    carrier = action.carrier ?: "default",
                 )
             client.sell(request).fold(
                 onSuccess = { response ->
@@ -254,7 +293,7 @@ class DefaultAirtimeAgent(
                     bundleId = action.bundleId,
                     amount = rec.amount,
                     recipient = rec.recipient,
-                    carrier = "default",
+                    carrier = action.carrier ?: "default",
                 )
             client.transfer(request).fold(
                 onSuccess = { response ->
@@ -332,7 +371,7 @@ class DefaultAirtimeAgent(
                     is MonetizationRecommendation.Transfer -> rec.amount
                     is MonetizationRecommendation.Hold -> 0L
                 },
-                currency = "NGN",
+                currency = action.currency ?: "NGN",
                 counterparty =
                 when (val rec = action.recommendation) {
                     is MonetizationRecommendation.Transfer -> rec.recipient
@@ -395,7 +434,7 @@ class DefaultAirtimeAgent(
         return TransactionRequest(
             agentId = AIRTIME_AGENT_ID,
             amount = amount,
-            currency = "NGN",
+            currency = action.currency ?: "NGN",
             type =
             when (action.recommendation) {
                 is MonetizationRecommendation.Sell -> TransactionType.SELL
@@ -412,8 +451,8 @@ class DefaultAirtimeAgent(
                 is MonetizationRecommendation.Sell -> rec.platform.name
                 else -> "DIRECT"
             },
-            country = "NG",
-            carrier = "default",
+            country = action.country ?: "NG",
+            carrier = action.carrier ?: "default",
             timestamp = action.timestamp,
         )
     }
@@ -466,5 +505,8 @@ class DefaultAirtimeAgent(
          * In production, this would come from a price feed.
          */
         private const val ESTIMATED_EXCHANGE_RATE = 1500.0
+
+        /** Default model identifier used for airtime monetization inference. */
+        private const val DEFAULT_MODEL_ID = "idleharvest_model"
     }
 }

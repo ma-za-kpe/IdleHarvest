@@ -63,6 +63,9 @@ data class MonetizationAction(
     val recommendation: MonetizationRecommendation,
     val approvedBy: ApprovalSource,
     val timestamp: Long,
+    val currency: String? = null,
+    val carrier: String? = null,
+    val country: String? = null,
 )
 
 /**

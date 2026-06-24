@@ -104,6 +104,8 @@ private fun LiveApp(agents: AgentContainer) {
     val meshState by agents.meshCoordinator.meshState.collectAsState()
     val activePeers by agents.meshCoordinator.activePeers.collectAsState()
     val earningHistory by agents.earningEngine.earningHistory.collectAsState()
+    val airtimeProbeState by agents.airtimeProbeState.collectAsState()
+    val phoneAirtimeBalance by agents.phoneAirtimeBalance.collectAsState()
 
     App(
         dashboardState =
@@ -115,6 +117,10 @@ private fun LiveApp(agents: AgentContainer) {
             activePeers = activePeers,
             earningHistory = earningHistory,
         ),
+        phoneAirtimeBalance = phoneAirtimeBalance,
+        airtimeProbeState = airtimeProbeState,
+        onRequestAirtimeBalance = { ussdCode -> agents.requestAirtimeBalance(ussdCode) },
+        onTriggerManualSale = { agents.triggerManualAirtimeSale() },
     )
 }
 

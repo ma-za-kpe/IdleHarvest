@@ -1,3 +1,5 @@
+@file:Suppress("LongMethod", "MaxLineLength")
+
 package com.maku.idleharvest.ui.web
 
 import androidx.compose.foundation.background
@@ -45,6 +47,7 @@ import com.maku.idleharvest.domain.auth.createAuthConnector
 import com.maku.idleharvest.ui.theme.IdleHarvestBrand
 import com.maku.idleharvest.ui.theme.IdleHarvestDimens
 import com.maku.idleharvest.ui.theme.IdleHarvestTheme
+import com.maku.idleharvest.ui.theme.LocalIdleHarvestColors
 import kotlinx.coroutines.launch
 
 private val CompactBreakpoint: Dp = 600.dp
@@ -126,6 +129,7 @@ fun WebDashboard(
             FeaturesSection(compact = compact)
             ImpactStatsSection(compact = compact)
             BuyerLoopSection(compact = compact)
+            BuyerPortalSection(compact = compact, onOpenUrl = onOpenUrl)
             EarningsDashboardSection(
                 compact = compact,
                 authState = authState,
@@ -304,23 +308,57 @@ private fun FeaturesSection(compact: Boolean) {
 
 @Composable
 private fun FeatureCard(modifier: Modifier = Modifier, icon: ImageVector, title: String, description: String) {
+    val infoText = featureInfoText(title)
     Card(
         modifier = modifier,
         elevation = CardDefaults.cardElevation(defaultElevation = IdleHarvestDimens.CardElevation),
     ) {
         Column(modifier = Modifier.padding(IdleHarvestDimens.CardPadding)) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(36.dp),
-                tint = MaterialTheme.colorScheme.primary,
-            )
-            Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
-            Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp),
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(Modifier.width(IdleHarvestDimens.SpaceSM))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = title, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+                }
+                if (infoText != null) {
+                    Icon(
+                        imageVector = rememberInfoIcon(),
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = LocalIdleHarvestColors.current.info,
+                    )
+                }
+            }
+            if (infoText != null) {
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceXS))
+                Text(
+                    text = infoText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             Spacer(Modifier.height(IdleHarvestDimens.SpaceXS))
             Text(text = description, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
+}
+
+private fun featureInfoText(title: String): String? = when (title) {
+    "Airtime Agent" -> "This watches for expiring bundles and nudges a sale before value disappears."
+    "DePIN Agent" -> "This contributes idle resources when policy, battery, and connectivity are healthy."
+    "Mesh Coordinator" -> "This finds nearby peers so devices can pool resources and improve earning power."
+    "Privacy First" -> "This keeps inference local and stores secrets inside device-backed protection."
+    "On-Device AI" -> "This runs the `.pte` model locally so decisions do not need cloud calls."
+    "Your Guardrails" -> "This lets the user set when the system is allowed to act and when it should only notify."
+    "Ktor Buyer API" -> "This powers the buyer-side demo backend and lets the landing page open a real route."
+    "Artifact Flow" -> "This keeps the downloaded artifact tied to the model ID and version used by the app."
+    "Closed Ecosystem" -> "This closes the loop between demand, runtime signals, and payout simulation."
+    else -> null
 }
 
 @Composable
@@ -444,6 +482,71 @@ private fun BuyerLoopSection(compact: Boolean) {
                 },
             ),
         )
+    }
+}
+
+@Composable
+private fun BuyerPortalSection(
+    compact: Boolean,
+    onOpenUrl: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .widthIn(max = 960.dp)
+            .fillMaxWidth()
+            .padding(
+                vertical = IdleHarvestDimens.SpaceXXL,
+                horizontal = IdleHarvestDimens.ScreenPaddingHorizontal,
+            ),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            text = "Buyer Portal",
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+        Text(
+            text = "Open the buyer side to see model demand, backend health, and the trained .pte download route.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(IdleHarvestDimens.SpaceXL))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            elevation = CardDefaults.cardElevation(defaultElevation = IdleHarvestDimens.CardElevation),
+        ) {
+            Column(modifier = Modifier.padding(IdleHarvestDimens.CardPadding)) {
+                ResponsiveRow(
+                    compact = compact,
+                    spacing = IdleHarvestDimens.SpaceSM,
+                    items = listOf(
+                        { m ->
+                            BuyerLoopCard(
+                                m,
+                                rememberTuneIcon(),
+                                "Live Route",
+                                "The hosted `/buyer` path opens a dedicated buyer dashboard.",
+                            )
+                        },
+                        { m ->
+                            BuyerLoopCard(
+                                m,
+                                rememberMemoryIcon(),
+                                "Download Path",
+                                "The portal links directly to the backend model artifact route.",
+                            )
+                        },
+                    ),
+                )
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
+                OutlinedButton(onClick = { onOpenUrl("/buyer") }) {
+                    Text("Open /buyer")
+                }
+            }
+        }
     }
 }
 
@@ -704,6 +807,14 @@ private fun rememberTuneIcon(): ImageVector = remember {
         "Tune",
         "M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7z" +
             "m14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z",
+    )
+}
+
+@Composable
+private fun rememberInfoIcon(): ImageVector = remember {
+    buildIcon(
+        "Info",
+        "M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z",
     )
 }
 

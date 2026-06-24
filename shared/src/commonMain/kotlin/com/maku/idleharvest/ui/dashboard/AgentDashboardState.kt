@@ -111,7 +111,7 @@ data class AgentDashboardState(
                         source = EarningSource.AIRTIME_SALE,
                         amountUsdc = 2.45,
                         amountLocal = 5000.0,
-                        localCurrency = "NGN",
+                        localCurrency = "GHS",
                         agentId = AgentId("airtime-agent"),
                         timestamp = now - 2 * HOUR_MS,
                     ),
@@ -131,15 +131,15 @@ data class AgentDashboardState(
                 ResourceProfile(
                     airtimeBalance =
                     AirtimeBalance(
-                        carrier = "DemoCarrier",
+                        carrier = "DemoCarrier GH",
                         amountUnits = 2500L,
-                        currency = "NGN",
+                        currency = "GHS",
                         expiryTimestamp = now + 48 * HOUR_MS,
                     ),
                     dataBundles =
                     listOf(
                         DataBundle(
-                            carrier = "DemoCarrier",
+                            carrier = "DemoCarrier GH",
                             remainingMb = 1200L,
                             totalMb = 2000L,
                             expiryTimestamp = now + 36 * HOUR_MS,

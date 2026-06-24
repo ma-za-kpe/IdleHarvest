@@ -1,3 +1,4 @@
+import org.gradle.api.tasks.Copy
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -111,6 +112,20 @@ kotlin {
 
 dependencies {
     androidRuntimeClasspath(libs.compose.uiTooling)
+}
+
+val webHostingDir = layout.buildDirectory.dir("dist/wasmJs/productionExecutable")
+
+tasks.register<Copy>("prepareWebHostingAssets") {
+    from(rootProject.file("web/static/index.html"))
+    from(rootProject.file("web/vendor")) {
+        into("web/vendor")
+    }
+    into(webHostingDir)
+}
+
+tasks.named("wasmJsBrowserDistribution") {
+    dependsOn("prepareWebHostingAssets")
 }
 
 // Basic JaCoCo setup note: full KMP+androidHostTest jacoco requires additional config in real env.

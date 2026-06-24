@@ -102,10 +102,10 @@ fun Application.buyerModule() {
 private fun io.ktor.server.routing.Routing.healthRoute() {
     get("/health") {
         call.respond(
-            mapOf(
-                "status" to "ok",
-                "service" to "buyer-backend",
-                "timestamp" to currentTimeMillis(),
+            HealthResponse(
+                status = "ok",
+                service = "buyer-backend",
+                timestamp = currentTimeMillis(),
             ),
         )
     }
@@ -202,6 +202,13 @@ data class BuyerOrderResponse(
 data class BuyerSummaryResponse(
     val summary: EarningsSummary,
     val recentEvents: List<EarningEvent>,
+)
+
+@Serializable
+data class HealthResponse(
+    val status: String,
+    val service: String,
+    val timestamp: Long,
 )
 
 private fun ModelMetadata.withResolvedChecksum(artifact: File): ModelMetadata {

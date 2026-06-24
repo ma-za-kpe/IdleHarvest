@@ -1,4 +1,11 @@
-@file:Suppress("TooManyFunctions", "MaxLineLength", "MagicNumber", "ImplicitDefaultLocale")
+@file:Suppress(
+    "TooManyFunctions",
+    "MaxLineLength",
+    "MagicNumber",
+    "ImplicitDefaultLocale",
+    "LongMethod",
+    "LongParameterList",
+)
 
 package com.maku.idleharvest.ui.dashboard
 
@@ -18,9 +25,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.maku.idleharvest.domain.models.AirtimeBalance
 import com.maku.idleharvest.domain.models.EarningEvent
 import com.maku.idleharvest.domain.models.EarningSource
 import com.maku.idleharvest.domain.models.MeshState
@@ -53,12 +64,41 @@ private val SpaceXXS = 4.dp
 
 @Composable
 fun AgentDashboardScreen(dashboardState: AgentDashboardState = AgentDashboardState.demo()) {
+    AirtimeDashboardScreenContent(dashboardState = dashboardState)
+}
+
+@Composable
+fun AgentDashboardScreen(
+    dashboardState: AgentDashboardState,
+    phoneAirtimeBalance: AirtimeBalance?,
+    airtimeProbeState: AirtimeProbeState,
+    onRequestAirtimeBalance: (String) -> Unit,
+    onTriggerManualSale: () -> Unit,
+) {
+    AirtimeDashboardScreenContent(
+        dashboardState = dashboardState,
+        phoneAirtimeBalance = phoneAirtimeBalance,
+        airtimeProbeState = airtimeProbeState,
+        onRequestAirtimeBalance = onRequestAirtimeBalance,
+        onTriggerManualSale = onTriggerManualSale,
+    )
+}
+
+@Composable
+private fun AirtimeDashboardScreenContent(
+    dashboardState: AgentDashboardState,
+    phoneAirtimeBalance: AirtimeBalance? = null,
+    airtimeProbeState: AirtimeProbeState = AirtimeProbeState.Idle,
+    onRequestAirtimeBalance: (String) -> Unit = {},
+    onTriggerManualSale: () -> Unit = {},
+) {
     IdleHarvestTheme {
         var selectedAgentName by remember { mutableStateOf(dashboardState.agents.firstOrNull()?.name) }
         val selectedAgent =
             dashboardState.agents.firstOrNull { it.name == selectedAgentName }
                 ?: dashboardState.agents.firstOrNull()
         val sellNudge = dashboardState.computeSellNudge()
+        val liveAirtimeBalance = phoneAirtimeBalance
 
         Column(
             modifier = Modifier
@@ -75,6 +115,17 @@ fun AgentDashboardScreen(dashboardState: AgentDashboardState = AgentDashboardSta
                 Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
                 SellOpportunityCard(nudge = it)
             }
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            liveAirtimeBalance?.let { balance ->
+                AirtimeBalanceCard(balance = balance)
+            } ?: AirtimeBalanceUnavailableCard()
+            Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            AirtimePhoneControlCard(
+                balance = liveAirtimeBalance,
+                probeState = airtimeProbeState,
+                onRequestAirtimeBalance = onRequestAirtimeBalance,
+                onTriggerManualSale = onTriggerManualSale,
+            )
             Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
             SectionLabel("Active Agents (${dashboardState.activeAgentCount}/${dashboardState.totalAgentCount})")
             Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
@@ -90,6 +141,10 @@ fun AgentDashboardScreen(dashboardState: AgentDashboardState = AgentDashboardSta
                 AgentInspectorCard(
                     dashboardState = dashboardState,
                     agent = it,
+                    phoneAirtimeBalance = liveAirtimeBalance,
+                    airtimeProbeState = airtimeProbeState,
+                    onRequestAirtimeBalance = onRequestAirtimeBalance,
+                    onTriggerManualSale = onTriggerManualSale,
                 )
             }
             Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
@@ -245,6 +300,10 @@ private fun AgentCard(agent: DashboardAgentStatus, onClick: () -> Unit) {
 private fun AgentInspectorCard(
     dashboardState: AgentDashboardState,
     agent: DashboardAgentStatus,
+    phoneAirtimeBalance: AirtimeBalance?,
+    airtimeProbeState: AirtimeProbeState,
+    onRequestAirtimeBalance: (String) -> Unit,
+    onTriggerManualSale: () -> Unit,
 ) {
     val sellNudge = dashboardState.computeSellNudge()
     Card(
@@ -269,6 +328,17 @@ private fun AgentInspectorCard(
             )
             if (agent.name == "Airtime Agent") {
                 Spacer(Modifier.height(IdleHarvestDimens.SpaceXS))
+                phoneAirtimeBalance?.let { balance ->
+                    AirtimeBalanceCard(balance = balance)
+                } ?: AirtimeBalanceUnavailableCard()
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+                AirtimePhoneControlCard(
+                    balance = phoneAirtimeBalance,
+                    probeState = airtimeProbeState,
+                    onRequestAirtimeBalance = onRequestAirtimeBalance,
+                    onTriggerManualSale = onTriggerManualSale,
+                )
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
                 sellNudge?.let {
                     SellOpportunityCard(nudge = it)
                 } ?: SellOpportunityCard(
@@ -333,6 +403,166 @@ private fun SellOpportunityCard(nudge: SellNudge, modifier: Modifier = Modifier)
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+@Composable
+private fun AirtimeBalanceCard(balance: AirtimeBalance, modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Column(
+            modifier = Modifier.padding(IdleHarvestDimens.CardPadding),
+            verticalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceXS),
+        ) {
+            Text(
+                text = "Airtime balance",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "${formatUnits(balance.amountUnits)} ${balance.currency}",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = "Carrier: ${balance.carrier}${balance.expiryTimestamp?.let { " · expires soon" } ?: " · verified from phone"}",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AirtimeBalanceUnavailableCard(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Column(
+            modifier = Modifier.padding(IdleHarvestDimens.CardPadding),
+            verticalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceXS),
+        ) {
+            Text(
+                text = "Airtime balance",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = "Unavailable from phone",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = "Tap the probe below to read a live balance from the phone using your carrier's USSD code.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AirtimePhoneControlCard(
+    balance: AirtimeBalance?,
+    probeState: AirtimeProbeState,
+    onRequestAirtimeBalance: (String) -> Unit,
+    onTriggerManualSale: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    var ussdCode by remember { mutableStateOf("*124#") }
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        elevation = CardDefaults.cardElevation(defaultElevation = IdleHarvestDimens.CardElevation),
+    ) {
+        Column(
+            modifier = Modifier.padding(IdleHarvestDimens.CardPadding),
+            verticalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceSM),
+        ) {
+            Text(
+                text = "Phone balance probe",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold,
+            )
+            Text(
+                text = "Enter your carrier USSD code to query the phone directly. The app never invents a balance.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            OutlinedTextField(
+                value = ussdCode,
+                onValueChange = { ussdCode = it },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                label = { Text("USSD code") },
+            )
+            ResponsiveRow(
+                compact = true,
+                spacing = IdleHarvestDimens.SpaceSM,
+                items = listOf(
+                    { itemModifier ->
+                        OutlinedButton(
+                            onClick = { onRequestAirtimeBalance(ussdCode) },
+                            modifier = itemModifier,
+                        ) {
+                            Text("Read from phone")
+                        }
+                    },
+                    { itemModifier ->
+                        Button(
+                            onClick = onTriggerManualSale,
+                            modifier = itemModifier,
+                            enabled = balance != null,
+                        ) {
+                            Text("Trigger sale")
+                        }
+                    },
+                ),
+            )
+            when (probeState) {
+                AirtimeProbeState.Idle -> Text(
+                    text = "Waiting for a probe request.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                AirtimeProbeState.Loading -> Text(
+                    text = "Querying the phone now...",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                is AirtimeProbeState.Success -> {
+                    Text(
+                        text = "Phone response: ${probeState.rawResponse}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                    probeState.balance?.let {
+                        Text(
+                            text = "Parsed balance: ${formatUnits(it.amountUnits)} ${it.currency}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+                is AirtimeProbeState.Error -> Text(
+                    text = probeState.message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
         }
     }
 }
@@ -604,4 +834,9 @@ private fun formatMoney(value: Double): String {
         }
         append(fraction)
     }
+}
+
+private fun formatUnits(value: Long): String {
+    val formatted = value.toString()
+    return formatted.chunked(3).joinToString(",")
 }

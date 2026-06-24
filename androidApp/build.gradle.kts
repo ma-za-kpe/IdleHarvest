@@ -49,8 +49,8 @@ android {
             libs.versions.android.targetSdk
                 .get()
                 .toInt()
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.3"
         buildConfigField("String", "MODEL_ARTIFACT_BASE_URL", "\"http://127.0.0.1:8080/api/models\"")
     }
     packaging {

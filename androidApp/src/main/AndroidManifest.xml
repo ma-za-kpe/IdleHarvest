@@ -11,6 +11,9 @@
     <!-- Network state for bandwidth scanning -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
+    <!-- USSD balance probing via TelephonyManager.sendUssdRequest -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
+
     <!-- Wake lock for AlarmManager Doze mode adaptation -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
