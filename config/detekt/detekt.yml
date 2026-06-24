@@ -20,10 +20,10 @@ complexity:
 style:
   MagicNumber:
     active: true
-    excludePropertyDeclaration: true
-    excludeCompanionObjectPropertyDeclaration: true
-    excludeAnnotation: true
-    excludeEnums: true
+    ignorePropertyDeclaration: true
+    ignoreCompanionObjectPropertyDeclaration: true
+    ignoreAnnotation: true
+    ignoreEnums: true
   WildcardImport:
     active: true
     excludeImports:

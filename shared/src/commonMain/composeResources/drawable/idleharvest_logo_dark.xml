@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+
+    <!-- Background circle (lighter green for dark backgrounds) -->
+    <path
+        android:fillColor="#3DA896"
+        android:pathData="M100,100m-90,0a90,90 0,1,1 180,0a90,90 0,1,1 -180,0" />
+
+    <!-- Inner phone silhouette (dark navy) -->
+    <path
+        android:fillColor="#0B1120"
+        android:pathData="M75,45h50c3.3,0 6,2.7 6,6v98c0,3.3 -2.7,6 -6,6h-50c-3.3,0 -6,-2.7 -6,-6v-98c0,-3.3 2.7,-6 6,-6z
+                          M75,49c-1.1,0 -2,0.9 -2,2v98c0,1.1 0.9,2 2,2h50c1.1,0 2,-0.9 2,-2v-98c0,-1.1 -0.9,-2 -2,-2z" />
+
+    <!-- Harvest wheat symbol (bright gold) -->
+    <path
+        android:fillColor="#FFCC4D"
+        android:pathData="M100,72 L100,120"
+        android:strokeWidth="3.5"
+        android:strokeColor="#FFCC4D" />
+
+    <!-- Wheat grains left -->
+    <path
+        android:fillColor="#FFCC4D"
+        android:pathData="M100,85 C94,80 91,75 94,70 C97,75 97,80 100,85z" />
+    <path
+        android:fillColor="#FFCC4D"
+        android:pathData="M100,98 C94,93 91,88 94,83 C97,88 97,93 100,98z" />
+    <path
+        android:fillColor="#FFCC4D"
+        android:pathData="M100,111 C94,106 91,101 94,96 C97,101 97,106 100,111z" />
+
+    <!-- Wheat grains right -->
+    <path
+        android:fillColor="#FFCC4D"
+        android:pathData="M100,85 C106,80 109,75 106,70 C103,75 103,80 100,85z" />
+    <path
+        android:fillColor="#FFCC4D"
+        android:pathData="M100,98 C106,93 109,88 106,83 C103,88 103,93 100,98z" />
+    <path
+        android:fillColor="#FFCC4D"
+        android:pathData="M100,111 C106,106 109,101 106,96 C103,101 103,106 100,111z" />
+
+    <!-- Top grain (center) -->
+    <path
+        android:fillColor="#FFCC4D"
+        android:pathData="M100,75 C97,70 97,64 100,60 C103,64 103,70 100,75z" />
+
+    <!-- Energy dots (brighter for dark mode) -->
+    <path
+        android:fillColor="#0B1120"
+        android:fillAlpha="0.5"
+        android:pathData="M82,62 A2,2 0,1,1 82.01,62z" />
+    <path
+        android:fillColor="#0B1120"
+        android:fillAlpha="0.5"
+        android:pathData="M118,62 A2,2 0,1,1 118.01,62z" />
+    <path
+        android:fillColor="#0B1120"
+        android:fillAlpha="0.3"
+        android:pathData="M79,82 A1.5,1.5 0,1,1 79.01,82z" />
+    <path
+        android:fillColor="#0B1120"
+        android:fillAlpha="0.3"
+        android:pathData="M121,82 A1.5,1.5 0,1,1 121.01,82z" />
+    <path
+        android:fillColor="#0B1120"
+        android:fillAlpha="0.4"
+        android:pathData="M79,102 A1.8,1.8 0,1,1 79.01,102z" />
+    <path
+        android:fillColor="#0B1120"
+        android:fillAlpha="0.4"
+        android:pathData="M121,102 A1.8,1.8 0,1,1 121.01,102z" />
+
+    <!-- Phone notch -->
+    <path
+        android:fillColor="#0B1120"
+        android:fillAlpha="0.3"
+        android:pathData="M93,140h14c1.1,0 2,0.9 2,2s-0.9,2 -2,2h-14c-1.1,0 -2,-0.9 -2,-2s0.9,-2 2,-2z" />
+</vector>

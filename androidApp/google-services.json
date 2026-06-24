@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "447391948140",
+    "project_id": "idleharvest-86163",
+    "storage_bucket": "idleharvest-86163.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:447391948140:android:6e5cc46727f7ea821fa749",
+        "android_client_info": {
+          "package_name": "com.maku.idleharvest"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhqM_p61twYVSRu8B3PB3jNmCrjiVI4Jc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

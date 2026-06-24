@@ -1,0 +1,32 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+# Line-length is enforced by Detekt (which excludes decorative comments); ktlint defers to it.
+max_line_length = off
+
+# Compose requires PascalCase for @Composable functions — disable ktlint's lowercase requirement
+ktlint_standard_function-naming = disabled
+
+# Multi-class domain model files are intentional in this project
+ktlint_standard_filename = disabled
+
+# Backing property pattern used in AgentEventBus flows is valid
+ktlint_standard_backing-property-naming = disabled
+
+# KDoc + EOL comment ordering is project style, not a bug
+ktlint_standard_no-consecutive-comments = disabled
+
+# Wildcard imports are checked by Detekt; avoid double-reporting
+ktlint_standard_no-wildcard-imports = disabled
+
+# Empty test base files are scaffolding; remove when populated
+ktlint_standard_no-empty-file = disabled
+

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">IdleHarvest</string>
+    <string name="app_tagline">Tattara Ikon Ka Na Barci</string>
+
+    <!-- Common -->
+    <string name="skip">Tsallake</string>
+    <string name="next">Gaba</string>
+    <string name="back">Koma baya</string>
+    <string name="done">An gama</string>
+    <string name="cancel">Soke</string>
+    <string name="continue_label">Ci gaba</string>
+    <string name="get_started">Fara</string>
+    <string name="settings">Saiti</string>
+
+    <!-- Onboarding: Screen 1 — Welcome -->
+    <string name="onboarding_welcome_title">Barka da zuwa IdleHarvest</string>
+    <string name="onboarding_welcome_subtitle">Tattara Ikon Ka Na Barci</string>
+    <string name="onboarding_welcome_description">Juya lokacin sararin samaniya, bayanai, da albarkatu masu hutawa zuwa kuɗin ainihi — a sirrance, kai tsaye, da aminci akan wayar ka.</string>
+    <string name="onboarding_welcome_cta">Fara</string>
+
+    <!-- Onboarding: Screen 2 — Permissions -->
+    <string name="onboarding_permissions_title">Ba da Izini</string>
+    <string name="onboarding_permissions_subtitle">IdleHarvest yana buƙatar izini kaɗan don aiki a bango.</string>
+    <string name="onboarding_perm_bluetooth_title">Bluetooth</string>
+    <string name="onboarding_perm_bluetooth_desc">Gano na'urorin IdleHarvest da ke kusa don haɗa albarkatu da samun kuɗi tare.</string>
+    <string name="onboarding_perm_notifications_title">Sanarwa</string>
+    <string name="onboarding_perm_notifications_desc">Karɓi sanarwa game da kuɗin da aka cika, keta manufa, da sabuntawar hali na wakili.</string>
+    <string name="onboarding_perm_battery_title">Inganta Batir</string>
+    <string name="onboarding_perm_battery_desc">Ba da izinin aiki a bango don wakilan su ci gaba da samun kuɗi ko da allon naka ya kashe.</string>
+    <string name="onboarding_perm_grant">Ba da izini</string>
+    <string name="onboarding_perm_granted">An ba da izini</string>
+
+    <!-- Onboarding: Screen 3 — Wallet Setup -->
+    <string name="onboarding_wallet_title">Kafa Jakar Ka</string>
+    <string name="onboarding_wallet_subtitle">An adana jakar ka lafiya a wannan na'ura. Ba girgije, ba fallasa.</string>
+    <string name="onboarding_wallet_generate">Ƙirƙiri Sabuwar Jaka</string>
+    <string name="onboarding_wallet_restore">Dawo daga Jumla</string>
+    <string name="onboarding_wallet_mnemonic_warning">Rubuta jumlar dawowa. Za a nuna ta sau ɗaya kawai. Ba tare da ita ba, ba za a iya dawo da jakar ka ba.</string>
+    <string name="onboarding_wallet_mnemonic_copied">An kwafi jumla — adana ta a wuri mai aminci.</string>
+    <string name="onboarding_wallet_copy_phrase">Kwafi Jumla</string>
+    <string name="onboarding_wallet_confirmed">Na adana jumlar dawowa ta</string>
+    <string name="onboarding_wallet_skipped_notice">Zaka iya kafa jakar ka daga baya a Saiti.</string>
+
+    <!-- Onboarding: Screen 4 — Guardrails -->
+    <string name="onboarding_guardrails_title">Kafa Iyakoki Ka</string>
+    <string name="onboarding_guardrails_subtitle">Sarrafa abin da wakilai za su iya yi a madadin ka. Zaka iya canza wannan a kowane lokaci.</string>
+    <string name="onboarding_guardrail_airtime_label">Wakili na Lokacin Sarari</string>
+    <string name="onboarding_guardrail_airtime_desc">Siyar ko canja lokacin sarari da fakitin bayanai da ke kusa da ƙarewa kai tsaye.</string>
+    <string name="onboarding_guardrail_depin_label">Wakili na DePIN</string>
+    <string name="onboarding_guardrail_depin_desc">Raba bandwidth da ƙididdiga masu banza don samun kuɗin crypto na shiru.</string>
+    <string name="onboarding_guardrail_daily_limit_label">Iyakar Yau da Kullun</string>
+    <string name="onboarding_guardrail_daily_limit_hint">Matsakaicin USDC kowace rana (misali 5.00)</string>
+    <string name="onboarding_guardrail_single_limit_label">Iyakar Ma\'amala Ɗaya</string>
+    <string name="onboarding_guardrail_single_limit_hint">Matsakaicin USDC kowace ma\'amala (misali 1.00)</string>
+    <string name="onboarding_guardrail_biometric_label">Biometric don ma\'amaloli sama da</string>
+    <string name="onboarding_guardrail_autonomy_manual">Tambaye ni koyaushe</string>
+    <string name="onboarding_guardrail_autonomy_semi">Tambaye ni don ayyuka manya</string>
+    <string name="onboarding_guardrail_autonomy_full">Yi aiki kai tsaye gaba ɗaya</string>
+    <string name="onboarding_guardrails_safe_defaults_notice">An yi amfani da saitunan aminci. Zaka iya daidaita su a Saiti.</string>
+
+    <!-- Onboarding: Screen 5 — First Scan -->
+    <string name="onboarding_scan_title">Bincika Albarkatun Ka</string>
+    <string name="onboarding_scan_subtitle">Bari mu ga abin da zaka iya samu a yau.</string>
+    <string name="onboarding_scan_in_progress">Yana bincika albarkatun na\'ura…</string>
+    <string name="onboarding_scan_complete">Bincike ya cika!</string>
+    <string name="onboarding_scan_airtime_found">Lokacin Sarari da Bayanai</string>
+    <string name="onboarding_scan_bandwidth_found">Bandwidth mara amfani</string>
+    <string name="onboarding_scan_storage_found">Ajiyar kyauta</string>
+    <string name="onboarding_scan_nothing_found">Ba a sami albarkatu mara amfani a yanzu ba. Wakilai za su ci gaba da kallo.</string>
+    <string name="onboarding_scan_go_to_dashboard">Tafi Dashbod</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Dashbod</string>
+    <string name="dashboard_total_earnings">Jimlar Kuɗin da aka Samu</string>
+    <string name="dashboard_active_agents">Wakilai Masu Aiki</string>
+    <string name="dashboard_recent_transactions">Ma\'amalolin Kwanan Nan</string>
+    <string name="dashboard_system_health">Lafiyar Tsarin</string>
+    <string name="dashboard_health_green">Duk tsarin yana aiki</string>
+    <string name="dashboard_health_yellow">Wakilai wasu an dakatar da su</string>
+    <string name="dashboard_health_red">An gano matsaloli</string>
+
+    <!-- Currency -->
+    <string name="currency_usdc">USDC</string>
+    <string name="currency_format_usdc">%1$.2f USDC</string>
+
+    <!-- Compliance disclaimer -->
+    <string name="compliance_disclaimer_title">Sanarwa Mai Muhimmanci</string>
+    <string name="compliance_disclaimer_body">Sayar da lokacin sarari da bayanai ta atomatik yana ƙarƙashin sharuɗɗan ayyukan kamfanin wayar ka da dokokin gida. IdleHarvest yana amfani da saitunan farko na rikon amana da dokoki na bin doka don rage haɗari.</string>
+    <string name="compliance_disclaimer_accept">Na gane</string>
+    <string name="compliance_disclaimer_decline">Soke</string>
+
+    <!-- Accessibility -->
+    <string name="cd_logo">Alama ta IdleHarvest</string>
+    <string name="cd_health_green">Lafiyar tsarin: mai kyau</string>
+    <string name="cd_health_yellow">Lafiyar tsarin: ta ragu</string>
+    <string name="cd_health_red">Lafiyar tsarin: mara kyau</string>
+    <string name="cd_back_button">Koma baya</string>
+    <string name="cd_skip_button">Tsallake wannan mataki</string>
+</resources>

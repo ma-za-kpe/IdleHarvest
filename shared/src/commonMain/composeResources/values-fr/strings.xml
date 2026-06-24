@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">IdleHarvest</string>
+    <string name="app_tagline">Récoltez votre puissance inactive</string>
+
+    <!-- Common -->
+    <string name="skip">Passer</string>
+    <string name="next">Suivant</string>
+    <string name="back">Retour</string>
+    <string name="done">Terminé</string>
+    <string name="cancel">Annuler</string>
+    <string name="continue_label">Continuer</string>
+    <string name="get_started">Commencer</string>
+    <string name="settings">Paramètres</string>
+
+    <!-- Onboarding: Screen 1 — Welcome -->
+    <string name="onboarding_welcome_title">Bienvenue sur IdleHarvest</string>
+    <string name="onboarding_welcome_subtitle">Récoltez votre puissance inactive</string>
+    <string name="onboarding_welcome_description">Transformez le temps d\'antenne, les données et les ressources inutilisées en revenus réels — en toute confidentialité, automatiquement et en toute sécurité sur votre téléphone.</string>
+    <string name="onboarding_welcome_cta">Commencer</string>
+
+    <!-- Onboarding: Screen 2 — Permissions -->
+    <string name="onboarding_permissions_title">Accorder des autorisations</string>
+    <string name="onboarding_permissions_subtitle">IdleHarvest a besoin de quelques autorisations pour fonctionner en arrière-plan.</string>
+    <string name="onboarding_perm_bluetooth_title">Bluetooth</string>
+    <string name="onboarding_perm_bluetooth_desc">Découvrez les appareils IdleHarvest à proximité pour regrouper les ressources et gagner davantage ensemble.</string>
+    <string name="onboarding_perm_notifications_title">Notifications</string>
+    <string name="onboarding_perm_notifications_desc">Recevez des alertes pour les gains complétés, les violations de politique et les mises à jour de statut des agents.</string>
+    <string name="onboarding_perm_battery_title">Optimisation de la batterie</string>
+    <string name="onboarding_perm_battery_desc">Autorisez le fonctionnement en arrière-plan afin que les agents continuent à gagner même lorsque votre écran est éteint.</string>
+    <string name="onboarding_perm_grant">Accorder</string>
+    <string name="onboarding_perm_granted">Accordé</string>
+
+    <!-- Onboarding: Screen 3 — Wallet Setup -->
+    <string name="onboarding_wallet_title">Configurer votre portefeuille</string>
+    <string name="onboarding_wallet_subtitle">Votre portefeuille est stocké en toute sécurité sur cet appareil. Pas de cloud, pas d\'exposition.</string>
+    <string name="onboarding_wallet_generate">Créer un nouveau portefeuille</string>
+    <string name="onboarding_wallet_restore">Restaurer depuis une phrase</string>
+    <string name="onboarding_wallet_mnemonic_warning">Notez votre phrase de récupération. Elle ne sera affichée qu\'une seule fois. Sans elle, votre portefeuille ne peut pas être récupéré.</string>
+    <string name="onboarding_wallet_mnemonic_copied">Phrase copiée — rangez-la en lieu sûr.</string>
+    <string name="onboarding_wallet_copy_phrase">Copier la phrase</string>
+    <string name="onboarding_wallet_confirmed">J\'ai sauvegardé ma phrase de récupération</string>
+    <string name="onboarding_wallet_skipped_notice">Vous pouvez configurer votre portefeuille plus tard dans les Paramètres.</string>
+
+    <!-- Onboarding: Screen 4 — Guardrails -->
+    <string name="onboarding_guardrails_title">Définir vos limites</string>
+    <string name="onboarding_guardrails_subtitle">Contrôlez ce que les agents peuvent faire en votre nom. Vous pouvez modifier cela à tout moment.</string>
+    <string name="onboarding_guardrail_airtime_label">Agent Temps d\'antenne</string>
+    <string name="onboarding_guardrail_airtime_desc">Vendre ou transférer automatiquement le temps d\'antenne et les forfaits de données qui expirent.</string>
+    <string name="onboarding_guardrail_depin_label">Agent DePIN</string>
+    <string name="onboarding_guardrail_depin_desc">Partager la bande passante et le calcul inactifs pour gagner des revenus crypto passifs.</string>
+    <string name="onboarding_guardrail_daily_limit_label">Limite journalière</string>
+    <string name="onboarding_guardrail_daily_limit_hint">USDC maximum par jour (ex. 5.00)</string>
+    <string name="onboarding_guardrail_single_limit_label">Limite par transaction</string>
+    <string name="onboarding_guardrail_single_limit_hint">USDC maximum par transaction (ex. 1.00)</string>
+    <string name="onboarding_guardrail_biometric_label">Biométrie pour les transactions au-dessus de</string>
+    <string name="onboarding_guardrail_autonomy_manual">Me demander à chaque fois</string>
+    <string name="onboarding_guardrail_autonomy_semi">Me demander pour les grandes actions</string>
+    <string name="onboarding_guardrail_autonomy_full">Exécuter entièrement automatiquement</string>
+    <string name="onboarding_guardrails_safe_defaults_notice">Paramètres sécurisés appliqués. Vous pouvez les ajuster dans Paramètres.</string>
+
+    <!-- Onboarding: Screen 5 — First Scan -->
+    <string name="onboarding_scan_title">Analyse de vos ressources</string>
+    <string name="onboarding_scan_subtitle">Voyons ce que vous pouvez gagner aujourd\'hui.</string>
+    <string name="onboarding_scan_in_progress">Analyse des ressources de l\'appareil…</string>
+    <string name="onboarding_scan_complete">Analyse terminée !</string>
+    <string name="onboarding_scan_airtime_found">Temps d\'antenne et données</string>
+    <string name="onboarding_scan_bandwidth_found">Bande passante inactive</string>
+    <string name="onboarding_scan_storage_found">Stockage libre</string>
+    <string name="onboarding_scan_nothing_found">Aucune ressource inactive pour le moment. Les agents continueront à surveiller.</string>
+    <string name="onboarding_scan_go_to_dashboard">Aller au tableau de bord</string>
+
+    <!-- Dashboard -->
+    <string name="dashboard_title">Tableau de bord</string>
+    <string name="dashboard_total_earnings">Gains totaux</string>
+    <string name="dashboard_active_agents">Agents actifs</string>
+    <string name="dashboard_recent_transactions">Transactions récentes</string>
+    <string name="dashboard_system_health">Santé du système</string>
+    <string name="dashboard_health_green">Tous les systèmes fonctionnent</string>
+    <string name="dashboard_health_yellow">Certains agents en pause</string>
+    <string name="dashboard_health_red">Problèmes détectés</string>
+
+    <!-- Currency -->
+    <string name="currency_usdc">USDC</string>
+    <string name="currency_format_usdc">%1$.2f USDC</string>
+
+    <!-- Compliance disclaimer -->
+    <string name="compliance_disclaimer_title">Avis important</string>
+    <string name="compliance_disclaimer_body">La revente automatisée de temps d\'antenne et de données est soumise aux conditions générales de votre opérateur et aux réglementations locales. IdleHarvest applique des paramètres par défaut conservateurs et des règles de conformité pour minimiser les risques.</string>
+    <string name="compliance_disclaimer_accept">Je comprends</string>
+    <string name="compliance_disclaimer_decline">Annuler</string>
+
+    <!-- Accessibility -->
+    <string name="cd_logo">Logo IdleHarvest</string>
+    <string name="cd_health_green">Santé du système : bonne</string>
+    <string name="cd_health_yellow">Santé du système : dégradée</string>
+    <string name="cd_health_red">Santé du système : critique</string>
+    <string name="cd_back_button">Retour</string>
+    <string name="cd_skip_button">Passer cette étape</string>
+</resources>
