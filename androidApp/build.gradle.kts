@@ -49,8 +49,8 @@ android {
             libs.versions.android.targetSdk
                 .get()
                 .toInt()
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
         buildConfigField("String", "MODEL_ARTIFACT_BASE_URL", "\"http://127.0.0.1:8080/api/models\"")
     }
     packaging {
@@ -83,8 +83,7 @@ tasks.register("buildBetaApk") {
     group = "distribution"
     description = "Builds a debug-signed APK for beta tester distribution, copies it to dist/, and deploys via Firebase App Distribution (Gradle task entrypoint for distribution)"
     notCompatibleWithConfigurationCache("Uses Gradle script object references and an external Firebase CLI process.")
-    // dependsOn disabled temporarily to allow doLast execution for deploy in this env (assemble variants have toolchain issues sometimes)
-    // In normal dev/CI with full SDK this would dependOn assembleDebug or assembleBeta
+    dependsOn("assembleDebug")
     doLast {
         val apkDir =
             layout.buildDirectory
