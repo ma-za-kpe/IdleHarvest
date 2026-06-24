@@ -42,6 +42,8 @@ IdleHarvest runs on Arm-powered phones using lightweight AI agents that autonomo
 
 Built with **Kotlin Multiplatform (KMP)** for cross-platform reach: Android-first + iOS + Web (Kotlin/WASM). Models are trained on Vast.ai and exported via **ExecuTorch** for edge deployment with **Arm-optimized acceleration** (KleidiAI/SME2/XNNPACK).
 
+On the Android dashboard, the agent cards are tappable. Selecting a card opens a live inspector pane with the agent's runtime state, current action mode, device posture, mesh status, and the latest settlement signal so judges can see the system moving, not just reading static numbers.
+
 **Target:** [Arm AI Optimization Challenge](https://www.arm.com/) — Mobile AI Track.
 
 ## Functionality & Output
@@ -171,6 +173,16 @@ Use this flow for a short training run that stays up for at most 1 hour:
 5. Export `ml/output/idleharvest_model.pte`.
 6. Verify the artifact, download it, then destroy the instance as soon as you are satisfied.
 
+### What actually happened in practice
+
+The first pass used a remote fine-tune path, but Hugging Face access and export tooling were not stable enough inside the Vast.ai environment. To keep the challenge moving, the training script now falls back to an offline `local-scratch` GPT-2 style run when the hosted base model cannot be used.
+
+That fallback was the reliable path for the final artifact:
+
+- training completed on Vast.ai with a real loss curve and a non-trivial final checkpoint
+- the merged checkpoint was exported locally when the ExecuTorch toolchain was easier to control on Windows
+- the final `.pte` artifact was then served through the buyer backend so the app could download it from a real route instead of a stub registry
+
 ### Access the instance
 
 ```bash
@@ -221,11 +233,18 @@ bash ml/vastai_setup.sh
 
 # Or run the steps manually:
 python3 ml/generate_dataset.py --rows 10000 --out ml/data
-python3 ml/train.py --data ml/data/device_usage.jsonl --base_model TinyLlama/TinyLlama-1.1B-Chat-v1.0 --output_dir ml/output/lora_merged --epochs 3 --batch_size 8
+python3 ml/train.py --data ml/data/device_usage.jsonl --base_model local-scratch --output_dir ml/output/lora_merged --epochs 3 --batch_size 8
 python3 ml/export_to_executorch.py --model_dir ml/output/lora_merged --out ml/output/idleharvest_model.pte --quantize int8
 ```
 
+If Hugging Face access is available, `ml/train.py` keeps the original QLoRA path. If not, it falls back to an offline scratch GPT-2 style model so the repo can still produce a real trained checkpoint and `.pte` artifact on Vast.ai.
+
 The exporter strips stale 4-bit quantization metadata from `config.json` before loading the merged checkpoint, so an already-trained model can still be exported cleanly.
+
+For this repo, the final `.pte` export now uses the documented ExecuTorch flow:
+`torch.export` -> `to_edge_transform_and_lower` -> `to_executorch()`.
+
+On Windows, the exporter auto-detects the `flatc.exe` bundled in the ExecuTorch wheel. If you run the export manually in a custom environment, you can point `FLATC_EXECUTABLE` at that binary before launching the script.
 
 ### Verify the training output
 
@@ -272,7 +291,7 @@ cp idleharvest_model.pte shared/src/commonMain/composeResources/files/
 
 ## Buyer Backend
 
-IdleHarvest now includes a tiny Ktor backend that simulates the buyer side of the ecosystem.
+IdleHarvest now includes a tiny Ktor backend that simulates the buyer side of the ecosystem. The Firebase-hosted landing page routes into this buyer flow so the demo shows both the earning side and the demand side in one loop.
 
 ### Run locally
 
@@ -304,17 +323,27 @@ Then the app can download the model artifact from `http://127.0.0.1:8080/api/mod
 - Open the landing page and click `Open Buyer Portal`.
 - Or navigate directly to `/buyer`.
 
+### Why this matters
+
+The buyer portal closes the demo loop:
+
+- the landing page introduces the buyer side without leaving the app
+- the Ktor backend serves model metadata, the trained `.pte`, and buyer settlement responses
+- the dashboard can surface buyer activity as a real signal instead of a fake placeholder
+- judges can follow the full story from training to deployment to simulated demand
+
 ## TODO / Roadmap
 
 The next demo loop should make the full ecosystem visible from training to buyer settlement.
 
-- [ ] Re-run Vast.ai export until `ml/output/idleharvest_model.pte` is produced and archived.
-- [ ] Confirm the exported model can be downloaded from a real artifact endpoint instead of a no-op registry.
+- [x] Re-run Vast.ai export until `ml/output/idleharvest_model.pte` is produced and archived.
+- [x] Confirm the exported model can be downloaded from a real artifact endpoint instead of a no-op registry.
 - [x] Add a minimal buyer backend using Ktor that simulates demand, orders, and settlement callbacks.
 - [x] Share common models and business rules between the Android app and backend with Kotlin Multiplatform.
 - [x] Extend the web landing page with a buyer-side panel or route so the demo shows both sides of the loop.
 - [ ] Add fake payout and buyer transaction data for demo mode so the ecosystem can be shown without real third-party keys.
-- [ ] Keep the beta APK task Windows-safe and runnable from this repo on any developer machine.
+- [x] Keep the beta APK task Windows-safe and runnable from this repo on any developer machine.
+- [x] Add backend integration tests for the buyer artifact/download flow.
 - [ ] Add backend integration tests for buyer/order/settlement flows.
 
 ## Building

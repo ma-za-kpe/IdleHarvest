@@ -18,6 +18,7 @@ import json
 import os
 import subprocess
 import sys
+import importlib.util
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -44,9 +45,31 @@ def strip_quantization_metadata(model_dir: str):
             config_path.write_text(backup, encoding="utf-8")
 
 
+def configure_flatc_binary():
+    if os.environ.get("FLATC_EXECUTABLE"):
+        return
+
+    try:
+        spec = importlib.util.find_spec("executorch")
+    except Exception:
+        return
+
+    if spec is None or not spec.submodule_search_locations:
+        return
+
+    package_root = Path(next(iter(spec.submodule_search_locations)))
+    candidate = package_root / "data" / "bin" / ("flatc.exe" if os.name == "nt" else "flatc")
+    if candidate.exists():
+        os.environ["FLATC_EXECUTABLE"] = str(candidate)
+
+
 def export_executorch(model_dir: str, out: str, max_seq_len: int, quantize: str):
     import torch
     from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    configure_flatc_binary()
+    from executorch.backends.xnnpack.partition.xnnpack_partitioner import XnnpackPartitioner
+    from executorch.exir import to_edge_transform_and_lower
 
     with strip_quantization_metadata(model_dir):
         print(f"Loading {model_dir} for ExecuTorch export…")
@@ -54,26 +77,37 @@ def export_executorch(model_dir: str, out: str, max_seq_len: int, quantize: str)
         model.eval()
         tokenizer = AutoTokenizer.from_pretrained(model_dir)
 
-        from executorch.extension.llm.export import LLMEdgeManager
+        class ExportableCausalLM(torch.nn.Module):
+            def __init__(self, base_model):
+                super().__init__()
+                self.base_model = base_model
 
-        dummy_ids = torch.zeros((1, 16), dtype=torch.long)
-        manager = LLMEdgeManager(
-            model=model,
-            modelname="idleharvest",
-            max_seq_len=max_seq_len,
-            use_kv_cache=False,
-            example_inputs=(dummy_ids,),
-            dtype=torch.float32,
-            enable_dynamic_shape=True,
+            def forward(self, input_ids, attention_mask):
+                outputs = self.base_model(
+                    input_ids=input_ids,
+                    attention_mask=attention_mask,
+                    use_cache=False,
+                )
+                return outputs.logits
+
+        export_model = ExportableCausalLM(model)
+        example_input_ids = torch.ones((1, min(max_seq_len, 16)), dtype=torch.long)
+        example_attention_mask = torch.ones_like(example_input_ids)
+        exported_program = torch.export.export(
+            export_model,
+            (example_input_ids, example_attention_mask),
         )
 
-        if quantize == "int8":
-            from executorch.extension.llm.export.builder import DType
-            manager = manager.to_dtype(DType.fp16)
-
         os.makedirs(os.path.dirname(out) or ".", exist_ok=True)
-        manager.export().to_edge().to_executorch()
-        manager.save_to_pte(out)
+        program = (
+            to_edge_transform_and_lower(
+                exported_program,
+                partitioner=[XnnpackPartitioner()],
+            )
+            .to_executorch()
+        )
+        with open(out, "wb") as f:
+            f.write(program.buffer)
 
     size_mb = os.path.getsize(out) / (1024 * 1024)
     print(f"ExecuTorch export complete: {out} ({size_mb:.1f} MB)")
@@ -89,7 +123,7 @@ def export_gguf(model_dir: str, out_dir: str, quantize: str):
             subprocess.run(["git", "clone", "--depth=1",
                             "https://github.com/ggerganov/llama.cpp.git",
                             "/opt/llama.cpp"], check=True)
-            subprocess.run(["pip", "install", "-q", "gguf", "sentencepiece"],
+            subprocess.run([sys.executable, "-m", "pip", "install", "-q", "gguf", "sentencepiece"],
                            check=True)
 
         print("Converting to GGUF (f16)…")

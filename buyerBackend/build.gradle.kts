@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.Test
+
 plugins {
     kotlin("jvm")
     alias(libs.plugins.kotlinSerialization)
@@ -15,7 +17,7 @@ application {
 }
 
 kotlin {
-    jvmToolchain(11)
+    jvmToolchain(21)
 }
 
 dependencies {
@@ -29,4 +31,11 @@ dependencies {
     implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
+
+    testImplementation(kotlin("test"))
+    testImplementation("io.ktor:ktor-server-test-host:${libs.versions.ktor.get()}")
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }

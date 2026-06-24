@@ -23,6 +23,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,6 +54,11 @@ private val SpaceXXS = 4.dp
 @Composable
 fun AgentDashboardScreen(dashboardState: AgentDashboardState = AgentDashboardState.demo()) {
     IdleHarvestTheme {
+        var selectedAgentName by remember { mutableStateOf(dashboardState.agents.firstOrNull()?.name) }
+        val selectedAgent =
+            dashboardState.agents.firstOrNull { it.name == selectedAgentName }
+                ?: dashboardState.agents.firstOrNull()
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -65,8 +74,18 @@ fun AgentDashboardScreen(dashboardState: AgentDashboardState = AgentDashboardSta
             SectionLabel("Active Agents (${dashboardState.activeAgentCount}/${dashboardState.totalAgentCount})")
             Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
             dashboardState.agents.forEach { agent ->
-                AgentCard(agent)
+                AgentCard(
+                    agent = agent,
+                    onClick = { selectedAgentName = agent.name },
+                )
                 Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+            }
+            selectedAgent?.let {
+                Spacer(Modifier.height(IdleHarvestDimens.SpaceSM))
+                AgentInspectorCard(
+                    dashboardState = dashboardState,
+                    agent = it,
+                )
             }
             Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
             SectionLabel("System Health")
@@ -174,8 +193,9 @@ private fun SectionLabel(text: String) {
 }
 
 @Composable
-private fun AgentCard(agent: DashboardAgentStatus) {
+private fun AgentCard(agent: DashboardAgentStatus, onClick: () -> Unit) {
     Card(
+        onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
@@ -214,6 +234,73 @@ private fun AgentCard(agent: DashboardAgentStatus) {
             )
         }
     }
+}
+
+@Composable
+private fun AgentInspectorCard(
+    dashboardState: AgentDashboardState,
+    agent: DashboardAgentStatus,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = IdleHarvestDimens.ScreenPaddingHorizontal),
+        elevation = CardDefaults.cardElevation(defaultElevation = IdleHarvestDimens.CardElevation),
+    ) {
+        Column(
+            modifier = Modifier.padding(IdleHarvestDimens.CardPadding),
+            verticalArrangement = Arrangement.spacedBy(IdleHarvestDimens.SpaceSM),
+        ) {
+            Text(
+                text = "${agent.name} live preview",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = agentPreviewCopy(agent),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            ResponsiveRow(
+                compact = true,
+                spacing = IdleHarvestDimens.SpaceSM,
+                items = listOf(
+                    { modifier -> PreviewMetric("Runtime", agent.statusLabel, modifier) },
+                    { modifier -> PreviewMetric("Mesh", meshLabel(dashboardState.meshState), modifier) },
+                    { modifier -> PreviewMetric("Battery", batteryLabel(dashboardState.resourceProfile.batteryLevel, dashboardState.resourceProfile.isCharging), modifier) },
+                ),
+            )
+            dashboardState.recentTransactions.firstOrNull()?.let { event ->
+                Text(
+                    text = "Latest settlement: ${sourceLabel(event.source)} for ${formatMoney(event.amountUsdc)} USDC",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun PreviewMetric(title: String, value: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(text = title, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Spacer(Modifier.height(SpaceXXS))
+        Text(text = value, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
+    }
+}
+
+private fun agentPreviewCopy(agent: DashboardAgentStatus): String = when (agent.state) {
+    com.maku.idleharvest.domain.models.AgentState.IDLE ->
+        "${agent.name} is waiting for the next trigger while the device stays within policy."
+    com.maku.idleharvest.domain.models.AgentState.EVALUATING ->
+        "${agent.name} is scoring live device signals and deciding whether the next action is worth taking."
+    com.maku.idleharvest.domain.models.AgentState.EXECUTING ->
+        "${agent.name} is currently acting on an approved opportunity and writing the result into the audit trail."
+    com.maku.idleharvest.domain.models.AgentState.PAUSED ->
+        "${agent.name} is paused by guardrails or device conditions and will resume when the policy engine allows it."
+    com.maku.idleharvest.domain.models.AgentState.ERROR ->
+        "${agent.name} hit a runtime issue and needs attention before it can continue earning."
 }
 
 @Composable

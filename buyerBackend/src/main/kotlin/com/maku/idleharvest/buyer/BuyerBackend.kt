@@ -18,10 +18,9 @@ import io.ktor.server.application.install
 import io.ktor.server.cio.CIO
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.server.plugins.defaultheaders.DefaultHeaders
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import io.ktor.server.response.respondFile
+import io.ktor.server.response.respondBytes
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -89,7 +88,6 @@ fun main(args: Array<String>) {
 }
 
 fun Application.buyerModule() {
-    install(DefaultHeaders)
     install(ContentNegotiation) {
         json(JsonConfig)
     }
@@ -167,7 +165,11 @@ private fun io.ktor.server.routing.Routing.modelApiRoutes() {
                     status = HttpStatusCode.NotFound,
                 )
             }
-            call.respondFile(artifact)
+            call.respondBytes(
+                bytes = artifact.readBytes(),
+                contentType = ContentType.Application.OctetStream,
+                status = HttpStatusCode.OK,
+            )
         }
     }
 }
@@ -217,7 +219,7 @@ private fun resolveArtifactFile(modelId: String): File {
             File("ml/output/$modelId.pte"),
             File("../ml/output/$modelId.pte"),
         )
-    return candidates.firstOrNull { it.exists() } ?: candidates.first()
+    return (candidates.firstOrNull { it.exists() } ?: candidates.first()).absoluteFile
 }
 
 private fun List<EarningEvent>.toEarningsSummary(): EarningsSummary {

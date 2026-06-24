@@ -419,9 +419,9 @@ private fun BuyerLoopSection(compact: Boolean) {
                     BuyerLoopCard(
                         m,
                         rememberTuneIcon(),
-                        "Mock Buyer API",
-                        "Planned Ktor or Firebase service that simulates buyer demand, " +
-                            "orders, and settlement callbacks.",
+                        "Ktor Buyer API",
+                        "Tiny Ktor service that simulates buyer demand, orders, and settlement callbacks " +
+                            "while the Firebase-hosted landing page routes users into the buyer loop.",
                     )
                 },
                 { m ->

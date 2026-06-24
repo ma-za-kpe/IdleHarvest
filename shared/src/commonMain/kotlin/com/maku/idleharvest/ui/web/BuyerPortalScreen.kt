@@ -94,10 +94,10 @@ private fun BuyerPortalBody(
         BuyerPortalCard(
             title = "Model Artifacts",
             body =
-            "The backend serves downloadable model metadata and .pte " +
-                "artifacts from the local demo path.",
-            actionText = "Open Model API",
-            onAction = { onOpenUrl("${BuyerPortalUrls.BACKEND_BASE_URL}/api/models") },
+            "The backend serves model metadata and the trained .pte artifact " +
+                "from the local demo path.",
+            actionText = "Download .pte",
+            onAction = { onOpenUrl("${BuyerPortalUrls.BACKEND_BASE_URL}/api/models/idleharvest_model.pte") },
         )
         Spacer(Modifier.height(IdleHarvestDimens.SpaceLG))
         BuyerPortalCard(
