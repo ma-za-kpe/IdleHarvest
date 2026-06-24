@@ -160,11 +160,22 @@ cd IdleHarvest
 
 Use Vast.ai to fine-tune and export your own on-device model artifacts.
 
+### Full lifecycle
+
+Use this flow for a short training run that stays up for at most 1 hour:
+
+1. Create or select an SSH key in your Vast.ai account.
+2. Provision a GPU instance.
+3. SSH into the instance and run `bash ml/vastai_setup.sh`.
+4. Watch `ml/output/train.log` until training finishes.
+5. Export `ml/output/idleharvest_model.pte`.
+6. Verify the artifact, download it, then destroy the instance as soon as you are satisfied.
+
 ### Access the instance
 
 ```bash
 # List your active instances
-vastai show instances
+vastai show instances-v1
 
 # Inspect a specific instance and grab the SSH host/port
 vastai show instance <INSTANCE_ID> --raw
@@ -186,6 +197,21 @@ If the module is missing, install it first:
 python -m pip install vastai
 ```
 
+### Provision a fresh training instance
+
+```bash
+# Show search options and pick an offer that matches your GPU budget
+vastai search offers 'gpu_name=RTX_4090 num_gpus=1 verified=true direct_port_count>=1 rentable=true' -o 'dlperf_usd-'
+
+# Create an SSH-enabled instance with your public key attached
+vastai create ssh-key ~/.ssh/id_ed25519.pub
+vastai create instance <OFFER_ID> --image pytorch/pytorch:2.4.0-cuda12.4-cudnn9-runtime --disk 20 --ssh --direct
+
+# Get the SSH URL or raw host/port details
+vastai ssh-url <INSTANCE_ID>
+vastai show instance <INSTANCE_ID> --raw
+```
+
 ### Train and export
 
 ```bash
@@ -199,6 +225,8 @@ python3 ml/train.py --data ml/data/device_usage.jsonl --base_model TinyLlama/Tin
 python3 ml/export_to_executorch.py --model_dir ml/output/lora_merged --out ml/output/idleharvest_model.pte --quantize int8
 ```
 
+The exporter strips stale 4-bit quantization metadata from `config.json` before loading the merged checkpoint, so an already-trained model can still be exported cleanly.
+
 ### Verify the training output
 
 ```bash
@@ -211,6 +239,14 @@ du -sh ml/output/lora_merged
 
 # Confirm the exported ExecuTorch artifact exists
 ls -lh ml/output/idleharvest_model.pte
+```
+
+### Tear down
+
+Destroy the instance as soon as the export has been verified. Do not leave it running longer than 1 hour.
+
+```bash
+vastai destroy instance <INSTANCE_ID> -y
 ```
 
 The exported model file is written on the Vast.ai instance at:
@@ -274,9 +310,9 @@ The next demo loop should make the full ecosystem visible from training to buyer
 
 - [ ] Re-run Vast.ai export until `ml/output/idleharvest_model.pte` is produced and archived.
 - [ ] Confirm the exported model can be downloaded from a real artifact endpoint instead of a no-op registry.
-- [ ] Add a minimal buyer backend using Ktor or Firebase that simulates demand, orders, and settlement callbacks.
-- [ ] Share common models and business rules between the Android app and backend with Kotlin Multiplatform.
-- [ ] Extend the web landing page with a buyer-side panel or route so the demo shows both sides of the loop.
+- [x] Add a minimal buyer backend using Ktor that simulates demand, orders, and settlement callbacks.
+- [x] Share common models and business rules between the Android app and backend with Kotlin Multiplatform.
+- [x] Extend the web landing page with a buyer-side panel or route so the demo shows both sides of the loop.
 - [ ] Add fake payout and buyer transaction data for demo mode so the ecosystem can be shown without real third-party keys.
 - [ ] Keep the beta APK task Windows-safe and runnable from this repo on any developer machine.
 - [ ] Add backend integration tests for buyer/order/settlement flows.

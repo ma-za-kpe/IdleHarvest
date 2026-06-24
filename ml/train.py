@@ -110,6 +110,11 @@ def main():
     print(f"Merging LoRA weights -> {args.output_dir}")
     os.makedirs(args.output_dir, exist_ok=True)
     merged = model.merge_and_unload()
+    # The merged checkpoint must look like a plain HF model for export tools.
+    # Keep the weights, but strip the 4-bit quantization metadata before saving.
+    if hasattr(merged.config, "quantization_config"):
+        delattr(merged.config, "quantization_config")
+    merged.config.torch_dtype = "float16"
     merged.save_pretrained(args.output_dir)
     tokenizer.save_pretrained(args.output_dir)
     print("Training complete.")
