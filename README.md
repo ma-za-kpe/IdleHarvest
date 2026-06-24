@@ -83,6 +83,58 @@ All agent reasoning, raw telemetry, and personal data remain on-device. The Priv
 - **Policy Engine** — User-controlled guardrails with per-agent autonomy levels and transaction limits
 - **Compliance Engine** — Per-country/carrier rulesets with OTA updates, KYC threshold checks, audit logging
 
+## How To Use The Features
+
+Use the app as a guided demo rather than a hidden background service. The main screens are designed so judges can see the full loop quickly.
+
+### 1. Start from onboarding
+
+- Open the app and complete the onboarding flow.
+- Set your guardrails so the Policy Engine can permit safe autonomous actions.
+- Enable the permissions the app asks for so background scanning can run.
+
+### 2. Watch agent activity on the dashboard
+
+- Open the main dashboard after onboarding.
+- Tap an agent card to open its live inspector.
+- Use that inspector to show the agent state, device posture, mesh status, and the latest settlement signal.
+
+### 3. Exercise resource detection
+
+- The Idle Resource Detection path scans airtime, data bundles, bandwidth, storage, and compute.
+- When resources are available, the corresponding agent card should move into an active or evaluating state.
+- Judges can see the current posture in the dashboard headline and the live inspector.
+
+### 4. Demonstrate airtime monetization
+
+- Show the Airtime Agent on the dashboard.
+- Explain that it watches prepaid airtime and data bundles for expiry or low-usage conditions.
+- When the policy engine allows it, the agent can trigger a sale or transfer before the value expires.
+
+### 5. Demonstrate DePIN sharing
+
+- Show the DePIN Agent card.
+- Explain that it contributes idle bandwidth, storage, or compute only within the user limits.
+- The output is presented as passive earnings rather than opaque background work.
+
+### 6. Demonstrate mesh coordination
+
+- Show the Mesh Coordinator card and the connected peers section.
+- Use that area to explain how nearby devices pool resources over BLE for larger earning opportunities.
+- The live peer roster makes the distributed system visible to the user.
+
+### 7. Demonstrate payments and trust
+
+- Show the earnings summary and recent transactions.
+- Explain that Autonomous Payments settle into the wallet flow via Circle Agent Stack.
+- Point out the Privacy Vault, Hardware Security, Policy Engine, and Compliance Engine as the guardrails that keep the system safe.
+
+### 8. Use the buyer loop
+
+- Open the buyer portal from the landing page.
+- Run the Ktor buyer backend locally if you want the full demo loop.
+- Download the trained `.pte` artifact through the backend route to show that the model asset is real and served end to end.
+
 ## Architecture
 
 ```
@@ -331,6 +383,18 @@ The buyer portal closes the demo loop:
 - the Ktor backend serves model metadata, the trained `.pte`, and buyer settlement responses
 - the dashboard can surface buyer activity as a real signal instead of a fake placeholder
 - judges can follow the full story from training to deployment to simulated demand
+
+## Artifact & Version Management
+
+IdleHarvest keeps source code and build artifacts separate on purpose:
+
+- The trained ExecuTorch `.pte` file is generated locally and served through the backend or release storage.
+- The `.pte` artifact is intentionally not committed to git.
+- The app and backend code that regenerate or download the artifact are versioned in source control.
+- APK tester builds are versioned through Gradle using `versionCode` and `versionName`, with the beta package name and file name derived from those values.
+- When you publish a tester build, use the Gradle distribution task so testers always receive a clearly versioned APK from Firebase App Distribution.
+
+Current app version metadata lives in [`androidApp/build.gradle.kts`](/C:/Users/nampa/AndroidStudioProjects/IdleHarvest/androidApp/build.gradle.kts). The beta output is named from the app version so releases are traceable during judging and bug triage.
 
 ## TODO / Roadmap
 
