@@ -393,6 +393,8 @@ IdleHarvest keeps source code and build artifacts separate on purpose:
 - The app and backend code that regenerate or download the artifact are versioned in source control.
 - APK tester builds are versioned through Gradle using `versionCode` and `versionName`, with the beta package name and file name derived from those values.
 - When you publish a tester build, use the Gradle distribution task so testers always receive a clearly versioned APK from Firebase App Distribution.
+- The distribution task targets the `internal-testers` group by default and can also take an explicit tester list via `-PappDistributionTesters=you@example.com` or `APP_DISTRIBUTION_TESTERS=you@example.com` if you need to force delivery to a specific account.
+- Firebase App Distribution sends testers an onboarding email when a build is shared with them; if a tester does not receive the APK, confirm the exact email is in the tester group, check spam, and make sure the tester accepted the invite for the same Google account.
 
 Current app version metadata lives in [`androidApp/build.gradle.kts`](/C:/Users/nampa/AndroidStudioProjects/IdleHarvest/androidApp/build.gradle.kts). The beta output is named from the app version so releases are traceable during judging and bug triage.
 

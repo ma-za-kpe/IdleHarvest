@@ -107,6 +107,15 @@ tasks.register("buildBetaApk") {
         // Uses the same appId from google-services.json. Runs the upload as part of this task.
         val appId = "1:447391948140:android:6e5cc46727f7ea821fa749"
         val releaseNotes = "Deployed via Gradle buildBetaApk task on ${System.currentTimeMillis()}. From senior audit run. (Debug-signed for beta)"
+        val testerGroups = listOf("internal-testers")
+        val testerEmails =
+            (
+                providers.gradleProperty("appDistributionTesters").orNull
+                    ?: System.getenv("APP_DISTRIBUTION_TESTERS")
+            )?.split(',')
+                ?.map { it.trim() }
+                ?.filter { it.isNotEmpty() }
+                .orEmpty()
         println("Running Firebase App Distribution from Gradle task...")
         val firebaseExecutable =
             if (System.getProperty("os.name").startsWith("Windows", ignoreCase = true)) {
@@ -116,17 +125,28 @@ tasks.register("buildBetaApk") {
             }
         val process =
             ProcessBuilder(
-                firebaseExecutable,
-                "appdistribution:distribute",
-                destFile.absolutePath,
-                "--app",
-                appId,
-                "--groups",
-                "internal-testers",
-                "--release-notes",
-                releaseNotes,
+                buildList {
+                    add(firebaseExecutable)
+                    add("appdistribution:distribute")
+                    add(destFile.absolutePath)
+                    add("--app")
+                    add(appId)
+                    if (testerGroups.isNotEmpty()) {
+                        add("--groups")
+                        add(testerGroups.joinToString(","))
+                    }
+                    if (testerEmails.isNotEmpty()) {
+                        add("--testers")
+                        add(testerEmails.joinToString(","))
+                    }
+                    add("--release-notes")
+                    add(releaseNotes)
+                },
             ).redirectErrorStream(true)
                 .start()
+        if (testerEmails.isNotEmpty()) {
+            println("Direct testers configured: ${testerEmails.joinToString(",")}")
+        }
         process.inputStream.bufferedReader().use { reader ->
             reader.lines().forEach { println(it) }
         }
